@@ -1,5 +1,4 @@
-# man-lasso-boot
-Manuscript for lasso-boot repository.
+# Bootstrap for lasso confidence intervals
 
 The focus of this work is on a method for creating confidence intervals for lasso using a bootstrap-based method.
 
