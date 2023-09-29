@@ -1,0 +1,8 @@
+*.pdf
+*.aux
+*.log
+*.lot
+*.lof
+*.blg
+*.toc
+!fig/*.pdf
