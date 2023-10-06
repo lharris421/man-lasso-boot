@@ -6,3 +6,4 @@
 *.blg
 *.toc
 !fig/*.pdf
+.Rproj.user
