@@ -7,3 +7,6 @@
 *.toc
 !fig/*.pdf
 .Rproj.user
+*.out
+*.Rproj
+lasso-boot.out
