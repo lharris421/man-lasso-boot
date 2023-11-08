@@ -50,55 +50,56 @@ There are various ways to perform a single iteration of a bootstrap, among them 
 
 \logan{Say something about focus on marginal? Use of partial residuals?}
 
-Unfortunately, a Normal likelihood and Laplace prior are not conjugate and in general, the absolute value in the exponent of the Laplace makes many common manipulations for the posterior more difficult. Luckily, however, the marginal posterior can be shown to be a mixture of a right and left truncated normal where the truncation occurs at zero for right and left tails respectively. To obtain a marginal posterior, we use the partial residuals, $\r_{-j}$, in the likelihood. Note that for later steps, it is important to retain the normalizing constants for the posterior. In the steps that follow, we will assume that $\X$ has been standardized s.t. $\x_j^T\x_j = n$. For $\beta_j$,
+Unfortunately, a Normal likelihood and Laplace prior are not conjugate and in general, the absolute value in the exponent of the Laplace makes many common manipulations for the posterior more difficult. Luckily, however, the marginal posterior can be shown to be a mixture of a right and left truncated normal where the truncation occurs at zero for right and left tails respectively. To obtain a marginal posterior, we use the partial residuals, $\r_{-j}$, in the likelihood. In the steps that follow, we will assume that $\X$ has been standardized s.t. $\x_j^T\x_j = n$. For $\beta_j$,
 
 \as{
 L(\beta_j | \r_{-j}) &= (\sigma \sqrt{2\pi})^{-n} \exp(-\frac{1}{2\sigma^2} (n\beta_j^2 - 2\x_{j}^{T}\r_{-j}\beta_j + \r_{-j}^{T}\r_{-j})) \\
-&= (\sigma \sqrt{2\pi})^{-n} \exp(-\frac{n}{2\sigma^2} (\beta_j^2 - 2\z_{j}\beta_j + \R_{j})), \text{ where } \z_{j} = \frac{1}{n} \x_{j}^{T}\r_{-j} \text { and } \R_{j} =  \frac{1}{n}\r_{-j}^{T}\r_{-j}\\
-\Rightarrow P(\beta_j | \r_{-j}) &= (\sigma^2 \sqrt{2\pi})^{-n} \exp(-\frac{n}{2\sigma^2} (\beta_j^2 - 2\z_{j}\beta_j + \R_{j})) \frac{n \lambda}{2 \sigma^2} \exp(-\frac{n \lambda} {\sigma^2} \abs{\beta_j}) \\
-&= (\sigma \sqrt{2\pi})^{-n} ( \frac{n \lambda}{2 \sigma^2} ) \exp(-\frac{n}{2\sigma^2} (\beta_j^2 - 2 \z_{j}\beta_j + \R_{j} +  2 \lambda \abs{\beta_j})) \\
-&= (\sigma \sqrt{2\pi})^{-n} ( \frac{n \lambda}{2 \sigma^2} ) \exp(-\frac{n}{2\sigma^2} (\beta_j^2 - 2(\z_{j}\beta_j - \lambda \abs{\beta_j}) + \R_{j})) \\
+&\propto \exp(-\frac{n}{2\sigma^2} (\beta_j^2 - 2z_j\beta_j)), \text{ where } z_{j} = \frac{1}{n} \x_{j}^{T}\r_{-j} \\
+\Rightarrow P(\beta_j | \r_{-j}) &\propto \exp(-\frac{n}{2\sigma^2} (\beta_j^2 - 2z_{j}\beta_j)) \frac{n \lambda}{2 \sigma^2} \exp(-\frac{n \lambda} {\sigma^2} \abs{\beta_j}) \\
+&\propto \exp(-\frac{n}{2\sigma^2} (\beta_j^2 - 2 z_j\beta_j +  2 \lambda \abs{\beta_j})) \\
+&= \exp(-\frac{n}{2\sigma^2} (\beta_j^2 - 2(z_j\beta_j - \lambda \abs{\beta_j}))) \\
 &= 
 \begin{cases}
-(\sigma \sqrt{2\pi})^{-n} ( \frac{n \lambda}{2 \sigma^2} ) \exp(-\frac{n}{2\sigma^2} (\beta_j^2 - 2(\z_{j} + \lambda)\beta_j + \R_{j})), \text{ if } \beta_j < 0, \\ 
-(\sigma \sqrt{2\pi})^{-n} ( \frac{n \lambda}{2 \sigma^2} ) \exp(-\frac{n}{2\sigma^2} (\beta_j^2 - 2(\z_{j} - \lambda)\beta_j + \R_{j})), \text{ if } \beta_j \geq 0 \\
+\exp(-\frac{n}{2\sigma^2} (\beta_j^2 - 2(z_j + \lambda)\beta_j)), \text{ if } \beta_j < 0, \\ 
+\exp(-\frac{n}{2\sigma^2} (\beta_j^2 - 2(z_j - \lambda)\beta_j )), \text{ if } \beta_j \geq 0 \\
 \end{cases} \\
-&= 
+&\propto
 \begin{cases}
-(\sigma \sqrt{2\pi})^{-n} ( \frac{n \lambda}{2 \sigma^2} ) \exp(-\frac{n}{2\sigma^2}(\R_{j} - (\z_j + \lambda)^2)) \exp(-\frac{n}{2\sigma^2} (\beta_j - (\z_{j} + \lambda))^2), \text{ if } \beta_j < 0, \\ 
-(\sigma \sqrt{2\pi})^{-n} ( \frac{n \lambda}{2 \sigma^2} ) \exp(-\frac{n}{2\sigma^2}(\R_{j} - (\z_j - \lambda)^2)) \exp(-\frac{n}{2\sigma^2} (\beta_j - (\z_{j} - \lambda))^2), \text{ if } \beta_j \geq 0 \\
+C_{-} \exp(-\frac{n}{2\sigma^2} (\beta_j - (z_j + \lambda))^2), \text{ if } \beta_j < 0, \\ 
+C_{+} \exp(-\frac{n}{2\sigma^2} (\beta_j - (z_j - \lambda))^2), \text{ if } \beta_j \geq 0 \\
 \end{cases}
 }
 
-Ignoring the truncation for a moment and focusing on the kernels, we can see that the two distributions above are what we would expect from the lasso solution, having a mean $\z_{j} + \lambda$ and $\z_{j} - \lambda$ respectively and a variance of $\frac{\sigma^2}{n}$. That said, due to the truncation, the variance of the posterior is a bit smaller than this (plot the marginal posterior and this should become immediately clear). Furthermore, a simple mapping allows tail probabilities from the posterior to be translated to probabilities onto corresponding known normal distributions ($\N(0, z_j \pm \lambda, \frac{\sigma^2}{n})$), which is where the normalizing constants above are important. For this translation, we need two pieces of information:
+Where, $C_{-} = \exp(\frac{z_j \lambda n}{\sigma^2})$ and $C_{+} = \exp(-\frac{z_j \lambda n}{\sigma^2})$.
+
+Ignoring the truncation for a moment and focusing on the kernels individually, we can see that the two distributions above are what we would expect from the lasso solution, having a mean $z_j + \lambda$ and $z_j - \lambda$ respectively and a variance of $\frac{\sigma^2}{n}$. That said, due to the truncation, the variance of the posterior is less than or equal to this (plot the marginal posterior and this should become immediately clear). Furthermore, a mapping allows tail probabilities from the posterior to be translated to probabilities onto corresponding known normal distributions ($\N(0, z_j \pm \lambda, \frac{\sigma^2}{n})$). For this translation, we need two pieces of information:
 
 \begin{enumerate}
-\item The non-truncated probability in each of the two normals to transformed on to, denoted $P_{-}$ and $P_{+}$ respectively.
-\item The total density in each of the tails of the posterior, denoted $D_{-}$ and $D_{+}$ respectively. Additionally, let $T = D_{-} + D_{+}$.
-\end{enumerate} 
+\item The non-truncated probability in each of the two normals to transformed on to, denoted $Pr_{-}$ and $Pr_{+}$ respectively.
+\item The probability in each of the tails of the posterior, denoted $Post_{-}$ and $Post_{+}$ respectively.
+\end{enumerate}
 
-Note that for (2), this is just simply the respective values from (1) times by the inverse of the normalizing constant for the respective normal distributions times by the normalizing constant shown above for the posterior. i.e.
+(1) is trivial to compute with any statistical software. Similarly, (2) is conceptually simple, although care must be taken to avoid the pitfall of numerical instability introduced as n increases. \logan{Not sure how much more detail to get into, I think it is common enough?} 
+
+To reduce the number of computational steps, one may note that:
 
 \as{
-D_{\mp} = (\frac{\sigma}{\sqrt{n}}\sqrt{2\pi})(\sigma \sqrt{2\pi})^{-n} ( \frac{n \lambda}{2 \sigma^2} ) \exp(-\frac{n}{2\sigma^2}(\R_{j} - (\z_j \pm \lambda)^2))P_{\mp}
+P(\beta_j | \r_{-j})  & \propto
+\begin{cases}
+C_{-} Pr_{-}, \text{ if } \beta_j < 0, \\ 
+C_{+} Pr_{+}, \text{ if } \beta_j \geq 0 \\
+\end{cases}
 }
 
-With these values, we can compute quantiles by mapping the corresponding probabilities of interest $p_{L}$ and $p_{U}$ for the posterior onto the probabilities $p^*_{L}$ and $p^*_{U}$ for the corresponding normals. Which normal the quantiles of interest ultimately come from is determined based on the values in (2). By taking  $D_{-} / T$ and $D_{+} / T$ we get how much probability is in each tail of the posterior. Then, for example, if $D_{+} / T = .98$ and $\l = .8$ ($p_{L} = .1$ and $p_{U} = .9$), then both $p_{L}$ and $p_{U}$ would be mapped onto the upper normal. As one more example, say $D_{+} / T = .4$, then $p_{L}$ would be mapped onto the lower tail and $p_{U}$ would be mapped onto the upper tail. The transformation to map a given probability from the posterior depends on which tail the quantile resides in on the posterior (equivalently which normal it is being mapped to, the upper or lower). This map is:
+Which implies that $Post_- = \frac{C_{-} Pr_{-}}{C_{-} Pr_{-} + C_{+} Pr_{+}}$ and similarly for $Post_+$. However, to avoid numerical instability, or at least handle it properly when it is unavoidable we need to work on the $\log$ scale. This works well for most of the problem, but computation of $Post_-$ and $Post_+$ need something a bit more since, for example, $\log(Post_-) = \log(C{-}Pr_{-}) - \log(C_{-} Pr_{-} + C_{+} Pr_{+})$. That is, the denominator still must be computed then the $\log$ taken which does not allow operating on the $\log$ scale to fully address potential instability. Instead, $\log(Post_-)$ can be computed with $\log(Pr_-) + \log(C_-) -  \log(Pr_+) + \log(C_+) - \log(1 + \exp(\log(Pr_-) + \log(C_-) -  \log(Pr_+) + \log(C_+)))$. \logan{CONTINUE HERE}.
+
+With these values, we can compute quantiles by mapping the corresponding probabilities of interest $p_{L}$ and $p_{U}$ for the posterior onto the probabilities $p^*_{L}$ and $p^*_{U}$ for the corresponding normals. Which normal the quantiles of interest ultimately come from is determined based on the values in (2). For example, if $Post_{+} = .98$ and $\l = .8$ ($p_{L} = .1$ and $p_{U} = .9$), then both $p_{L}$ and $p_{U}$ would be mapped onto the positive normal. As one more example, say $Post_{+} = .4$, then $p_{L}$ would be mapped onto the lower normal and $p_{U}$ would be mapped onto the upper normal. The transformation to map a given probability from the posterior depends on which tail the quantile resides in on the posterior (equivalently which normal it is being mapped to, the positive or negative). This map is:
 
 \as{
-p^* &= p \times (P_{\mp} / (D_{\mp} / T)) \\
-}
-
-However, because what the values in (2) are needed for is always a ratio between $D_{-}$ or $D_{+}$ and T, we don't actually need to compute the entire normalizing constant for each tail, just the pieces that don't cancel in the ratios. As such, moving forward, any reference to $D_{-}$ or $D_{+}$ will be made assuming all shared terms are discarded. This works out to just leave $C = \exp(\pm \frac{z_j \lambda n}{\sigma^2})$. 
-
-Furthermore, it can be shown that these steps are able to be reduced to not need to compute $D_{\mp}$ at all. Specifically, let
-
-\as{
-A_{\mp} &= (P_{\mp} / (D_{\mp} / T)) = P_{\mp} + P_{\pm}C^{\mp2}, \text{ and, as a direct result, }  \\
-D_{\mp} / T &= P_{\mp} / A_{\mp} 
+p^* &= p \times (Pr_{\pm} / Post_{\pm}) \\
 }
  
-This is important because it cancels out terms that could result in numerical instability. Once this respective probabilities are mapped, one can simply use the inverse of the normal CDFs that the probabilities were mapped to. That being said, there is a nuance worth pointing out. When transforming the probabilities, the step to determine which tail the respective quantile comes from occurs first. With this, the probability should be adjusted so that it refers to the probability between the quantile of interest and the respective tail. After this, then the transformation can be applied. 
+Once this respective probabilities are mapped, one can simply use the inverse of the normal CDFs that the probabilities were mapped to. That being said, there is a nuance worth pointing out. When transforming the probabilities, the step to determine which tail the respective quantile comes from occurs first. With this, the probability should be adjusted so that it refers to the probability between the quantile of interest and the respective tail. After this, then the transformation can be applied. 
 
 \logan{Need a better term for the two halves than tail....}
 
@@ -107,6 +108,8 @@ This solution corresponds to a particular value of $\lam$ and $\hat{\sigma}^2$. 
 \logan{Recommendation for $\lam$? How to actually use this? Personally, I imagine this method to be used as: }
 
 Our recommendation is to use CV to select $\lam$ and produce an estimate for $\sigma^2$ and produce bootstrap confidence intervals corresponding to these values to report.
+
+\logan{Not sure how much focus to put on the conceptual method vs. what actually is being done}
 
 All together this leads to the following steps to perform the bootstrap:
 
@@ -119,8 +122,8 @@ All together this leads to the following steps to perform the bootstrap:
 \item For j $\in \lbrace 1 \ldots p \rbrace$:
 	\begin{enumerate}
 	\item Obtain the partial residuals, $r_{-j}$ and compute $z_j$
-	\item Compute $P_{-}$ = $\Phi(0, z_j + \lam, \frac{\sh^2}{n})$ and $P_{+}$ = $1 - \Phi(0, z_j - \lam, \frac{\sh^2}{n})$
-	\item Compute $A_{-}$ = $P_{-} + \exp(-2n z_j \lam / \sigma^2)P_{+}$ and $A_{+}$ = $P_{+} + \exp(2n z_j \lam / \sigma^2)P_{-}$
+	\item Compute $Pr_{-}$ = $\Phi(0, z_j + \lam, \frac{\sh^2}{n})$ and $Pr_{+}$ = $1 - \Phi(0, z_j - \lam, \frac{\sh^2}{n})$
+	\item Compute $Post_-$ and $Post_+$
 	\item For $p_L$ and $p_U$:
 	\begin{algorithmic}
 		\If{$p_* \leq P_{-} / A_{-}$}
@@ -140,7 +143,7 @@ All together this leads to the following steps to perform the bootstrap:
 \begin{enumerate}
 \item Selective inference
 \begin{enumerate}
-\item Does not work for p > n case
+\item Does not work for $p > n$ case
 \item Only produced CI for variables in active set
 \item Seems cumbersome and unstable as implemented
 \item Unclear recommended selection of $\lam$
@@ -148,13 +151,17 @@ All together this leads to the following steps to perform the bootstrap:
 \end{enumerate}
 \end{enumerate}
 
+\section{Simualtion Studies}
 
-\section{Simulation studies}
-\label{Sec:sim}
+\subsection{Distribution of Beta}
 
-\begin{itemize}
-\item Should discuss interval width, potentially with respect to the "true" interval width. If we can show that the interval width is optimal along with the interval containing the lasso estimate at a high rate, I think this could aid our argument that bias isn't bad
-\end{itemize}
+\subsection{Across Lambda Performance}
+
+\subsection{Epsilon Conundrum}
+\includegraphics[width=\linewidth]{./fig/tmp/bootstrap_quantile_comparison.pdf}
+
+
+
 
 \section{Other Notes}
 
