@@ -1,4 +1,6 @@
-sink("/dev/null")
+#sink("/dev/null")
+res_dir <- switch(Sys.info()['user'],
+                     'pbreheny' = '~/res/lasso-boot')
 
 quietlyLoadPackage <- function(package) {
   suppressPackageStartupMessages(library(package, character.only = TRUE))
@@ -9,7 +11,7 @@ packages <- c("dplyr", "ggplot2", "ncvreg", "gridExtra")
 lapply(packages, quietlyLoadPackage)
 
 ## Load Data
-load("./../lasso-boot/rds/bootstrap_quantile_comparison.rds")
+load(paste0(res_dir, "/rds/bootstrap_quantile_comparison.rds"))
 
 ## Coverage
 c1 <- mean(trad_res$lower <= dat$beta & dat$beta <= trad_res$upper) ## Traditional
@@ -37,4 +39,4 @@ pdf("./fig/tmp/bootstrap_quantile_comparison.pdf", width = 10, height = 6)
 grid.arrange(p1, p2, ncol = 2)
 dev.off()
 
-sink()
+#sink()

@@ -1,4 +1,6 @@
-sink("/dev/null")
+#sink("/dev/null")
+res_dir <- switch(Sys.info()['user'],
+                     'pbreheny' = '~/res/lasso-boot')
 
 quietlyLoadPackage <- function(package) {
   suppressPackageStartupMessages(library(package, character.only = TRUE))
@@ -9,8 +11,7 @@ packages <- c("dplyr", "ggplot2", "scales", "gridExtra")
 lapply(packages, quietlyLoadPackage)
 
 ## Load Data
-load("./../lasso-boot/rds/across_lambda_coverage_laplace.rds")
-
+load(paste0(res_dir, "/rds/across_lambda_coverage_laplace.rds"))
 
 # Create a new transformation for reversed log10
 log10_trans <- function() {
@@ -74,4 +75,4 @@ suppressMessages({
 
 dev.off()
 
-sink()
+#sink()

@@ -5,5 +5,4 @@ lasso-boot.pdf: lasso-boot.tex main.tex $(PDF_FILES)
 
 ## Run R files
 %.pdf: %.R
-	Rscript $<
-
+	@Rscript $< > /dev/null 2>&1
