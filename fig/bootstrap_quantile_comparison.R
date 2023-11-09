@@ -1,8 +1,12 @@
-## Libraries
-library(ggplot2)
-library(dplyr)
-library(ncvreg)
-library(gridExtra)
+sink("/dev/null")
+
+quietlyLoadPackage <- function(package) {
+  suppressPackageStartupMessages(library(package, character.only = TRUE))
+}
+
+packages <- c("dplyr", "ggplot2", "ncvreg", "gridExtra")
+
+lapply(packages, quietlyLoadPackage)
 
 ## Load Data
 load("./../lasso-boot/rds/bootstrap_quantile_comparison.rds")
@@ -33,4 +37,4 @@ pdf("./fig/tmp/bootstrap_quantile_comparison.pdf", width = 10, height = 6)
 grid.arrange(p1, p2, ncol = 2)
 dev.off()
 
-# ggsave("./fig/tmp/bootstrap_quantile_comparison.pdf", plot = grid.arrange(p1, p2, ncol = 2), device = "pdf", width = 10, height = 6)
+sink()

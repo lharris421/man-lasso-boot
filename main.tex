@@ -126,7 +126,7 @@ All together this leads to the following steps to perform the bootstrap:
 	\item Compute $Post_-$ and $Post_+$
 	\item For $p_L$ and $p_U$:
 	\begin{algorithmic}
-		\If{$p_* \leq P_{-} / A_{-}$}
+		\If {$p_* \leq P_{-} / A_{-}$}
 			\State $q_* = \Phi^{-1}(p_* A_{-}, z_j + \lam, \frac{\sh^2}{n})$
 		\Else
 			\State $q_* = \Phi^{-1}(1 - (1 - p_*)A_{+}, z_j - \lam, \frac{\sh^2}{n})$
@@ -138,7 +138,23 @@ All together this leads to the following steps to perform the bootstrap:
 \item For each $\beta_j$, take the average of the $\m$ lower and upper quantiles to produce a final confidence interval estimate
 \end{enumerate}
 
-\section{Comparison to Other Methods}
+\section{Simulation Studies}
+
+\subsection{Overall vs. per-feature coverage}
+
+\subsection{Across \texorpdfstring{$\lambda$}{lambda} Performance}
+
+\subsection{Distribution of Beta}
+
+Sparse vs. dense, may not need? Or just show general patterns are the same?
+
+\subsection{Epsilon Conundrum (Comparison to Traditional Quantile Bootstrap)}
+\includegraphics[width=\linewidth]{./fig/tmp/bootstrap_quantile_comparison.pdf}
+
+\subsection{Correlated Features (Comparison to Ridge)}
+
+
+\subsection{Comparison to Other Methods}
 
 \begin{enumerate}
 \item Selective inference
@@ -149,19 +165,8 @@ All together this leads to the following steps to perform the bootstrap:
 \item Unclear recommended selection of $\lam$
 \item Non-finite endpoints not uncommon
 \end{enumerate}
+\item{Bootstrap Lasso Projection}
 \end{enumerate}
-
-\section{Simualtion Studies}
-
-\subsection{Distribution of Beta}
-
-\subsection{Across Lambda Performance}
-
-\subsection{Epsilon Conundrum}
-\includegraphics[width=\linewidth]{./fig/tmp/bootstrap_quantile_comparison.pdf}
-
-
-
 
 \section{Other Notes}
 
