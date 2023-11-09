@@ -58,14 +58,14 @@ L(\beta_j | \r_{-j}) &= (\sigma \sqrt{2\pi})^{-n} \exp(-\frac{1}{2\sigma^2} (n\b
 \Rightarrow P(\beta_j | \r_{-j}) &\propto \exp(-\frac{n}{2\sigma^2} (\beta_j^2 - 2z_{j}\beta_j)) \frac{n \lambda}{2 \sigma^2} \exp(-\frac{n \lambda} {\sigma^2} \abs{\beta_j}) \\
 &\propto \exp(-\frac{n}{2\sigma^2} (\beta_j^2 - 2 z_j\beta_j +  2 \lambda \abs{\beta_j})) \\
 &= \exp(-\frac{n}{2\sigma^2} (\beta_j^2 - 2(z_j\beta_j - \lambda \abs{\beta_j}))) \\
-&= 
+&=
 \begin{cases}
-\exp(-\frac{n}{2\sigma^2} (\beta_j^2 - 2(z_j + \lambda)\beta_j)), \text{ if } \beta_j < 0, \\ 
+\exp(-\frac{n}{2\sigma^2} (\beta_j^2 - 2(z_j + \lambda)\beta_j)), \text{ if } \beta_j < 0, \\
 \exp(-\frac{n}{2\sigma^2} (\beta_j^2 - 2(z_j - \lambda)\beta_j )), \text{ if } \beta_j \geq 0 \\
 \end{cases} \\
 &\propto
 \begin{cases}
-C_{-} \exp(-\frac{n}{2\sigma^2} (\beta_j - (z_j + \lambda))^2), \text{ if } \beta_j < 0, \\ 
+C_{-} \exp(-\frac{n}{2\sigma^2} (\beta_j - (z_j + \lambda))^2), \text{ if } \beta_j < 0, \\
 C_{+} \exp(-\frac{n}{2\sigma^2} (\beta_j - (z_j - \lambda))^2), \text{ if } \beta_j \geq 0 \\
 \end{cases}
 }
@@ -79,14 +79,14 @@ Ignoring the truncation for a moment and focusing on the kernels individually, w
 \item The probability in each of the tails of the posterior, denoted $Post_{-}$ and $Post_{+}$ respectively.
 \end{enumerate}
 
-(1) is trivial to compute with any statistical software. Similarly, (2) is conceptually simple, although care must be taken to avoid the pitfall of numerical instability introduced as n increases. \logan{Not sure how much more detail to get into, I think it is common enough?} 
+(1) is trivial to compute with any statistical software. Similarly, (2) is conceptually simple, although care must be taken to avoid the pitfall of numerical instability introduced as n increases. \logan{Not sure how much more detail to get into, I think it is common enough?}
 
 To reduce the number of computational steps, one may note that:
 
 \as{
 P(\beta_j | \r_{-j})  & \propto
 \begin{cases}
-C_{-} Pr_{-}, \text{ if } \beta_j < 0, \\ 
+C_{-} Pr_{-}, \text{ if } \beta_j < 0, \\
 C_{+} Pr_{+}, \text{ if } \beta_j \geq 0 \\
 \end{cases}
 }
@@ -98,8 +98,8 @@ With these values, we can compute quantiles by mapping the corresponding probabi
 \as{
 p^* &= p \times (Pr_{\pm} / Post_{\pm}) \\
 }
- 
-Once this respective probabilities are mapped, one can simply use the inverse of the normal CDFs that the probabilities were mapped to. That being said, there is a nuance worth pointing out. When transforming the probabilities, the step to determine which tail the respective quantile comes from occurs first. With this, the probability should be adjusted so that it refers to the probability between the quantile of interest and the respective tail. After this, then the transformation can be applied. 
+
+Once this respective probabilities are mapped, one can simply use the inverse of the normal CDFs that the probabilities were mapped to. That being said, there is a nuance worth pointing out. When transforming the probabilities, the step to determine which tail the respective quantile comes from occurs first. With this, the probability should be adjusted so that it refers to the probability between the quantile of interest and the respective tail. After this, then the transformation can be applied.
 
 \logan{Need a better term for the two halves than tail....}
 
@@ -143,6 +143,9 @@ All together this leads to the following steps to perform the bootstrap:
 \subsection{Overall vs. per-feature coverage}
 
 \subsection{Across \texorpdfstring{$\lambda$}{lambda} Performance}
+\includegraphics[width=\linewidth]{./fig/tmp/across_lambda_coverage_laplace.pdf}
+
+\includegraphics[width=\linewidth]{./fig/tmp/across_lambda_coverage_sparse.pdf}
 
 \subsection{Distribution of Beta}
 
@@ -168,11 +171,9 @@ Sparse vs. dense, may not need? Or just show general patterns are the same?
 \item{Bootstrap Lasso Projection}
 \end{enumerate}
 
-\section{Other Notes}
+\section{Citation Example}
+\cite{Tibshirani1996} (the example citation) is now working
 
-\begin{itemize}
-\item \cite{Tibshirani1996} (the example citation) is not working for me.
-\end{itemize}
 
 \section{Real data}
 
