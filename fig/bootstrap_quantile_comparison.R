@@ -1,6 +1,6 @@
-#sink("/dev/null")
 res_dir <- switch(Sys.info()['user'],
-                     'pbreheny' = '~/res/lasso-boot')
+                     'pbreheny' = '~/res/lasso-boot',
+                      'loganharris' = '../lasso-boot')
 
 quietlyLoadPackage <- function(package) {
   suppressPackageStartupMessages(library(package, character.only = TRUE))
@@ -8,6 +8,7 @@ quietlyLoadPackage <- function(package) {
 
 packages <- c("dplyr", "ggplot2", "ncvreg", "gridExtra")
 
+.libPaths(paste0(res_dir, "/local"))
 lapply(packages, quietlyLoadPackage)
 
 ## Load Data
@@ -35,8 +36,6 @@ p1 <- trad_res %>%
 p2 <- plot(lasso_boot, n = 60) +
   ggtitle(paste0("Lasso Bootstrap - Coverage: ", round(c2 * 100, 1), "%"))
 
-pdf("./fig/tmp/bootstrap_quantile_comparison.pdf", width = 10, height = 6)
+pdf("./fig/bootstrap_quantile_comparison.pdf", width = 10, height = 6)
 grid.arrange(p1, p2, ncol = 2)
 dev.off()
-
-#sink()

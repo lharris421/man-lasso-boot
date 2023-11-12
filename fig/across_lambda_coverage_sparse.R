@@ -1,13 +1,14 @@
-#sink("/dev/null")
 res_dir <- switch(Sys.info()['user'],
-                     'pbreheny' = '~/res/lasso-boot')
+                  'pbreheny' = '~/res/lasso-boot',
+                  'loganharris' = '../lasso-boot')
 
 quietlyLoadPackage <- function(package) {
   suppressPackageStartupMessages(library(package, character.only = TRUE))
 }
 
-packages <- c("dplyr", "ggplot2", "scales", "gridExtra")
+packages <- c("dplyr", "ggplot2", "ncvreg", "gridExtra", "scales")
 
+.libPaths(paste0(res_dir, "/local"))
 lapply(packages, quietlyLoadPackage)
 
 ## Load Data
@@ -78,10 +79,8 @@ make_plot <- function(plot_res) {
 suppressMessages({
 plots <- lapply(plot_res, make_plot)
 
-pdf("./fig/tmp/across_lambda_coverage_sparse.pdf", width = 10, height = 10)
+pdf("./fig/across_lambda_coverage_sparse.pdf", width = 10, height = 10)
   grid.arrange(grobs = plots, ncol = 1)
 })
 
 dev.off()
-
-#sink()
