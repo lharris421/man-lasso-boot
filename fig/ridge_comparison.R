@@ -6,8 +6,9 @@ quietlyLoadPackage <- function(package) {
   suppressPackageStartupMessages(library(package, character.only = TRUE))
 }
 
-packages <- c("dplyr", "tidyr", "ggplot2", "gridExtra", "scales")
+packages <- c("dplyr", "tidyr", "ggplot2", "gridExtra", "scales", "ncvreg")
 
+.libPaths(paste0(res_dir, "/local"))
 lapply(packages, quietlyLoadPackage)
 
 ## Load Data
