@@ -6,7 +6,6 @@
 *.lof
 *.blg
 *.toc
-!fig/*.pdf
 .Rproj.user
 *.out
 *.Rproj
