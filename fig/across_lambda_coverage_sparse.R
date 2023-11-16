@@ -21,6 +21,7 @@ log10_trans <- function() {
             inverse = function(x) 10^(-x))
 }
 
+scaleFUN <- function(x) sprintf("%.1f", x)
 
 make_plot <- function(plot_res) {
 
@@ -47,8 +48,6 @@ make_plot <- function(plot_res) {
   coverages$scaled_coverage <- coverages$coverage * (scaling_factor / 1)
   coverages_each$scaled_coverage <- coverages_each$coverage * (scaling_factor / 1)
 
-  print(tail(coverages_each))
-
   ## "Selected via CV" = "blue", "Truth" = "red"
   ggplot() +
     scale_x_continuous(trans = log10_trans(),
@@ -68,11 +67,13 @@ make_plot <- function(plot_res) {
       name = "Interval Width",
       sec.axis = sec_axis(~ ., name = "Overall Coverage",
                           breaks = seq(0, scaling_factor, by = scaling_factor/10),
-                          labels = seq(0, 1, by = .10))
+                          labels = seq(0, 1, by = .10)),
+      labels=scaleFUN
     ) +
     theme(axis.line.y.right = element_line(color = "darkgrey"),
           axis.ticks.y.right = element_line(color = "darkgrey")) +
-    ggtitle(paste0("N = ", n))
+    ggtitle(paste0("N = ", n)) +
+    coord_cartesian(xlim = c(10^(.5), 10^(-2.6)))
 
 }
 

@@ -21,6 +21,7 @@ log10_trans <- function() {
             inverse = function(x) 10^(-x))
 }
 
+scaleFUN <- function(x) sprintf("%.1f", x)
 
 make_plot <- function(plot_res) {
 
@@ -33,8 +34,6 @@ make_plot <- function(plot_res) {
     mutate(covered = truth >= lower & truth <= upper) %>%
     group_by(lambda) %>%
     summarise(coverage = mean(covered))
-
-  print(coverages)
 
   # Create a scaling factor based on the range of the primary axis
   scaling_factor <- max(plot_data$width)
@@ -59,17 +58,20 @@ make_plot <- function(plot_res) {
       name = "Interval Width",
       sec.axis = sec_axis(~ ., name = "Overall Coverage",
                           breaks = seq(0, scaling_factor, by = scaling_factor/10),
-                          labels = seq(0, 1, by = .10))
+                          labels = seq(0, 1, by = .10)),
+      labels=scaleFUN
     ) +
     theme(axis.line.y.right = element_line(color = "darkgrey"),
           axis.ticks.y.right = element_line(color = "darkgrey")) +
-    ggtitle(paste0("N = ", n))
+    ggtitle(paste0("N = ", n))  +
+    coord_cartesian(xlim = c(10^(.45), 10^(-2.65)))
+  ## Adjuist y axis rounding
 
 }
 
 plots <- lapply(plot_res, make_plot)
 
-pdf("./fig/across_lambda_coverage_laplace.pdf", width = 10, height = 10)
+pdf("./fig/across_lambda_coverage_laplace.pdf", width = 10, height = 11)
 suppressMessages({
   grid.arrange(grobs = plots, ncol = 1)
 })
