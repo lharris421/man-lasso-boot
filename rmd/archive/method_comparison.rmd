@@ -1,0 +1,357 @@
+---
+title: "Method Comparison"
+author: "Logan Harris"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE)
+
+res_dir <- switch(Sys.info()['user'],
+                  'pbreheny' = '~/res/lasso-boot',
+                  'loganharris' = '/Users/loganharris/github/lasso-boot')
+
+## Libraries
+library(knitr)
+library(kableExtra)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(ncvreg)
+library(gridExtra)
+library(scales)
+library(hdrm)
+```
+
+# General notes
+
+- In all cases the nominal coverage is 80%.
+
+- Except for **Comparison #3**, I allow $\lambda$ to be selected by CV. 
+
+# Methods
+
+Yeah... my naming is sub optimal as usual but here are the methods:
+
+**Original**: 
+
+This is the interval finding method up until our last meeting (average of lower and upper bounds).
+
+**Combined**: 
+
+This is the method you (Patrick, unless someone else is reading this) suggested where each time we get the lower and upper quantiles, but put them all together to get 2B samples for each $\beta_j$ and use this to build the final interval.
+
+**Sample**: 
+
+Is where for each bootstrap I randomly sample 10 points from each marginal posterior to get 10B bootstrap samples for each $\beta_j$ and use this to build the CI by taking the .1 and .9 quantiles.
+
+**Bayes**: 
+
+Is a fully Bayesian implementation from `monomvn` (https://cran.r-project.org/web/packages/monomvn/index.html), I may explore some other packages more if this is of interest in the future (although 2 of 3 other packages I found also claim to be implementations from the 2008 Park and Casella paper, and `monomvn` seemed to be most straight forward; the other I came across was an EB implementation). I'll say, in the simulations below, this was underwhelming. There is a always chance I am not doing something correctly, or rather, not utilizing the method to its fullest potential.
+
+For the plots below note that the "estimate" I am using is the median of the draws. For this method, I just set an initial value of $\lambda$, but it is possible to set it and have it fixed (which is what I do in comparison #3). Mainly wanted this to compare direct intervals (as in Comparison # 1), but also include it in the other two comparisons.
+
+# Comparison #1: Ridge
+
+Here, the setup is n = 100, p = 10, but A1 and B1 have $\rho = .99$ and B1 = N1 = ... = N8 = 0.
+
+The left side plots are the lower and upper bounds for A1, B1, and N1 across 100 simulated datasets.
+
+The right side plots are one example of the intervals produced on 1 simulated dataset.
+
+The method used is on the y-axis of the left side plots.
+
+### n = 40
+
+![](../fig/lassoboot_method_comparison_highcorr_100_n40.png)
+
+### n = 100
+
+![](../fig/lassoboot_method_comparison_highcorr_100_n100.png)
+
+## Notes
+
+- **Original method**: It just happened to be that the randomly selected single example has an interval that looks more like we would hope, but we can see from the boxplots that is is more the exception than the rule.
+- The full Bayesian method seems reasonable here but coverage of B1 is low (look closely at the lower bound box plot for B1). This is not the case for either of the two new methods but is for the Original and for Ridge. Not necessarily saying that coverage of B1 is paramount, but I do like the wider intervals that cover B1 (and respectively do a better job covering A1).
+
+# Comparison #2: Laplace
+
+The data here are generated under independence with the true values of $\beta$ following a laplace distribution.
+
+p = 30
+
+n = 20, 30, 60
+
+For each n, I generated 100 different datasets and for each dataset, performed each method to determine intervals (i.e. 100 bootstrap samples per dataset) and then for each $\beta_j$ determined if the interval covered the true value or not.
+
+The plots below are a predicted values from binomial glmms (random intercept on simulation iteration) to get an idea of the coverage across magnitudes of $\beta$. Probably a bit overkill. 
+
+
+```{r, warning = FALSE, message=FALSE, echo = FALSE, fig.width=8}
+## Load Data
+load(paste0(res_dir, "/rds/method_comparison_lasso_sim.rds"))
+
+ns <- c(20, 30, 60)
+
+plots <- list()
+for (j in 1:3) {
+
+  all_coverages_i <- all_coverages[[j]]
+  model_res <- do.call(rbind, all_coverages_i) %>%
+    data.frame() %>%
+    pivot_longer(lasso_original:lasso_sample, names_to = "method", values_to = "covered") %>%
+    mutate(mag_truth = abs(truth), covered = as.numeric(covered))
+
+  library(lme4)
+
+  methods <- unique(model_res$method)
+  line_data <- list()
+  for (i in 1:length(methods)) {
+    tmp <- model_res %>%
+      filter(method == methods[i])
+
+    fit <- lme4::glmer(covered ~ mag_truth + (1|group), data = tmp, family = binomial)
+    xs <- seq(0, 4, by = .1)
+    ys <- predict(fit, data.frame(mag_truth = xs, group = 101), type ="response", allow.new.levels = TRUE)
+    line_data[[i]] <- data.frame(x = xs, y = ys, method = methods[i])
+  }
+
+  line_data <- do.call(rbind, line_data)
+
+
+  print(ggplot() +
+    geom_line(data = line_data, aes(x = x, y = y, color = method)) +
+    theme_bw() +
+    xlab(expression(abs(beta))) +
+    ylab("Coverage") +
+    ggtitle(paste0("N: ", ns[j])))
+
+
+}
+```
+
+
+The tables below are the mean and sd across the 100 simulations. For the coverage / widths it is the mean of the average over all $\beta$s for each simulated dataset. 
+
+
+```{r, echo = FALSE}
+rownames(res_width) <- rownames(res_lambda) <- rownames(res_coverage) <- rownames(res_time) <- c(20, 30, 60)
+colnames(res_width) <- colnames(res_lambda) <- colnames(res_coverage) <- colnames(res_time) <- c("Original", "Combined", "Sample")
+kable(res_coverage, caption = "Average Coverage [mean (sd)]", booktabs = T) %>%
+                  kable_styling(full_width = T)
+kable(res_time, caption = "Average Runtime (seconds) [mean (sd)]", booktabs = T) %>%
+                  kable_styling(full_width = T)
+kable(res_width, caption = "Average Widths [mean (sd)]", booktabs = T) %>%
+                  kable_styling(full_width = T)
+kable(res_lambda, caption = "Average Lambdas [mean (sd)]", booktabs = T) %>%
+                  kable_styling(full_width = T)
+```
+
+Part of my concern with the fully Bayesian implimentation was how large of values of lambda were (there I took the median from the posterior draws for each simulated dataset). 
+
+# Comparison #3: Sparse
+
+n: 50, 100, 150, 200
+
+p: 100
+
+For this set up, I am just simulating 1 dataset for each value of N. Then I am producing interval estimates across the range of lambda values and plotting their interval width (points and left axis) and their coverage per magnitude of $\beta$ (lines and right axis).
+
+Notes:
+
+  1. I did check and it really is the case that with n = 50, the lambda with the lowest CVE is the smallest lambda (see **Appendix**)
+  
+  2. The fully bayesian method really starts to show its limitations here. It takes about 3 minutes to produce an interval.
+
+```{r, collapse = TRUE, echo = FALSE}
+# Create a new transformation for reversed log10
+log10_trans <- function() {
+  trans_new(name = 'rev_log10',
+            transform = function(x) -log10(x),
+            inverse = function(x) 10^(-x))
+}
+
+scaleFUN <- function(x) sprintf("%.1f", x)
+
+make_plot <- function(plot_res) {
+
+  plot_data <- plot_res$plot_data
+  lambda_min <- plot_res$lambda_min
+  n <- plot_res$n
+
+  coverages <- plot_data %>%
+    mutate(covered = truth >= lower & truth <= upper) %>%
+    group_by(lambda) %>%
+    summarise(coverage = mean(covered)) %>%
+    ungroup()
+
+  coverages_each <- plot_data %>%
+    mutate(covered = truth >= lower & truth <= upper) %>%
+    group_by(lambda, mag = abs(truth)) %>%
+    summarise(coverage = mean(covered)) %>%
+    ungroup()
+
+  # Create a scaling factor based on the range of the primary axis
+  scaling_factor <- max(plot_data$width)
+
+  # Scale the 'coverage' data for plotting with 'geom_smooth()'
+  coverages$scaled_coverage <- coverages$coverage * (scaling_factor / 1)
+  coverages_each$scaled_coverage <- coverages_each$coverage * (scaling_factor / 1)
+
+  ## "Selected via CV" = "blue", "Truth" = "red"
+  ggplot() +
+    scale_x_continuous(trans = log10_trans(),
+                       breaks = trans_breaks('log10', function(x) 10^x),
+                       labels = trans_format('log10', math_format(10^.x))) +
+    geom_vline(xintercept = lambda_min, linetype = "dashed", color = "blue", linewidth = .5) +
+    # geom_smooth(data = coverages, aes(x = lambda, y = scaled_coverage), se = FALSE, color = "grey") +
+    geom_line(data = coverages, aes(x = lambda, y = scaled_coverage), color = "grey") +
+    geom_line(data = coverages_each, aes(x = lambda, y = scaled_coverage, group = mag, color = as.character(mag))) +
+    # geom_smooth(data = coverages_each, aes(x = lambda, y = scaled_coverage, group = mag, color = as.character(mag)), se = FALSE, method = "glm", method.args=list(family=binomial)) +
+    geom_jitter(data = plot_data, aes(x = lambda, y = width, color = as.character(abs(truth))), alpha = .7, width = .05) +
+    xlab(expression(lambda)) + ylab("Interval Width") +
+    theme_bw() +
+    # scale_color_gradient(name = expression(abs(beta)), low = "lightgrey", high = "black") +
+    scale_color_discrete(name = expression(abs(beta))) +
+    scale_y_continuous(
+      name = "Interval Width",
+      sec.axis = sec_axis(~ ., name = "Overall Coverage",
+                          breaks = seq(0, scaling_factor, by = scaling_factor/10),
+                          labels = seq(0, 1, by = .10)),
+      labels=scaleFUN
+    ) +
+    theme(axis.line.y.right = element_line(color = "darkgrey"),
+          axis.ticks.y.right = element_line(color = "darkgrey")) +
+    ggtitle(paste0("N = ", n)) +
+    coord_cartesian(xlim = c(10^(.75), 10^(-2.6)))
+
+}
+```
+
+
+## Original
+
+```{r}
+load(paste0(res_dir, "/rds/across_lambda_coverage_sparse_original.rds"))
+lapply(plot_res, make_plot)
+```
+
+## Combined
+
+```{r}
+load(paste0(res_dir, "/rds/across_lambda_coverage_sparse_combined.rds"))
+lapply(plot_res, make_plot)
+```
+
+My main convern here was that the interval widths seem to wide now, but maybe I am just being over sensitive, but a wider interval is something we see across each of the other two scenarios as well. Anyway, if we randomly sample 10 points the intervals narrow slightly.
+
+## Sample
+
+```{r}
+load(paste0(res_dir, "/rds/across_lambda_coverage_sparse_sample.rds"))
+lapply(plot_res, make_plot)
+```
+
+# Comparison #3: Laplace
+
+n: 50, 100, 150, 200
+
+p: 100
+
+For this set up, I am just simulating 1 dataset for each value of N. Then I am producing interval estimates across the range of lambda values and plotting their interval width (points and left axis) and their coverage per magnitude of $\beta$ (lines and right axis).
+
+Notes:
+
+  1. I did check and it really is the case that with n = 50, the lambda with the lowest CVE is the smallest lambda (see **Appendix**)
+  
+  2. The fully bayesian method really starts to show its limitations here. It takes about 3 minutes to produce an interval.
+
+```{r, collapse = TRUE, echo = FALSE}
+make_plot <- function(plot_res) {
+
+  plot_data <- plot_res$plot_data
+  lambda_min <- plot_res$lambda_min
+  true_lambda <- plot_res$true_lambda
+  n <- plot_res$n
+
+  coverages <- plot_data %>%
+    mutate(covered = truth >= lower & truth <= upper) %>%
+    group_by(lambda) %>%
+    summarise(coverage = mean(covered)) %>%
+    ungroup()
+
+  # Create a scaling factor based on the range of the primary axis
+  scaling_factor <- max(plot_data$width)
+
+  # Scale the 'coverage' data for plotting with 'geom_smooth()'
+  coverages$scaled_coverage <- coverages$coverage * (scaling_factor / 1)
+
+  ## "Selected via CV" = "blue", "Truth" = "red"
+  ggplot() +
+    scale_x_continuous(trans = log10_trans(),
+                       breaks = trans_breaks('log10', function(x) 10^x),
+                       labels = trans_format('log10', math_format(10^.x))) +
+    geom_vline(xintercept = lambda_min, linetype = "dashed", color = "blue", linewidth = .5) +
+    geom_vline(xintercept = true_lambda, linetype = "dashed", color = "red", linewidth = .5) +
+    geom_line(data = coverages, aes(x = lambda, y = scaled_coverage), color = "grey") +
+    geom_jitter(data = plot_data, aes(x = lambda, y = width), alpha = .7, width = .05) +
+    xlab(expression(lambda)) + ylab("Interval Width") +
+    theme_bw() +
+    scale_color_discrete(name = expression(abs(beta))) +
+    scale_y_continuous(
+      name = "Interval Width",
+      sec.axis = sec_axis(~ ., name = "Overall Coverage",
+                          breaks = seq(0, scaling_factor, by = scaling_factor/10),
+                          labels = seq(0, 1, by = .10)),
+      labels=scaleFUN
+    ) +
+    theme(axis.line.y.right = element_line(color = "darkgrey"),
+          axis.ticks.y.right = element_line(color = "darkgrey")) +
+    ggtitle(paste0("N = ", n)) +
+    coord_cartesian(xlim = c(10^(.75), 10^(-2.6)))
+
+}
+```
+
+
+## Original
+
+```{r}
+load(paste0(res_dir, "/rds/across_lambda_coverage_laplace_original.rds"))
+lapply(plot_res, make_plot)
+```
+
+## Combined
+
+```{r}
+load(paste0(res_dir, "/rds/across_lambda_coverage_laplace_combined.rds"))
+lapply(plot_res, make_plot)
+```
+
+My main convern here was that the interval widths seem to wide now, but maybe I am just being over sensitive, but a wider interval is something we see across each of the other two scenarios as well. Anyway, if we randomly sample 10 points the intervals narrow slightly.
+
+## Sample
+
+```{r}
+load(paste0(res_dir, "/rds/across_lambda_coverage_laplace_sample.rds"))
+lapply(plot_res, make_plot)
+```
+
+
+# Appendix
+
+## CV select smallest lambda (sparse)
+
+```{r}
+my_seed <- 189807771
+set.seed(my_seed)
+
+sparse_beta <- c(rep(-2, 5), rep(-1, 5), rep(2, 5), rep(1, 5), rep(0, 80))
+dat <- gen_data(n = 50, p = 100, beta = sparse_beta)
+
+cv_fit <- cv.ncvreg(dat$X, dat$y, penalty = "lasso", lambda.min = 0.001)
+plot(cv_fit)
+```
+
+

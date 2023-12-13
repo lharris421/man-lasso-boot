@@ -1,3 +1,4 @@
+rm(list=ls())
 res_dir <- switch(Sys.info()['user'],
                   'pbreheny' = '~/res/lasso-boot',
                   'loganharris' = '../lasso-boot')
@@ -73,15 +74,16 @@ make_plot <- function(plot_res) {
     theme(axis.line.y.right = element_line(color = "darkgrey"),
           axis.ticks.y.right = element_line(color = "darkgrey")) +
     ggtitle(paste0("N = ", n)) +
-    coord_cartesian(xlim = c(10^(.5), 10^(-2.6)))
+    coord_cartesian(xlim = c(10^(.55), 10^(-2.55)))
 
 }
 
 suppressMessages({
-plots <- lapply(plot_res, make_plot)
-
-pdf("./fig/across_lambda_coverage_sparse.pdf", width = 10, height = 10)
+  plots <- lapply(plot_res, make_plot)
+  pdf("./fig/across_lambda_coverage_sparse.pdf", width = 8, height = 11)
   grid.arrange(grobs = plots, ncol = 1)
+  dev.off()
+  png("./fig/across_lambda_coverage_sparse.png", width = 800, height = 1100)
+  grid.arrange(grobs = plots, ncol = 1)
+  dev.off()
 })
-
-dev.off()

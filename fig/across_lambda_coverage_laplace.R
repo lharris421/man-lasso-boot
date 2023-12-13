@@ -1,3 +1,4 @@
+rm(list=ls())
 res_dir <- switch(Sys.info()['user'],
                   'pbreheny' = '~/res/lasso-boot',
                   'loganharris' = '../lasso-boot')
@@ -71,9 +72,11 @@ make_plot <- function(plot_res) {
 
 plots <- lapply(plot_res, make_plot)
 
-pdf("./fig/across_lambda_coverage_laplace.pdf", width = 10, height = 11)
 suppressMessages({
+  pdf("./fig/across_lambda_coverage_laplace.pdf", width = 8, height = 11)
   grid.arrange(grobs = plots, ncol = 1)
+  dev.off()
+  png("./fig/across_lambda_coverage_laplace.png", width = 800, height = 1100)
+  grid.arrange(grobs = plots, ncol = 1)
+  dev.off()
 })
-
-dev.off()
