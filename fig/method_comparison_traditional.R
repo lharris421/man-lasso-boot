@@ -38,7 +38,6 @@ p2 <- plot(lasso_boot, n = 60) +
   ggtitle(paste0("Lasso Bootstrap - Coverage: ", round(c2 * 100, 1), "%"))
 
 suppressMessages({
-  plots <- lapply(plot_res, make_plot)
   pdf("./fig/method_comparison_traditional.pdf", width = 10, height = 6)
   grid.arrange(p1, p2, ncol = 2)
   dev.off()

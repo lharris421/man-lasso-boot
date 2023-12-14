@@ -80,10 +80,10 @@ make_plot <- function(plot_res) {
 
 suppressMessages({
   plots <- lapply(plot_res, make_plot)
-  pdf("./fig/across_lambda_coverage_sparse.pdf", width = 8, height = 11)
+  pdf("./fig/across_lambda_coverage_sparse.pdf", width = 6, height = 7)
   grid.arrange(grobs = plots, ncol = 1)
   dev.off()
-  png("./fig/across_lambda_coverage_sparse.png", width = 800, height = 1100)
+  png("./fig/across_lambda_coverage_sparse.png", width = 600, height = 700)
   grid.arrange(grobs = plots, ncol = 1)
   dev.off()
 })

@@ -6,6 +6,7 @@
 *.lof
 *.blg
 *.toc
+*.png
 .Rproj.user
 *.out
 *.Rproj

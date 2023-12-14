@@ -5,13 +5,13 @@ The prevailing opinion is that the traditional use of bootstrapping to produce c
 Specifically, we see two potential problems that arise when proposing to use bootstrapping for penalized regression, we will refer to these obstacles as,
 
 \begin{enumerate}
-\item the shrinkage problem, and
-\item the point mass problem.
+\item the Bias Tradeoff, and \logan{Better term?}
+\item the Epsilon Conundrum.
 \end{enumerate}
 
-The shrinkage problem refers to the bias introduced by penalization. This penalization leads to coverages much higher than nominal coverage rates for coefficients with true values at or very near zero and leads to much lower coverage when coefficients are non-zero. We argue that coverage in the traditional sense is too ridged of a paradigm to apply to penalized regression inference. Instead, we offer a different perspective and argue that the impact that penalization induced bias has is an inherent feature of penalized regression rather than a flaw. Since high dimensional problems often necessitate such an alternate approach, we offer guidance on how to interpret the confidence intervals for lasso as presented in this paper.
+The Bias Tradeoff refers to the inherent bias introduced by penalization in order to be able to fit oversaturated models. This penalization leads to coverages much higher than nominal coverage rates for coefficients with true values at or very near zero and leads to much lower coverage when coefficients are non-zero. We argue that coverage in the traditional sense is too ridged of a paradigm to apply to penalized regression inference. Instead, we offer a different perspective and argue that the impact that penalization induced bias has is an inherent feature of penalized regression rather than a flaw. Since high dimensional problems often necessitate such an alternate approach, we offer guidance on how to interpret the confidence intervals for lasso as presented in this paper. Additionally, we compare the proposed method to two other inferential methods which take a different perspective.
 
-The second problem, the point pass problem, is related to the shrinkage problem but arises as an arguably more disturbing manifestation: confidence intervals of length zero. Some penalized regression methods, particularly the lasso, often results in a sparse solution. If using a traditional quantile based bootstrap confidence interval, this will lead to an interval of [0,0] if a given variable is rarely or never included in the model \logan{Maybe this is better termed "active set" or "selected"}. As the dimensionality of the problem grows, this becomes an increasing occurrence leading to a large majority of intervals possessing a length of zero. When the true value of the coefficient is 0, the interval at least contains the truth. However, this issue is particularly troublesome when one considers what happens when the true value is not precisely zero, as is likely the case in most reasonable scenarios. By just shifting the true value by $\eps$, an immediate drop in coverage would occur.
+The second problem, the Epsilon Conundrum, is also related to the shrinkage but arises as an arguably more disturbing manifestation: confidence intervals of length zero or, more often, with a single endpoint that is exactly zero. Some penalized regression methods, particularly the lasso, often result in a sparse solution. If using a traditional quantile based bootstrap confidence interval, this will lead to an interval of [0,0] if a given variable is rarely or never included in the active set. As the dimensionality of the problem grows, this becomes an increasing occurrence leading to a large majority of intervals possessing a length of zero. When the true value of the coefficient is 0, the interval at least contains the truth. However, this issue is particularly troublesome when one considers what happens when the true value is not precisely zero, as is likely the case in most reasonable scenarios. By just shifting the true value by $\eps$, an immediate drop in coverage would occur, hence the name: the Epsilon Conundrum.
 
 The later of these two problems is addressed in our novel approach to producing bootstrap based confidence intervals for the lasso.
 
@@ -29,11 +29,11 @@ We propose leveraging this relationship to build confidence intervals for $\bb$.
 \item Obtain a bootstrap sample of $\X$ and $\y$
 \item For each $\beta_j$:
 	\begin{enumerate}
-	\item Obtain the marginal posterior for $\beta_j$
-	\item Compute the quantiles for $p_{L} = (.5 - \l/2)$ and $p_{U} = (.5 + \l/2)$ and save
+	\item Obtain the first-order, $O_z$, posterior for $\beta_j$
+	\item Draw r randomly selected quantiles and save
 	\end{enumerate}
-\item Repeat $\m$ times
-\item For each $\beta_j$, take the average of the $\m$ lower and upper quantiles to produce a final confidence interval estimate
+\item Repeat m times
+\item For each $\beta_j$, combine the r*m samples and compute the quantiles for $p_L = (.5 - \l/2)$ and $p_U = (.5 + \l/2)$
 \end{enumerate}
 
 \section{Details}
@@ -46,11 +46,11 @@ There are various ways to perform a single iteration of a bootstrap, among them 
 
 \subsection{Obtaining Intervals}
 
-\subsubsection{Computing the marginal posterior for \texorpdfstring{$\beta_j$}{betaj}}
+\subsubsection{Defining \texorpdfstring{$O_z$}{first order} inference}
 
-\logan{Say something about focus on marginal? Use of partial residuals?}
+\subsubsection{Computing the \texorpdfstring{$O_z$}{first order} posterior for \texorpdfstring{$\beta_j$}{betaj}}
 
-Unfortunately, a Normal likelihood and Laplace prior are not conjugate and in general, the absolute value in the exponent of the Laplace makes many common manipulations for the posterior more difficult. Luckily, however, the marginal posterior can be shown to be a mixture of a right and left truncated normal where the truncation occurs at zero for right and left tails respectively. To obtain a marginal posterior, we use the partial residuals, $\r_{-j}$, in the likelihood. In the steps that follow, we will assume that $\X$ has been standardized s.t. $\x_j^T\x_j = n$. For $\beta_j$,
+Unfortunately, a Normal likelihood and Laplace prior are not conjugate and in general, the absolute value in the exponent of the Laplace makes many common manipulations for the posterior more difficult. Luckily, however, the marginal posterior can be shown to be a mixture of a right and left truncated normal where the truncation occurs at zero for right and left tails respectively. To obtain a $O_z$ posterior, we use the partial residuals, $\r_{-j}$, in the likelihood. This is natural due to the common CD algorithms used to arrive at lasso estimates. In the steps that follow, we will assume that $\X$ has been standardized s.t. $\x_j^T\x_j = n$. For $\beta_j$,
 
 \as{
 L(\beta_j | \r_{-j}) &= (\sigma \sqrt{2\pi})^{-n} \exp(-\frac{1}{2\sigma^2} (n\beta_j^2 - 2\x_{j}^{T}\r_{-j}\beta_j + \r_{-j}^{T}\r_{-j})) \\
@@ -72,14 +72,14 @@ C_{+} \exp(-\frac{n}{2\sigma^2} (\beta_j - (z_j - \lambda))^2), \text{ if } \bet
 
 Where, $C_{-} = \exp(\frac{z_j \lambda n}{\sigma^2})$ and $C_{+} = \exp(-\frac{z_j \lambda n}{\sigma^2})$.
 
-Ignoring the truncation for a moment and focusing on the kernels individually, we can see that the two distributions above are what we would expect from the lasso solution, having a mean $z_j + \lambda$ and $z_j - \lambda$ respectively and a variance of $\frac{\sigma^2}{n}$. That said, due to the truncation, the variance of the posterior is less than or equal to this (plot the marginal posterior and this should become immediately clear). Furthermore, a mapping allows tail probabilities from the posterior to be translated to probabilities onto corresponding known normal distributions ($\N(0, z_j \pm \lambda, \frac{\sigma^2}{n})$). For this translation, we need two pieces of information:
+Ignoring the truncation for a moment and focusing on the kernels individually, we can see that the two distributions above are what we would expect from the lasso solution, having a mean $z_j + \lambda$ and $z_j - \lambda$ respectively and a variance of $\frac{\sigma^2}{n}$. That said, due to the truncation, the variance of the posterior is less than or equal to this (plot the $O_z$ posterior and this should become immediately clear). Furthermore, a mapping allows tail probabilities from the posterior to be translated to probabilities onto corresponding known normal distributions ($\N(0, z_j \pm \lambda, \frac{\sigma^2}{n})$). For this translation, we need two pieces of information:
 
 \begin{enumerate}
 \item The non-truncated probability in each of the two normals to transformed on to, denoted $Pr_{-}$ and $Pr_{+}$ respectively.
 \item The probability in each of the tails of the posterior, denoted $Post_{-}$ and $Post_{+}$ respectively.
 \end{enumerate}
 
-(1) is trivial to compute with any statistical software. Similarly, (2) is conceptually simple, although care must be taken to avoid the pitfall of numerical instability introduced as n increases. \logan{Not sure how much more detail to get into, I think it is common enough?}
+(1) is trivial to compute with any statistical software. Similarly, (2) is conceptually simple, although care must be taken to avoid the pitfall of numerical instability introduced as n increases.
 
 To reduce the number of computational steps, one may note that:
 
@@ -91,9 +91,9 @@ C_{+} Pr_{+}, \text{ if } \beta_j \geq 0 \\
 \end{cases}
 }
 
-Which implies that $Post_- = \frac{C_{-} Pr_{-}}{C_{-} Pr_{-} + C_{+} Pr_{+}}$ and similarly for $Post_+$. However, to avoid numerical instability, or at least handle it properly when it is unavoidable we need to work on the $\log$ scale. This works well for most of the problem, but computation of $Post_-$ and $Post_+$ need something a bit more since, for example, $\log(Post_-) = \log(C{-}Pr_{-}) - \log(C_{-} Pr_{-} + C_{+} Pr_{+})$. That is, the denominator still must be computed then the $\log$ taken which does not allow operating on the $\log$ scale to fully address potential instability. Instead, $\log(Post_-)$ can be computed with $\log(Pr_-) + \log(C_-) -  \log(Pr_+) + \log(C_+) - \log(1 + \exp(\log(Pr_-) + \log(C_-) -  \log(Pr_+) + \log(C_+)))$. \logan{CONTINUE HERE}.
+Which implies that $Post_- = \frac{C_{-} Pr_{-}}{C_{-} Pr_{-} + C_{+} Pr_{+}}$ and similarly for $Post_+$. However, to avoid numerical instability, or at least handle it properly when it is unavoidable we need to work on the $\log$ scale. This works well for most of the problem, but computation of $Post_-$ and $Post_+$ need something a bit more since, for example, $\log(Post_-) = \log(C{-}Pr_{-}) - \log(C_{-} Pr_{-} + C_{+} Pr_{+})$. That is, the denominator still must be computed then the $\log$ taken which does not allow operating on the $\log$ scale to fully address potential instability. Instead, $\log(Post_-)$ can be computed with $\log(C_-Pr_-) -  \log(C_+Pr_+) - \log(1 + \exp(\log(C_-Pr_-) -  \log(C_+Pr_+)))$. This still doesn't completely address the issue, however, if $exp(\log(C_-Pr_-) -  \log(C_+Pr_+))$ is infinite then $C_-Pr_- >> C_+Pr_+$ and $\log(Post_-) \approx 0$.
 
-With these values, we can compute quantiles by mapping the corresponding probabilities of interest $p_{L}$ and $p_{U}$ for the posterior onto the probabilities $p^*_{L}$ and $p^*_{U}$ for the corresponding normals. Which normal the quantiles of interest ultimately come from is determined based on the values in (2). For example, if $Post_{+} = .98$ and $\l = .8$ ($p_{L} = .1$ and $p_{U} = .9$), then both $p_{L}$ and $p_{U}$ would be mapped onto the positive normal. As one more example, say $Post_{+} = .4$, then $p_{L}$ would be mapped onto the lower normal and $p_{U}$ would be mapped onto the upper normal. The transformation to map a given probability from the posterior depends on which tail the quantile resides in on the posterior (equivalently which normal it is being mapped to, the positive or negative). This map is:
+With these values, we can compute quantiles by mapping the corresponding probabilities $p$ for the posterior onto the probabilities $p^*$ for the corresponding normals. Which normal the quantiles of interest ultimately come from is determined based on the values in (2). For example, if $Post_{+} = 0.98$ and $p = 0.1$ the $p$ would be mapped onto the positive normal. As one more example, say $Post_{+} = 0.4$ and $p = 0.5$, then $p$ would be mapped onto the lower normal. The transformation to map a given probability from the posterior depends on which tail the quantile resides in on the posterior (equivalently which normal it is being mapped to, the positive or negative). This map is simply:
 
 \as{
 p^* &= p \times (Pr_{\pm} / Post_{\pm}) \\
@@ -111,7 +111,7 @@ Our recommendation is to use CV to select $\lam$ and produce an estimate for $\s
 
 \logan{Not sure how much focus to put on the conceptual method vs. what actually is being done}
 
-All together this leads to the following steps to perform the bootstrap:
+All together this leads to the following steps to perform the bootstrap (presented on original scale for compactness):
 
 \begin{enumerate}
 \item Perform CV using the original data to select $\lam$ and estimate $\hat{\sigma}^2(\lam)$
@@ -119,23 +119,23 @@ All together this leads to the following steps to perform the bootstrap:
 \begin{enumerate}
 \item Obtain a pairs bootstrap sample, $\X^*$ and $\y^*$
 \item Fit lasso with $\X^*$ and $\y^*$
-\item For j $\in \lbrace 1 \ldots p \rbrace$:
+\item For j $\in \lbrace 1, \ldots, \p \rbrace$:
 	\begin{enumerate}
 	\item Obtain the partial residuals, $r_{-j}$ and compute $z_j$
 	\item Compute $Pr_{-}$ = $\Phi(0, z_j + \lam, \frac{\sh^2}{n})$ and $Pr_{+}$ = $1 - \Phi(0, z_j - \lam, \frac{\sh^2}{n})$
 	\item Compute $Post_-$ and $Post_+$
-	\item For $p_L$ and $p_U$:
+	\item For $p_r$ $in \lbrace 1, \ldots, \r \rbrace$:
 	\begin{algorithmic}
-		\If {$p_* \leq P_{-} / A_{-}$}
-			\State $q_* = \Phi^{-1}(p_* A_{-}, z_j + \lam, \frac{\sh^2}{n})$
+		\If {$p_r \leq Post_{-}$}
+			\State $q_r = \Phi^{-1}(p_r(Pr_{-} / Post_{-}), z_j + \lam, \frac{\sh^2}{n})$
 		\Else
-			\State $q_* = \Phi^{-1}(1 - (1 - p_*)A_{+}, z_j - \lam, \frac{\sh^2}{n})$
+			\State $q_r = \Phi^{-1}(1 - (1 - p_r)*(Pr_{+} / Post_{+}), z_j - \lam, \frac{\sh^2}{n})$
 		\EndIf
 	\end{algorithmic}
-	\item Save $q_L$ and $q_U$
+	\item Save $\q_*$
 	\end{enumerate}
 \end{enumerate}
-\item For each $\beta_j$, take the average of the $\m$ lower and upper quantiles to produce a final confidence interval estimate
+\item For each $\beta_j$, combine the $r*m$ samples and compute the quantiles for $p_L = (.5 - \l/2)$ and $p_U = (.5 + \l/2)$ to produce a final confidence interval estimate
 \end{enumerate}
 
 \section{Simulation Studies}
@@ -152,10 +152,12 @@ All together this leads to the following steps to perform the bootstrap:
 Sparse vs. dense, may not need? Or just show general patterns are the same?
 
 \subsection{Epsilon Conundrum (Comparison to Traditional Quantile Bootstrap)}
-\includegraphics[width=\linewidth]{bootstrap_quantile_comparison.pdf}
+
+\includegraphics[width=\linewidth]{method_comparison_traditional.pdf}
 
 \subsection{Correlated Features (Comparison to Ridge)}
 
+\includegraphics[width=\linewidth]{method_comparison_highcorr_100.pdf}
 
 \subsection{Comparison to Other Methods}
 
@@ -171,11 +173,16 @@ Sparse vs. dense, may not need? Or just show general patterns are the same?
 \item{Bootstrap Lasso Projection}
 \end{enumerate}
 
+\includegraphics[width=\linewidth]{method_comparison_laplace.pdf}
+\includegraphics[width=\linewidth]{method_comparison_laplace_100.pdf}
+
+\section{Real data}
+\includegraphics[width=\linewidth]{method_comparison_whoari.pdf}
+
+
 \section{Citation Example}
 \cite{Tibshirani1996} (the example citation) is now working
 
-
-\section{Real data}
 
 \section{Conclusions}
 
