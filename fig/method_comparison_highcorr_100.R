@@ -1,15 +1,5 @@
-res_dir <- switch(Sys.info()['user'],
-                  'pbreheny' = '~/res/lasso-boot',
-                  'loganharris' = '../lasso-boot')
-
-quietlyLoadPackage <- function(package) {
-  suppressPackageStartupMessages(library(package, character.only = TRUE))
-}
-
-packages <- c("dplyr", "tidyr", "ggplot2", "gridExtra", "scales", "ncvreg")
-
-.libPaths(paste0(res_dir, "/local"))
-lapply(packages, quietlyLoadPackage)
+## Setup
+source("./fig/setup/setup.R")
 
 ## Load Data
 load(paste0(res_dir, "/rds/method_comparison_highcorr_100.rds")) # n = 50
@@ -46,14 +36,19 @@ p1 <- ridge_res %>%
   ggplot() +
   geom_boxplot(aes(x = value, y = variable, color = bound)) +
   theme_bw() +
-  geom_vline(xintercept = 0.5, linetype = "dashed", color = "red", linewidth = .5) +
-  geom_vline(xintercept = 1.0, linetype = "dashed", color = "blue", linewidth = .5) +
   coord_cartesian(xlim = c(-1, 2)) +
-  ylab("Ridge")
+  theme(legend.position = "none",
+        plot.background = element_rect(fill=background_colors[2])) +
+  ylab(NULL) +
+  xlab(NULL) +
+  scale_color_manual(values = colors)
 
 colnames(ridge_example) <- tolower(colnames(ridge_example))
 p2 <- plot_ridge(ridge_example) +
-  coord_cartesian(xlim = c(-1, 2))
+  coord_cartesian(xlim = c(-1, 2)) +
+  ylab(NULL) +
+  xlab(NULL) +
+  theme(plot.background = element_rect(fill=background_colors[2]))
 
 ## Lasso
 p3 <- do.call(rbind, lasso_cis_s) %>%
@@ -63,19 +58,23 @@ p3 <- do.call(rbind, lasso_cis_s) %>%
   pivot_longer(lower:upper, names_to = "bound", values_to = "value") %>%
   ggplot() +
   geom_boxplot(aes(x = value, y = variable, color = bound)) +
-  # geom_line(aes(x = value, y = variable, group = group, color = variable), position = position_nudge(y = .2)) +
   theme_bw() +
-  geom_vline(xintercept = 0.5, linetype = "dashed", color = "red", linewidth = .5) +
-  geom_vline(xintercept = 1.0, linetype = "dashed", color = "blue", linewidth = .5)+
   coord_cartesian(xlim = c(-1, 2)) +
-  ylab("Lasso")
+  theme(legend.position = "none", plot.background = element_rect(fill=background_colors[1])) +
+  ylab(NULL) +
+  xlab(NULL) +
+  scale_color_manual(values = colors)
 
 p4 <- plot(lasso_example_s) +
-  coord_cartesian(xlim = c(-1, 2))
+  coord_cartesian(xlim = c(-1, 2)) +
+  ylab(NULL) +
+  xlab(NULL) +
+  theme(plot.background = element_rect(fill=background_colors[1]))
 
+left_label <- textGrob("  Lasso                                            Ridge", gp = gpar(fontsize = 12), rot = 90)
 suppressMessages({
-  pdf("./fig/method_comparison_highcorr_100.pdf", width = 10, height = 8)
-  grid.arrange(grobs = list(p1, p2, p3, p4), ncol = 2)
+  pdf("./fig/method_comparison_highcorr_100.pdf", height = 5)
+  grid.arrange(grobs = list(p1, p2, p3, p4), ncol = 2, left = left_label)
   dev.off()
   png("./fig/method_comparison_highcorr_100.png", width = 1000, height = 800)
   grid.arrange(grobs = list(p1, p2, p3, p4), ncol = 2)

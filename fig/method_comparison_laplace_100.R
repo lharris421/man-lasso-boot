@@ -1,24 +1,13 @@
-rm(list=ls())
-res_dir <- switch(Sys.info()['user'],
-                  'pbreheny' = '~/res/lasso-boot',
-                  'loganharris' = '../lasso-boot')
-
-quietlyLoadPackage <- function(package) {
-  suppressPackageStartupMessages(library(package, character.only = TRUE))
-}
-
-packages <- c("dplyr", "ggplot2", "ncvreg", "gridExtra", "scales", "tidyr", "kableExtra")
-
-.libPaths(paste0(res_dir, "/local"))
-lapply(packages, quietlyLoadPackage)
+## Setup
+source("./fig/setup/setup.R")
 
 ## Load Data
 load(paste0(res_dir, "/rds/method_comparison_laplace_100.rds"))
 
-
 ns <- c(20, 30, 60)
-
 plots <- list()
+method_pretty <- c("hdi" = "BLP", "lasso_sample" = "Lasso Bootstrap", "si" = "Selective Inference")
+
 for (j in 1:3) {
 
   all_coverages_i <- all_coverages[[j]]
@@ -45,12 +34,13 @@ for (j in 1:3) {
 
 
   plots[[j]] <- ggplot() +
-    geom_line(data = line_data, aes(x = x, y = y, color = method)) +
+    geom_line(data = line_data %>% mutate(method = method_pretty[method]), aes(x = x, y = y, color = method)) +
     theme_bw() +
     xlab(expression(abs(beta))) +
-    ylab("Coverage") +
-    ggtitle(paste0("N: ", ns[j])) +
-    coord_cartesian(ylim = c(0, 1))
+    ylab(NULL) +
+    annotate("text", x = 0.1, y = 0.1, label = paste0("N = ", ns[j]), size = 5) +
+    coord_cartesian(ylim = c(0, 1)) +
+    scale_color_manual(name = "Method", values = colors)
 
 
 }
@@ -63,15 +53,37 @@ t1 <- knitr::kable(res_coverage, caption = "Average Coverage [mean (sd)]", bookt
 t2 <- tableGrob(knitr::kable(res_time, caption = "Average Runtime (seconds) [mean (sd)]"))
 t3 <- tableGrob(knitr::kable(res_width, caption = "Average Widths [mean (sd)]"))
 t4 <- tableGrob(knitr::kable(res_lambda, caption = "Average Lambdas [mean (sd)]"))
+
+plots[[1]] <- plots[[1]] +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.position = c(.95, .95),
+        legend.justification = c("right", "top"),
+        legend.box.just = "right",
+        legend.margin = margin(6, 6, 6, 6),
+        legend.background = element_rect(fill = "transparent"))
+plots[[2]] <- plots[[2]] +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.position = "none")
+plots[[3]] <- plots[[3]] +
+  theme(
+    legend.position = "none")
+
+
 p1 <- plots[[1]]
 p2 <- plots[[2]]
 p3 <- plots[[3]]
 
+
+
 suppressMessages({
-  pdf("./fig/method_comparison_laplace_100.pdf", width = 7, height = 7)
-  grid.arrange(grobs = list(p1, p2, p3), nrow = 3)
+  pdf("./fig/method_comparison_laplace_100.pdf", height = 5)
+  grid.arrange(grobs = list(p1, p2, p3), nrow = 3, heights = c(150, 150, 180))
   dev.off()
-  png("./fig/method_comparison_laplace_100.png", width = 700, height = 700)
+  png("./fig/method_comparison_laplace_100.png", width = 700, height = 500)
   grid.arrange(grobs = list(p1, p2, p3), nrow = 3)
   dev.off()
 })

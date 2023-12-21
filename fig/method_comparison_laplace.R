@@ -1,15 +1,5 @@
-res_dir <- switch(Sys.info()['user'],
-                  'pbreheny' = '~/res/lasso-boot',
-                  'loganharris' = '../lasso-boot')
-
-quietlyLoadPackage <- function(package) {
-  suppressPackageStartupMessages(library(package, character.only = TRUE))
-}
-
-packages <- c("dplyr", "ggplot2", "ncvreg", "gridExtra", "scales")
-
-.libPaths(paste0(res_dir, "/local"))
-lapply(packages, quietlyLoadPackage)
+## Setup
+source("./fig/setup/setup.R")
 
 ## Plotting function
 plot_ci_comparison <- function(ci_list, nvars = 60) {
@@ -38,14 +28,14 @@ plot_ci_comparison <- function(ci_list, nvars = 60) {
   plot_res$variable <- factor(plot_res$variable, levels = rev(plot_vars))
 
   plot_res %>%
-    # mutate(lower = ifelse(is.infinite(lower), -100, lower), upper = ifelse(is.infinite(upper), 100, upper)) %>%
     ggplot() +
     geom_errorbar(aes(xmin = lower, xmax = upper, y = variable, color = method), alpha = .6) +
     geom_point(aes(x = estimate, y = variable, color = method), alpha = .6) +
     theme_bw() +
-    labs(y = "Variable", x = "Estimate") +
-    ggtitle(lab) +
-    coord_cartesian(xlim=c(-3, 3))
+    scale_color_manual(name = "Method", values = colors) +
+    ylab(NULL) + xlab(NULL) +
+    coord_cartesian(xlim=c(-3, 3)) +
+    annotate("text", x = -2.9, y = 1.5, label = paste0("N = ", n), size = 5)
 
 }
 
@@ -54,16 +44,25 @@ load(paste0(res_dir, "/rds/method_comparison_laplace.rds"))
 
 ## Plotting
 plots <- lapply(plot_res, plot_ci_comparison)
+plots[[1]] <- plots[[1]] +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.position = c(.95, .05),
+        legend.justification = c("right", "bottom"),
+        legend.box.just = "right",
+        legend.margin = margin(6, 6, 6, 6),
+        legend.background = element_rect(fill = "transparent"))
+plots[[2]] <- plots[[2]] +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.position = "none")
+plots[[3]] <- plots[[3]] +
+  theme(legend.position = "none")
 
-pdf("./fig/method_comparison_laplace.pdf", width = 10, height = 11)
 suppressMessages({
-  grid.arrange(grobs = plots, ncol = 1)
-})
-
-dev.off()
-
-suppressMessages({
-  pdf("./fig/method_comparison_laplace.pdf", width = 10, height = 11)
+  pdf("./fig/method_comparison_laplace.pdf", height = 8, width = 7)
   grid.arrange(grobs = plots, ncol = 1)
   dev.off()
   png("./fig/method_comparison_laplace.png", width = 1000, height = 1100)

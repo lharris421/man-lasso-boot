@@ -1,4 +1,4 @@
-\section{Introduction}
+\section{Introduction: The Backstory}
 
 The prevailing opinion is that the traditional use of bootstrapping to produce confidence intervals for penalized regression is suboptimal due to the inherent behavior of estimates produced by penalization.
 
@@ -15,7 +15,19 @@ The second problem, the Epsilon Conundrum, is also related to the shrinkage but 
 
 The later of these two problems is addressed in our novel approach to producing bootstrap based confidence intervals for the lasso.
 
-\section{Empirical Bayes Bootstrap Confidence Intervals}
+\section{Inferential Paradigm: The Vernacular}
+
+The method to be proposed falls into a bit of a grey area that isn't well encapsulated by common interential scopes such as "marginal", "conditional", or "joint". To that end, we breifly describe a different perspective here which we call \textit{Order Inference}.
+
+The idea of \textit{Order Inference} focuses on the variable space which inferential methods are conducted. Specifcally, we will let order referece the relation of the current variable under consideration, $\x_i$, to the other variables, $\x_j$, where $j \neq i$ as well as their relation to the outcome variable $\y$. To visualize the concept of \textit{Order Inference}, we will provide a simple example using multiple linear regression.
+
+\textbf{Zeroth Order} ($O_z$): Here, no consideration is given to $\x_j$. All inference for $\beta_i$ is done based on the residuals from $\hat{y}$ as a projection onto the column space of $X_i$.
+
+\textbf{First Order} ($O_1$): In this paradigm, this is the most difficult to capture since it could take a few forms. The way this occurs is by projecting $\y$ first onto the columns space of $\X_j$ then the residuals $\r_j$ onto the column space of $\X_i$. How the first projection occurs is where alternatives forms into play. A literal translation would involve p two-step regressions. An alternate form that is more akin to the approach to be proposed requires one joint regression, calculation of partial residuals $\r_{-i}$ then projecting $\r_{-i}$ onto the column space of $\x_i$.
+
+\textbf{Second Order} ($O_2$): With $n \gg p$ and $\epsilon \sim N(0, \sigma^2)$, this is the traditional analysis most would run: perform joint inference with residuals from $\hat{y}$ as a projection onto the column space of $\boldsymbol{X}$.
+
+\section{Lasso Bootstrap Confidence Intervals: The Tool}
 
 As with other penalized regression models, the lasso can be formulated as a Bayesian regression model by setting an appropriate prior. For the lasso, this prior is a Laplace, also called double-exponential, distribution:
 
@@ -29,14 +41,14 @@ We propose leveraging this relationship to build confidence intervals for $\bb$.
 \item Obtain a bootstrap sample of $\X$ and $\y$
 \item For each $\beta_j$:
 	\begin{enumerate}
-	\item Obtain the first-order, $O_z$, posterior for $\beta_j$
+	\item Obtain the first-order, $O_1$, posterior for $\beta_j$
 	\item Draw r randomly selected quantiles and save
 	\end{enumerate}
 \item Repeat m times
 \item For each $\beta_j$, combine the r*m samples and compute the quantiles for $p_L = (.5 - \l/2)$ and $p_U = (.5 + \l/2)$
 \end{enumerate}
 
-\section{Details}
+\section{Details: The Buildup}
 
 In this section, we describe the details of each of the steps outlined above along with other important considerations.
 
@@ -46,11 +58,9 @@ There are various ways to perform a single iteration of a bootstrap, among them 
 
 \subsection{Obtaining Intervals}
 
-\subsubsection{Defining \texorpdfstring{$O_z$}{first order} inference}
+\subsubsection{Computing the \texorpdfstring{$O_1$}{first order} posterior for \texorpdfstring{$\beta_j$}{betaj}}
 
-\subsubsection{Computing the \texorpdfstring{$O_z$}{first order} posterior for \texorpdfstring{$\beta_j$}{betaj}}
-
-Unfortunately, a Normal likelihood and Laplace prior are not conjugate and in general, the absolute value in the exponent of the Laplace makes many common manipulations for the posterior more difficult. Luckily, however, the marginal posterior can be shown to be a mixture of a right and left truncated normal where the truncation occurs at zero for right and left tails respectively. To obtain a $O_z$ posterior, we use the partial residuals, $\r_{-j}$, in the likelihood. This is natural due to the common CD algorithms used to arrive at lasso estimates. In the steps that follow, we will assume that $\X$ has been standardized s.t. $\x_j^T\x_j = n$. For $\beta_j$,
+Unfortunately, a Normal likelihood and Laplace prior are not conjugate and in general, the absolute value in the exponent of the Laplace makes many common manipulations for the posterior more difficult. Luckily, however, the marginal posterior can be shown to be a mixture of a right and left truncated normal where the truncation occurs at zero for right and left tails respectively. To obtain a $O_1$ posterior, we use the partial residuals, $\r_{-j}$, in the likelihood. This is natural due to the common CD algorithms used to arrive at lasso estimates. In the steps that follow, we will assume that $\X$ has been standardized s.t. $\x_j^T\x_j = n$. For $\beta_j$,
 
 \as{
 L(\beta_j | \r_{-j}) &= (\sigma \sqrt{2\pi})^{-n} \exp(-\frac{1}{2\sigma^2} (n\beta_j^2 - 2\x_{j}^{T}\r_{-j}\beta_j + \r_{-j}^{T}\r_{-j})) \\
@@ -72,7 +82,7 @@ C_{+} \exp(-\frac{n}{2\sigma^2} (\beta_j - (z_j - \lambda))^2), \text{ if } \bet
 
 Where, $C_{-} = \exp(\frac{z_j \lambda n}{\sigma^2})$ and $C_{+} = \exp(-\frac{z_j \lambda n}{\sigma^2})$.
 
-Ignoring the truncation for a moment and focusing on the kernels individually, we can see that the two distributions above are what we would expect from the lasso solution, having a mean $z_j + \lambda$ and $z_j - \lambda$ respectively and a variance of $\frac{\sigma^2}{n}$. That said, due to the truncation, the variance of the posterior is less than or equal to this (plot the $O_z$ posterior and this should become immediately clear). Furthermore, a mapping allows tail probabilities from the posterior to be translated to probabilities onto corresponding known normal distributions ($\N(0, z_j \pm \lambda, \frac{\sigma^2}{n})$). For this translation, we need two pieces of information:
+Ignoring the truncation for a moment and focusing on the kernels individually, we can see that the two distributions above are what we would expect from the lasso solution, having a mean $z_j + \lambda$ and $z_j - \lambda$ respectively and a variance of $\frac{\sigma^2}{n}$. That said, due to the truncation, the variance of the posterior is less than or equal to this (plot the $O_1$ posterior and this should become immediately clear). Furthermore, a mapping allows tail probabilities from the posterior to be translated to probabilities onto corresponding known normal distributions ($\N(0, z_j \pm \lambda, \frac{\sigma^2}{n})$). For this translation, we need two pieces of information:
 
 \begin{enumerate}
 \item The non-truncated probability in each of the two normals to transformed on to, denoted $Pr_{-}$ and $Pr_{+}$ respectively.
@@ -105,11 +115,7 @@ Once this respective probabilities are mapped, one can simply use the inverse of
 
 This solution corresponds to a particular value of $\lam$ and $\hat{\sigma}^2$. The only thing prohibitive to producing intervals for the entire lasso path is computational resources since the bootstrap is already computationally expensive. That brings our decision down to producing an estimate for $\sigma^2$. Our recommendation is to first use cross validation (CV) once to produce an estimate. However, note that producing an estimate in this manner implicitly depends on $\lam$, so new estimates for $\sigma^2$ should be obtained for each value of $\lam$.
 
-\logan{Recommendation for $\lam$? How to actually use this? Personally, I imagine this method to be used as: }
-
 Our recommendation is to use CV to select $\lam$ and produce an estimate for $\sigma^2$ and produce bootstrap confidence intervals corresponding to these values to report.
-
-\logan{Not sure how much focus to put on the conceptual method vs. what actually is being done}
 
 All together this leads to the following steps to perform the bootstrap (presented on original scale for compactness):
 
@@ -119,12 +125,12 @@ All together this leads to the following steps to perform the bootstrap (present
 \begin{enumerate}
 \item Obtain a pairs bootstrap sample, $\X^*$ and $\y^*$
 \item Fit lasso with $\X^*$ and $\y^*$
-\item For j $\in \lbrace 1, \ldots, \p \rbrace$:
+\item For j $\in \lbrace 1, \ldots, p \rbrace$:
 	\begin{enumerate}
 	\item Obtain the partial residuals, $r_{-j}$ and compute $z_j$
 	\item Compute $Pr_{-}$ = $\Phi(0, z_j + \lam, \frac{\sh^2}{n})$ and $Pr_{+}$ = $1 - \Phi(0, z_j - \lam, \frac{\sh^2}{n})$
 	\item Compute $Post_-$ and $Post_+$
-	\item For $p_r$ $in \lbrace 1, \ldots, \r \rbrace$:
+	\item For $r$ $\in \lbrace 1, \ldots, R \rbrace$:
 	\begin{algorithmic}
 		\If {$p_r \leq Post_{-}$}
 			\State $q_r = \Phi^{-1}(p_r(Pr_{-} / Post_{-}), z_j + \lam, \frac{\sh^2}{n})$
@@ -132,24 +138,26 @@ All together this leads to the following steps to perform the bootstrap (present
 			\State $q_r = \Phi^{-1}(1 - (1 - p_r)*(Pr_{+} / Post_{+}), z_j - \lam, \frac{\sh^2}{n})$
 		\EndIf
 	\end{algorithmic}
-	\item Save $\q_*$
+	\item Save $\q$
 	\end{enumerate}
 \end{enumerate}
 \item For each $\beta_j$, combine the $r*m$ samples and compute the quantiles for $p_L = (.5 - \l/2)$ and $p_U = (.5 + \l/2)$ to produce a final confidence interval estimate
 \end{enumerate}
 
-\section{Simulation Studies}
+\section{Simulation Studies: Target Practice}
 
 \subsection{Overall vs. per-feature coverage}
 
 \subsection{Across \texorpdfstring{$\lambda$}{lambda} Performance}
 \includegraphics[width=\linewidth]{across_lambda_coverage_laplace.pdf}
 
+\subsection{Text}
+
 \includegraphics[width=\linewidth]{across_lambda_coverage_sparse.pdf}
 
 \subsection{Distribution of Beta}
 
-Sparse vs. dense, may not need? Or just show general patterns are the same?
+Note the general patterns seem to be the same, refer to across lambda coverage plots
 
 \subsection{Epsilon Conundrum (Comparison to Traditional Quantile Bootstrap)}
 
@@ -173,19 +181,42 @@ Sparse vs. dense, may not need? Or just show general patterns are the same?
 \item{Bootstrap Lasso Projection}
 \end{enumerate}
 
+\subsection{Test}
+
 \includegraphics[width=\linewidth]{method_comparison_laplace.pdf}
+
+\subsection{Test}
+
 \includegraphics[width=\linewidth]{method_comparison_laplace_100.pdf}
 
-\section{Real data}
+\input{./latex/method_comparison_laplace_100_coverage}
+\input{./latex/method_comparison_laplace_100_time}
+\input{./latex/method_comparison_laplace_100_lambda}
+\input{./latex/method_comparison_laplace_100_width}
+
+\section{Real data: The Shootout}
 \includegraphics[width=\linewidth]{method_comparison_whoari.pdf}
 
+\section{Limitations: The Plot Holes}
 
-\section{Citation Example}
-\cite{Tibshirani1996} (the example citation) is now working
+\subsection{Space Requirements}
 
+As implimented, this method takes a numeric matrix size $Br \times p$. With $B = 100, r = 10$, the sample matrix gets too large enough to cause memory concerns even when $p$ is on the order of $1e5$. For many datasets, this is likely not of concern. however, given that lasso is often used for datasets where $p$ is large, it is clearly not an edge case where $p$ exceeds the order of $1e5$. One could reduce the number size of the same matrix by reducing the number of draws, i.e. let $r = 1$, but this is unstaisfactoy and produces little additional leeway for what seems like a unnacceptable sacrifice. What we propose instead is using incremental quantile estimation as introduced by \cite{Tierney1983}. Although not currently part of the method in \texttt{ncvreg} at the time of this publication, this is an active area of implimentation. Incremental quantile estimation is an ongoing area of research, espeically in feilds like computer networking.
 
-\section{Conclusions}
+One concern here is that the additional approximation in incremental quantile estimation could result in larger errors, however, it is our belief that these errors will be small in relation to the approximations already a part of the method. Addiitonally, we believe that the errors introduced by incremental quantile estimation will quickly be offset by the ability to have obtained orders of magnitude more draws.
 
-\section*{Acknowledgments}
+This of course opens up the large question of what method to use for incremental quantile estimation.
 
-\section*{Appendix}
+We are currently working on implimenting and assessing using the method introduced by \cite{Tierney1983}, but this is an area of ongoing interest for us.
+
+Luckily, as far as problems go, this is a relatively benign use case. The primary obsticle that a method needs to be able to address is adhering to space requirements. Ideally, the storage space required should not grow with the number of draws or should at least grow at a much slower rate than the number of draws (i.e. no faster than $\log(\# of draws)$). In fact, per quantile tracked, the method presented by Tierney only requries 6 direct access storage points. As \cite{Tierney1983} notes, his method only has the requirement that F has "a bounded derivative that is continuous at $\xi$", where $\xi$ is the tracked quantile. The only point at which this could be violated for the distributions we are tracking would be if $\xi = 0$, since the derivative is not necessarily continuous at this point. However, since the distribution itself is continous at 0, $\xi = 0$ w.p. 0.
+
+One drawback of using the method as introduced by Tierney is that is only addresses tracking of a single quantile at a time. Recent research has focused on joint quantile tracking. Future exploration into how such methods perform would undoubtably add robustness, however, given the use case here of tracking two quantiles in seperate tails, we accept this limitation with caution.
+
+\section{Discussion: The Lesson}
+
+\section{Conclusions: Riding off into the sunset}
+
+\section*{Acknowledgments: The Credits}
+
+\section*{Appendix: The Post-Credits Scene}
