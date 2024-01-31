@@ -40,7 +40,7 @@ plot_ci_comparison <- function(ci_list, nvars = 60) {
 }
 
 ## Load Data
-load(paste0(res_dir, "/rds/method_comparison_laplace.rds"))
+load(glue("{res_dir}/rds/method_comparison_laplace_{quantiles}_{method}.rds"))
 
 ## Plotting
 plots <- lapply(plot_res, plot_ci_comparison)

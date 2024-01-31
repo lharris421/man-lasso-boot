@@ -2,7 +2,13 @@
 source("./fig/setup/setup.R")
 
 ## Load Data
-load(paste0(res_dir, "/rds/method_comparison_highcorr_100.rds")) # n = 50
+n <- 50
+p <- 25
+method <- "quantile"
+methods <- c("ridge", names(method_pretty))
+methods <- methods[c(1, 2, 3, 7, 6, 5, 4)]
+load(glue("{res_dir}/rds/method_comparison_highcorr_100_{method}_n{n}_p{p}.rds"))
+method_pretty <- c(method_pretty, "ridge" = "Ridge")
 
 plot_ridge <- function(ridge_ci, n = 30, quiet = TRUE) {
 
@@ -25,59 +31,65 @@ plot_ridge <- function(ridge_ci, n = 30, quiet = TRUE) {
 
 }
 
-## Ridge
-ridge_res <- do.call(rbind, ridge_cis)
-variables <- rownames(ridge_res)
-p1 <- ridge_res %>%
-  data.frame() %>%
-  mutate(variable = variables) %>%
-  filter(variable %in% c("A1", "B1", "N1")) %>%
-  pivot_longer(Lower:Upper, names_to = "bound", values_to = "value") %>%
-  ggplot() +
-  geom_boxplot(aes(x = value, y = variable, color = bound)) +
-  theme_bw() +
-  coord_cartesian(xlim = c(-1, 2)) +
-  theme(legend.position = "none",
-        plot.background = element_rect(fill=background_colors[2])) +
-  ylab(NULL) +
-  xlab(NULL) +
-  scale_color_manual(values = colors)
+plots <- list()
+eplots <- list()
+for (i in 1:length(methods)) {
+  curr_method <- methods[i]
+  current_cis <- do.call(rbind, cis[[curr_method]]) %>%
+    data.frame()
+  current_example <- examples[[curr_method]]
 
-colnames(ridge_example) <- tolower(colnames(ridge_example))
-p2 <- plot_ridge(ridge_example) +
-  coord_cartesian(xlim = c(-1, 2)) +
-  ylab(NULL) +
-  xlab(NULL) +
-  theme(plot.background = element_rect(fill=background_colors[2]))
+  if (curr_method == "ridge") {
+    variables <- as.vector(sapply(cis[[curr_method]], function(x) rownames(x)))
+    pdat <- current_cis %>%
+      mutate(variable = variables) %>%
+      filter(variable %in% c("A1", "B1", "N1")) %>%
+      pivot_longer(Lower:Upper, names_to = "bound", values_to = "value") %>%
+      mutate(value = as.numeric(value))
+  } else {
+    pdat <- current_cis %>%
+      filter(variable %in% c("A1", "B1", "N1")) %>%
+      pivot_longer(lower:upper, names_to = "bound", values_to = "value")
+  }
 
-## Lasso
-p3 <- do.call(rbind, lasso_cis_s) %>%
-  data.frame() %>%
-  filter(variable %in% c("A1", "B1", "N1")) %>%
-  mutate(group = rep(1:100, each = 3), group = paste0(variable, group)) %>%
-  pivot_longer(lower:upper, names_to = "bound", values_to = "value") %>%
-  ggplot() +
-  geom_boxplot(aes(x = value, y = variable, color = bound)) +
-  theme_bw() +
-  coord_cartesian(xlim = c(-1, 2)) +
-  theme(legend.position = "none", plot.background = element_rect(fill=background_colors[1])) +
-  ylab(NULL) +
-  xlab(NULL) +
-  scale_color_manual(values = colors)
 
-p4 <- plot(lasso_example_s) +
-  coord_cartesian(xlim = c(-1, 2)) +
-  ylab(NULL) +
-  xlab(NULL) +
-  theme(plot.background = element_rect(fill=background_colors[1]))
+ plots[[1 + 2*(i-1)]] <- pdat %>%
+    ggplot() +
+    geom_boxplot(aes(x = value, y = variable, color = bound)) +
+    theme_bw() +
+    coord_cartesian(xlim = c(-1, 2)) +
+    theme(
+      legend.position = "none"
+      #plot.background = element_rect(fill=background_colors[2])
+    ) +
+    ylab(NULL) +
+    xlab(NULL) +
+    scale_color_manual(values = colors) +
+    annotate("text", x = 1.2, y = 3.4, label = method_pretty[methods[i]], size = 5)
 
-left_label <- textGrob("  Lasso                                            Ridge", gp = gpar(fontsize = 12), rot = 90)
+ if (methods[i] == "ridge") {
+   ridge_example <- examples[[i]]
+   colnames(ridge_example) <- tolower(colnames(ridge_example))
+   tmp_plot <- plot_ridge(ridge_example)
+ } else {
+   tmp_plot <- plot(examples[[i]], method = method)
+ }
+ plots[[2 + 2*(i-1)]] <- tmp_plot +
+   coord_cartesian(xlim = c(-1, 2)) +
+   ylab(NULL) +
+   xlab(NULL)
+
+}
+
+
+left_label <- textGrob("Variable", gp = gpar(fontsize = 12), rot = 90)
+bottom_label <- textGrob("Interval Endpoint", gp = gpar(fontsize = 12))
+
 suppressMessages({
-  pdf("./fig/method_comparison_highcorr_100.pdf", height = 5)
-  grid.arrange(grobs = list(p1, p2, p3, p4), ncol = 2, left = left_label)
+  pdf("./fig/method_comparison_highcorr_100.pdf", height = 20)
+  grid.arrange(grobs = plots, ncol = 2, left = left_label, bottom = bottom_label)
   dev.off()
-  png("./fig/method_comparison_highcorr_100.png", width = 1000, height = 800)
-  grid.arrange(grobs = list(p1, p2, p3, p4), ncol = 2)
-  dev.off()
+  gobj <- grid.arrange(grobs = plots, ncol = 2, left = left_label, bottom = bottom_label)
+  save(gobj, file = glue("{res_dir}/web/rds/lassoboot_comparison_highcorr_100_{method}.rds"))
 })
 

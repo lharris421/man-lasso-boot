@@ -1,4 +1,4 @@
-\section{Introduction: The Backstory}
+\section{Introduction}
 
 The prevailing opinion is that the traditional use of bootstrapping to produce confidence intervals for penalized regression is suboptimal due to the inherent behavior of estimates produced by penalization.
 
@@ -15,7 +15,7 @@ The second problem, the Epsilon Conundrum, is also related to the shrinkage but 
 
 The later of these two problems is addressed in our novel approach to producing bootstrap based confidence intervals for the lasso.
 
-\section{Inferential Paradigm: The Vernacular}
+\section{Inferential Paradigm}
 
 The method to be proposed falls into a bit of a grey area that isn't well encapsulated by common interential scopes such as "marginal", "conditional", or "joint". To that end, we breifly describe a different perspective here which we call \textit{Order Inference}.
 
@@ -27,7 +27,7 @@ The idea of \textit{Order Inference} focuses on the variable space which inferen
 
 \textbf{Second Order} ($O_2$): With $n \gg p$ and $\epsilon \sim N(0, \sigma^2)$, this is the traditional analysis most would run: perform joint inference with residuals from $\hat{y}$ as a projection onto the column space of $\boldsymbol{X}$.
 
-\section{Lasso Bootstrap Confidence Intervals: The Tool}
+\section{Lasso Bootstrap Confidence Intervals}
 
 As with other penalized regression models, the lasso can be formulated as a Bayesian regression model by setting an appropriate prior. For the lasso, this prior is a Laplace, also called double-exponential, distribution:
 
@@ -48,7 +48,7 @@ We propose leveraging this relationship to build confidence intervals for $\bb$.
 \item For each $\beta_j$, combine the r*m samples and compute the quantiles for $p_L = (.5 - \l/2)$ and $p_U = (.5 + \l/2)$
 \end{enumerate}
 
-\section{Details: The Buildup}
+\section{Details}
 
 In this section, we describe the details of each of the steps outlined above along with other important considerations.
 
@@ -144,20 +144,19 @@ All together this leads to the following steps to perform the bootstrap (present
 \item For each $\beta_j$, combine the $r*m$ samples and compute the quantiles for $p_L = (.5 - \l/2)$ and $p_U = (.5 + \l/2)$ to produce a final confidence interval estimate
 \end{enumerate}
 
-\section{Simulation Studies: Target Practice}
+\section{Simulation Studies}
 
 \subsection{Overall vs. per-feature coverage}
+
+\includegraphics[width=\linewidth]{overall_v_feature.pdf}
 
 \subsection{Across \texorpdfstring{$\lambda$}{lambda} Performance}
 \includegraphics[width=\linewidth]{across_lambda_coverage_laplace.pdf}
 
-\subsection{Text}
-
-\includegraphics[width=\linewidth]{across_lambda_coverage_sparse.pdf}
 
 \subsection{Distribution of Beta}
 
-Note the general patterns seem to be the same, refer to across lambda coverage plots
+\includegraphics[width=\linewidth]{distribution_of_beta.pdf}
 
 \subsection{Epsilon Conundrum (Comparison to Traditional Quantile Bootstrap)}
 
@@ -181,23 +180,20 @@ Note the general patterns seem to be the same, refer to across lambda coverage p
 \item{Bootstrap Lasso Projection}
 \end{enumerate}
 
-\subsection{Test}
+\subsection{Single Example}
 
 \includegraphics[width=\linewidth]{method_comparison_laplace.pdf}
 
-\subsection{Test}
+\subsection{Comparison Similation}
 
 \includegraphics[width=\linewidth]{method_comparison_laplace_100.pdf}
 
-\input{./latex/method_comparison_laplace_100_coverage}
-\input{./latex/method_comparison_laplace_100_time}
-\input{./latex/method_comparison_laplace_100_lambda}
-\input{./latex/method_comparison_laplace_100_width}
+\includegraphics[width=\linewidth]{method_comparison_laplace_100_other.pdf}
 
-\section{Real data: The Shootout}
+\section{Real data}
 \includegraphics[width=\linewidth]{method_comparison_whoari.pdf}
 
-\section{Limitations: The Plot Holes}
+\section{Limitations}
 
 \subsection{Space Requirements}
 
@@ -213,10 +209,10 @@ Luckily, as far as problems go, this is a relatively benign use case. The primar
 
 One drawback of using the method as introduced by Tierney is that is only addresses tracking of a single quantile at a time. Recent research has focused on joint quantile tracking. Future exploration into how such methods perform would undoubtably add robustness, however, given the use case here of tracking two quantiles in seperate tails, we accept this limitation with caution.
 
-\section{Discussion: The Lesson}
+\section{Discussion}
 
-\section{Conclusions: Riding off into the sunset}
+\section{Conclusions}
 
-\section*{Acknowledgments: The Credits}
+\section*{Acknowledgments}
 
-\section*{Appendix: The Post-Credits Scene}
+\section*{Appendix}

@@ -3,7 +3,7 @@ source("./fig/setup/setup.R")
 sec_colors <- c("black", "grey62")
 
 ## Load Data
-load(paste0(res_dir, "/rds/across_lambda_coverage_sparse.rds"))
+load(paste0(res_dir, "/rds/across_lambda_coverage_sparse_zerosample_quantile.rds"))
 
 # Create a new transformation for reversed log10
 log10_trans <- function() {
@@ -77,7 +77,6 @@ make_plot <- function(plot_res) {
 
 plots <- lapply(plot_res, make_plot)
 
-plots <- plots[c(1, 2, 4)]
 plots[[1]] <- plots[[1]] +
   theme(axis.title.x = element_blank(),
         axis.text.x = element_blank(),
@@ -102,3 +101,6 @@ suppressMessages({
   grid.arrange(grobs = plots, ncol = 1)
   dev.off()
 })
+
+hist(abs(plot_res[[1]]$plot_data[,5]))
+hist(abs(plot_res[[1]]$plot_data[,6]))

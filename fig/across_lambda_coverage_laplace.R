@@ -2,7 +2,9 @@
 source("./fig/setup/setup.R")
 
 ## Load Data
-load(paste0(res_dir, "/rds/across_lambda_coverage_laplace.rds"))
+quantiles <- "zerosample"
+method <- "quantile"
+load(glue("{res_dir}/rds/across_lambda_coverage_laplace_{quantiles}_{method}.rds"))
 
 # Create a new transformation for reversed log10
 log10_trans <- function() {
@@ -68,7 +70,7 @@ make_plot <- function(plot_res) {
 }
 
 plots <- lapply(plot_res, make_plot)
-plots <- plots[c(1, 2, 4)]
+#plots <- plots[c(1, 2, 4)]
 plots[[1]] <- plots[[1]] +
   theme(axis.title.x = element_blank(),
         axis.text.x = element_blank(),

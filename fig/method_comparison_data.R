@@ -1,6 +1,10 @@
 ## Setup
 source("./fig/setup/setup.R")
 
+## Load Data
+method <- "bucketfill"
+load(glue("{res_dir}/rds/method_comparison_whoari_{method}.rds"))
+
 ## Plotting function
 plot_ci_comparison <- function(ci_list, nvars = 40) {
 
@@ -43,17 +47,14 @@ plot_ci_comparison <- function(ci_list, nvars = 40) {
 
 }
 
-## Load Data
-load(paste0(res_dir, "/rds/method_comparison_whoari.rds"))
-
 ## Plotting
 plots <- plot_ci_comparison(plot_res)
 
-# suppressMessages({
-pdf("./fig/method_comparison_whoari.pdf", width = 10, height = 5)
-plot_ci_comparison(plot_res)
-dev.off()
-png("./fig/method_comparison_whoari.png", width = 1000, height = 500)
-plot_ci_comparison(plot_res)
-dev.off()
-#})
+suppressMessages({
+  pdf("./fig/method_comparison_whoari.pdf", width = 10, height = 5)
+  plot_ci_comparison(plot_res)
+  dev.off()
+  png("./fig/method_comparison_whoari.png", width = 1000, height = 500)
+  plot_ci_comparison(plot_res)
+  dev.off()
+})
