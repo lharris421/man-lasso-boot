@@ -3,36 +3,36 @@ source("./fig/setup/setup.R")
 
 ## Load Data
 # method <- "bucketfill"
-load(glue("{res_dir}/rds/lassoboot_comparison_laplace_100_{method}.rds"))
 cutoff <- 3
 xs <- seq(0, cutoff, by = .01)
-methods <- unique(all_info[[1]]$method)
+
+methods <- c("selective_inference", "zerosample2", "blp")
+n_methods <- length(methods)
+
+per_var_data <- list()
+for (i in 1:n_methods) {
+  load(glue("{res_dir}/rds/laplace_{methods[i]}.rds"))
+  per_var_data[[i]] <- per_var
+}
+per_var_data <- do.call(rbind, per_var_data) %>%
+  data.frame()
+ns <- unique(per_var_data$n)
 
 plots <- list()
-for (j in 1:3) {
-  curr_info <- all_info[[j]]
+for (j in 1:length(ns)) {
 
-  # ref <- curr_info %>%
-  #   data.frame() %>%
-  #   filter(method == "mode") %>%
-  #   mutate(baseline_width = upper - lower)
-
-  curr_info <- all_info[[j]]
   plot_res <- list()
 
   for (i in 1:length(methods)) {
-    plot_data <- curr_info %>%
-      data.frame() %>%
-      filter(method == methods[i]) %>%
+    plot_data <- per_var_data %>%
+      filter(method == methods[i] & n == ns[j]) %>%
       mutate(width = upper - lower) %>%
+      filter(!is.na(width) & is.finite(width)) %>%
       mutate(mag_truth = abs(truth))
     print(methods[i])
-    # mean(plot_data$width_diff)
     fit <- gam(width ~ s(mag_truth) + s(group, bs = "re"), data = plot_data)
     ys <- predict(fit, data.frame(mag_truth = xs, group = 101), type ="response")
-    # fit <- lmer(width_diff ~ ns(mag_truth, df = 4) + (1|group), data = plot_data)
-    # ys <- predict(fit, data.frame(mag_truth = xs, group = 101), type ="response", allow.new.levels = TRUE)
-    plot_res[[i]] <- data.frame(xs = xs, width = ys, method = method_pretty[methods[i]])
+    plot_res[[i]] <- data.frame(xs = xs, width = ys, method = methods_pretty[methods[i]])
   }
 
   plots[[j]] <- do.call(rbind, plot_res) %>%
@@ -55,47 +55,40 @@ bias_est <- function(estimate, lower, upper, truth) {
   #   sign(estimate) == 0 ~ -1*abs(mean(c(lower, upper))),
   #   sign(estimate) == 1 ~ estimate - mean(c(lower, upper))
   # )
+  # case_when(
+  #   sign(estimate) == 0 ~ mean(c(lower, upper)) - truth,
+  #   sign(estimate) == -1 ~ mean(c(lower, upper)) - truth,
+  #   # sign(estimate) == 0 ~ -1*abs(mean(c(lower, upper))),
+  #   sign(estimate) == 1 ~ truth - mean(c(lower, upper))
+  # )
   case_when(
-    sign(estimate) == -1 ~ mean(c(lower, upper)) - truth,
-    sign(estimate) == 0 ~ -1*abs(mean(c(lower, upper))),
-    sign(estimate) == 1 ~ truth - mean(c(lower, upper))
+    sign(truth) == -1 ~ mean(c(lower, upper)) - truth,
+    # sign(estimate) == 0 ~ -1*abs(mean(c(lower, upper))),
+    sign(truth) == 1 ~ truth - mean(c(lower, upper))
   )
 }
 
-# bias_est(-3, -2, -1)
-# bias_est(0, 0, 2)
-# bias_est(1, 0, 2)
-# bias_est(1, 0, 3)
-
 plots_bias <- list()
-for (j in 1:3) {
-  curr_info <- all_info[[j]]
+for (j in 1:length(ns)) {
 
-  # ref <- curr_info %>%
-  #   data.frame() %>%
-  #   filter(method == "mode") %>%
-  #   rowwise() %>%
-  #   mutate(baseline_bias = bias_est(estimate, lower, upper, truth))
   xs <- seq(0, cutoff, by = .01)
   plot_res <- list()
   for (i in 1:length(methods)) {
-    samp <- curr_info %>%
-      data.frame() %>%
-      filter(method == methods[i]) %>%
+
+    plot_data <- per_var_data %>%
+      filter(method == methods[i] & n == ns[j]) %>%
       rowwise() %>%
-      mutate(bias = bias_est(estimate, lower, upper, truth))
-    # plot_data <- ref %>%
-    #   inner_join(samp, by = c("group", "truth")) %>%
-    #   mutate(mag_truth = abs(truth))
-    plot_data <- samp %>%
+      mutate(bias = bias_est(estimate, lower, upper, truth)) %>%
+      filter(!is.na(bias) & is.finite(bias)) %>%
       mutate(mag_truth = abs(truth))
+
     print(methods[i])
     # print(mean(plot_data$bias))
     fit <- gam(bias ~ s(mag_truth) + s(group, bs = "re"), data = plot_data)
     ys <- predict(fit, data.frame(mag_truth = xs, group = 101), type ="response")
     # fit <- lmer(bias_diff ~ ns(mag_truth, df = 4) + (1|group), data = plot_data)
     # ys <- predict(fit, data.frame(mag_truth = xs, group = 101), type ="response", allow.new.levels = TRUE)
-    plot_res[[i]] <- data.frame(xs = xs, bias = ys, method = method_pretty[methods[i]])
+    plot_res[[i]] <- data.frame(xs = xs, bias = ys, method = methods_pretty[methods[i]])
   }
 
   plots_bias[[j]] <- do.call(rbind, plot_res) %>%
@@ -150,9 +143,9 @@ right_label <- textGrob("Central Bias", gp = gpar(fontsize = 12), rot = 270)
 bottom_label <- textGrob(expression(abs(beta)), gp = gpar(fontsize = 12))
 
 suppressMessages({
-  pdf("./fig/lassoboot_comparison_laplace_tradref.pdf", height = 6.5)
+  pdf("./fig/laplace_width_bias.pdf", height = 6.5)
   grid.arrange(grobs = list(plots[[1]], plots_bias[[1]], plots[[2]], plots_bias[[2]], plots[[3]], plots_bias[[3]]), nrow = 3, ncol = 2, left = left_label, right = right_label)
   dev.off()
   gobj <- grid.arrange(grobs = list(plots[[1]], plots_bias[[1]], plots[[2]], plots_bias[[2]], plots[[3]], plots_bias[[3]]), nrow = 3, ncol = 2, left = left_label, right = right_label, bottom = bottom_label)
-  save(gobj, file = glue("{res_dir}/web/rds/lassoboot_comparison_laplace_tradref_{method}.rds"))
+  save(gobj, file = glue("{res_dir}/web/rds/laplace_width_bias.rds"))
 })

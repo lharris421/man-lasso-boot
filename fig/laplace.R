@@ -2,39 +2,63 @@
 source("./fig/setup/setup.R")
 
 ## Load Data
-method <- "bucketfill"
-load(glue("{res_dir}/rds/lassoboot_comparison_laplace_100_{method}.rds"))
+## method <- "bucketfill"
 
 plots <- list()
 
-n_methods <- length(method_pretty)
+methods <- c("traditional", "sample", "debiased", "zerosample2")
+methods <- c("selective_inference", "zerosample2", "blp")
+n_methods <- length(methods)
 
-library(mgcv)
-library(splines)
+per_var_data <- list()
+for (i in 1:n_methods) {
+  load(glue("{res_dir}/rds/laplace_{methods[i]}.rds"))
+  per_var_data[[i]] <- per_var
+}
+per_var_data <- do.call(rbind, per_var_data) %>%
+  data.frame()
+
+per_var_data %>%
+  filter(group == 1 & n == 20)
 
 cutoff <- 3
-for (j in 1:3) {
+ns <- unique(per_var_data$n)
+for (j in 1:length(ns)) {
 
-  all_coverages_i <- res_coverage[[j]]
-  model_res <- do.call(rbind, all_coverages_i) %>%
-    data.frame() %>%
-    pivot_longer(all_of(names(method_pretty)), names_to = "method", values_to = "covered") %>%
-    mutate(mag_truth = abs(truth), covered = as.numeric(covered))
+  model_res <- per_var_data %>%
+    mutate(
+      covered = lower <= truth & upper >= truth,
+      mag_truth = abs(truth), covered = as.numeric(covered)
+    )
 
-  methods <- unique(model_res$method)
+
+  # methods <- unique(model_res$method)
   line_data <- list()
   line_data_avg <- list()
   for (i in 1:length(methods)) {
     tmp <- model_res %>%
-      filter(method == methods[i])
+      filter(method == methods[i] & n == ns[j])
 
-    # fit <- lme4::glmer(covered ~ mag_truth + mag_truth^2 + (1|group), data = tmp, family = binomial, control = glmerControl(optimizer = "bobyqa"))
+    tmp %>%
+      filter(!is.na(estimate)) %>%
+      group_by(n) %>%
+      summarise(
+        perc_succ = length(unique(group))
+      ) %>%
+      left_join(
+        tmp %>%
+          group_by(n) %>%
+          summarise(
+            perc_incl = mean(!is.na(estimate))
+          )) %>%
+      print()
+
+    tmp <- tmp %>%
+      filter(!is.na(estimate))
+
     fit <- gam(covered ~ s(mag_truth) + s(group, bs = "re"), data = tmp, family = binomial)
-    # fit <- gam(covered ~ s(mag_truth), data = tmp, family = binomial)
     xs <- seq(0, cutoff, by = .01)
-    # ys <- predict(fit, data.frame(mag_truth = xs, group = 101), type ="response", allow.new.levels = TRUE)
     ys <- predict(fit, data.frame(mag_truth = xs, group = 101), type ="response")
-    # ys <- predict(fit, data.frame(mag_truth = xs), type ="response")
     line_data[[i]] <- data.frame(x = xs, y = ys, method = methods[i])
 
     if (i == 1) {
@@ -42,7 +66,7 @@ for (j in 1:3) {
       density_data <- data.frame(x = density_data$x, density = density_data$y)
     }
 
-    line_data_avg[[i]] <- data.frame(avg = sum(ys * density_data$density) / sum(density_data$density), method = method_pretty[methods[i]])
+    line_data_avg[[i]] <- data.frame(avg = sum(ys * density_data$density) / sum(density_data$density), method = methods_pretty[methods[i]])
 
   }
 
@@ -51,7 +75,7 @@ for (j in 1:3) {
 
 
   plots[[j]] <- ggplot() +
-    geom_line(data = line_data %>% mutate(method = method_pretty[method]), aes(x = x, y = y, color = method)) +
+    geom_line(data = line_data %>% mutate(method = methods_pretty[method]), aes(x = x, y = y, color = method)) +
     geom_hline(data = line_data_avg, aes(yintercept = avg, color = method), linetype = 2) +
     geom_hline(aes(yintercept = .8), linetype = 1) +
     geom_area(data = density_data, aes(x = x, y = density / max(density)), fill = "grey", alpha = 0.5) +
@@ -90,10 +114,10 @@ p2 <- plots[[2]]
 p3 <- plots[[3]]
 
 suppressMessages({
-  pdf("./fig/lassoboot_comparison_laplace_100.pdf", height = 6.5)
+  pdf("./fig/laplace.pdf", height = 6.5)
   grid.arrange(grobs = list(p1, p2, p3), nrow = 3, ncol = 1)
   dev.off()
   gobj <- grid.arrange(grobs = list(p1, p2, p3), nrow = 3, ncol = 1)
-  save(gobj, file = glue("{res_dir}/web/rds/lassoboot_comparison_laplace_100_{method}.rds"))
+  save(gobj, file = glue("{res_dir}/web/rds/laplace.rds"))
 })
 

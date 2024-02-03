@@ -4,7 +4,7 @@ source("./fig/setup/setup.R")
 ## Load Data
 n <- 100
 p <- 100
-quantiles <- "zerosample"
+quantiles <- "zerosample2"
 load(glue("{res_dir}/rds/distribution_of_beta_{quantiles}_{method}_n{n}_p{p}.rds"))
 dist_types <- c("Sparse", "Laplace", "Normal", "T")
 
@@ -31,11 +31,12 @@ plot_function <- function(plot_list) {
   gg <- ggplot(data = coverage_data, aes(x = lambda, y = coverage, group = group, color = group)) +
     geom_line() +
     geom_vline(xintercept = plot_list[[2]], linetype = "dashed", color = sec_colors[1], linewidth = .5) +
+    geom_hline(yintercept = 0.8, linewidth = .5) +
     theme_bw() +
     scale_x_continuous(trans = log10_trans(),
                        breaks = trans_breaks('log10', function(x) 10^x),
                        labels = trans_format('log10', math_format(10^.x))) +
-    coord_cartesian(xlim = c(10^(.7), 10^(-2.7)), ylim = c(0, 1.0)) +
+    coord_cartesian(xlim = c(10^(.7), 10^(-2.4)), ylim = c(0, 1.0)) +
     scale_color_manual(name = expression(abs(beta)), values = colors) +
     ggtitle(plot_list$dist_type)
 

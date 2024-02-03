@@ -5,10 +5,19 @@ source("./fig/setup/setup.R")
 n <- 50
 p <- 25
 method <- "quantile"
-methods <- c("ridge", names(method_pretty))
-methods <- methods[c(1, 2, 3, 7, 6, 5, 4)]
-load(glue("{res_dir}/rds/method_comparison_highcorr_100_{method}_n{n}_p{p}.rds"))
-method_pretty <- c(method_pretty, "ridge" = "Ridge")
+methods <- c("ridge", "zerosample2")
+methods_pretty <- c(methods_pretty, "ridge" = "Ridge")
+
+cis <- list()
+examples <- list()
+for (i in 1:length(methods)) {
+  load(glue("{res_dir}/rds/highcorr_{methods[i]}.rds"))
+  cis[[i]] <- confidence_interval
+  examples[[i]] <- example
+}
+names(cis) <- methods
+names(examples) <- methods
+
 
 plot_ridge <- function(ridge_ci, n = 30, quiet = TRUE) {
 
@@ -65,14 +74,14 @@ for (i in 1:length(methods)) {
     ylab(NULL) +
     xlab(NULL) +
     scale_color_manual(values = colors) +
-    annotate("text", x = 1.2, y = 3.4, label = method_pretty[methods[i]], size = 5)
+    annotate("text", x = 1.2, y = 3.4, label = methods_pretty[methods[i]], size = 5)
 
  if (methods[i] == "ridge") {
-   ridge_example <- examples[[i]]
+   ridge_example <- current_example
    colnames(ridge_example) <- tolower(colnames(ridge_example))
    tmp_plot <- plot_ridge(ridge_example)
  } else {
-   tmp_plot <- plot(examples[[i]], method = method)
+   tmp_plot <- plot(current_example, method = method)
  }
  plots[[2 + 2*(i-1)]] <- tmp_plot +
    coord_cartesian(xlim = c(-1, 2)) +
@@ -86,10 +95,10 @@ left_label <- textGrob("Variable", gp = gpar(fontsize = 12), rot = 90)
 bottom_label <- textGrob("Interval Endpoint", gp = gpar(fontsize = 12))
 
 suppressMessages({
-  pdf("./fig/method_comparison_highcorr_100.pdf", height = 20)
+  pdf("./fig/highcorr.pdf", height = length(methods) * 3)
   grid.arrange(grobs = plots, ncol = 2, left = left_label, bottom = bottom_label)
   dev.off()
   gobj <- grid.arrange(grobs = plots, ncol = 2, left = left_label, bottom = bottom_label)
-  save(gobj, file = glue("{res_dir}/web/rds/lassoboot_comparison_highcorr_100_{method}.rds"))
+  save(gobj, file = glue("{res_dir}/web/rds/highcorr.rds"))
 })
 

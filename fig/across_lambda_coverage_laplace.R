@@ -2,9 +2,9 @@
 source("./fig/setup/setup.R")
 
 ## Load Data
-quantiles <- "zerosample"
+quantiles <- "zerosample2"
 method <- "quantile"
-load(glue("{res_dir}/rds/across_lambda_coverage_laplace_{quantiles}_{method}.rds"))
+load(glue("{res_dir}/rds/across_lambda_coverage_laplace_{quantiles}.rds"))
 
 # Create a new transformation for reversed log10
 log10_trans <- function() {
@@ -90,8 +90,5 @@ right_label <- textGrob("Coverage", gp = gpar(fontsize = 12), rot = 270)
 suppressMessages({
   pdf("./fig/across_lambda_coverage_laplace.pdf", height = 5)
   g <- grid.arrange(grobs = plots, ncol = 1, heights = c(150, 150, 200), left = left_label, right = right_label)
-  dev.off()
-  png("./fig/across_lambda_coverage_laplace.png", width = 500, height = 600)
-  grid.arrange(grobs = plots, ncol = 1)
   dev.off()
 })
