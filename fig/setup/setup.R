@@ -31,3 +31,5 @@ methods_pretty <- c(
   "selective_inference" = "Selective Inference",
   "blp" = "Bootstrap Lasso Projection"
 )
+
+save_rds <- FALSE

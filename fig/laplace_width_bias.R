@@ -6,7 +6,8 @@ source("./fig/setup/setup.R")
 cutoff <- 3
 xs <- seq(0, cutoff, by = .01)
 
-methods <- c("selective_inference", "zerosample2", "blp")
+# methods <- c("selective_inference", "zerosample2", "blp")
+methods <- c("traditional", "sample", "debiased", "zerosample2")
 n_methods <- length(methods)
 
 per_var_data <- list()
@@ -146,6 +147,8 @@ suppressMessages({
   pdf("./fig/laplace_width_bias.pdf", height = 6.5)
   grid.arrange(grobs = list(plots[[1]], plots_bias[[1]], plots[[2]], plots_bias[[2]], plots[[3]], plots_bias[[3]]), nrow = 3, ncol = 2, left = left_label, right = right_label)
   dev.off()
-  gobj <- grid.arrange(grobs = list(plots[[1]], plots_bias[[1]], plots[[2]], plots_bias[[2]], plots[[3]], plots_bias[[3]]), nrow = 3, ncol = 2, left = left_label, right = right_label, bottom = bottom_label)
-  save(gobj, file = glue("{res_dir}/web/rds/laplace_width_bias.rds"))
+  if (save_rds) {
+    gobj <- grid.arrange(grobs = list(plots[[1]], plots_bias[[1]], plots[[2]], plots_bias[[2]], plots[[3]], plots_bias[[3]]), nrow = 3, ncol = 2, left = left_label, right = right_label, bottom = bottom_label)
+    save(gobj, file = glue("{res_dir}/web/rds/laplace_width_bias.rds"))
+  }
 })

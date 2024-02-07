@@ -88,7 +88,7 @@ left_label <- textGrob("Interval Widths", gp = gpar(fontsize = 12), rot = 90)
 right_label <- textGrob("Coverage", gp = gpar(fontsize = 12), rot = 270)
 
 suppressMessages({
-  pdf("./fig/across_lambda_coverage_laplace.pdf", height = 5)
-  g <- grid.arrange(grobs = plots, ncol = 1, heights = c(150, 150, 200), left = left_label, right = right_label)
+  pdf("./fig/across_lambda_coverage_laplace.pdf", height = 4.5)
+  g <- grid.arrange(grobs = plots, ncol = 1, heights = c(150, 150, 180), left = left_label, right = right_label)
   dev.off()
 })

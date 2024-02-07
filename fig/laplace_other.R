@@ -3,11 +3,10 @@ source("./fig/setup/setup.R")
 
 ## Load Data
 # method <- "bucketfill"
-keep_method <- c("traditional", "sample", "debiased", "zerosample2")
-# method_pretty <- method_pretty[keep_method]
 
 
 methods <- c("selective_inference", "zerosample2", "blp")
+# methods <- c("traditional", "sample", "zerosample2", "debiased")
 n_methods <- length(methods)
 
 per_var_data <- list()
@@ -52,10 +51,13 @@ p3 <- per_var_data %>%
   summarise(width = median(width, na.rm = TRUE)) %>%
   ungroup() %>%
   mutate(group = glue("{method}-{n}"), n = as.factor(n)) %>%
-  ggplot(aes(x = methods_pretty[method], y = log10(width), group = group, fill = n)) +
+  # ggplot(aes(x = methods_pretty[method], y = log10(width), group = group, fill = n)) +
+  ggplot(aes(x = methods_pretty[method], y = width, group = group, fill = n)) +
   geom_boxplot() +
   scale_fill_manual(values = colors, name = "Sample Size") +
-  ylab(expression(log10(`Median Width`))) + xlab(NULL) +
+  # ylab(expression(log10(`Median Width`))) +
+  ylab(expression(`Median Width`)) +
+  xlab(NULL) +
   theme_bw()
 
 ## 28, 2 failed / 4, 10, 3, infinite median
@@ -77,7 +79,6 @@ p4 <- per_dataset_data %>%
   ylab(expression(lambda)) + xlab(NULL) +
   theme_bw()
 
-
 glist <- list(p1, p2, p3, p4)
 glist <- lapply(glist, function(x) {
   x +
@@ -94,6 +95,8 @@ suppressMessages({
   pdf("./fig/laplace_other.pdf", height = 8)
   g <- grid.arrange(grobs = glist, ncol = 2, nrow = 2, bottom = bottom_label)
   dev.off()
-  gobj <- grid.arrange(grobs = glist, ncol = 2, nrow = 2, bottom = bottom_label)
-  save(gobj, file = glue("{res_dir}/web/rds/laplace_other.rds"))
+  if (save_rds) {
+    gobj <- grid.arrange(grobs = glist, ncol = 2, nrow = 2, bottom = bottom_label)
+    save(gobj, file = glue("{res_dir}/web/rds/laplace_other.rds"))
+  }
 })

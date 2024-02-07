@@ -6,8 +6,8 @@ source("./fig/setup/setup.R")
 
 plots <- list()
 
-methods <- c("traditional", "sample", "debiased", "zerosample2")
-# methods <- c("selective_inference", "zerosample2", "blp")
+# methods <- c("traditional", "sample", "debiased", "zerosample2")
+methods <- c("selective_inference", "zerosample2", "blp")
 n_methods <- length(methods)
 
 per_var_data <- list()
@@ -112,12 +112,12 @@ p2 <- plots[[2]]
 p3 <- plots[[3]]
 
 suppressMessages({
-  pdf("./fig/laplace.pdf", height = 6.5)
+  pdf("./fig/laplace_comparison.pdf", height = 6.5)
   grid.arrange(grobs = list(p1, p2, p3), nrow = 3, ncol = 1)
   dev.off()
   if (save_rds) {
     gobj <- grid.arrange(grobs = list(p1, p2, p3), nrow = 3, ncol = 1)
-    save(gobj, file = glue("{res_dir}/web/rds/laplace.rds"))
+    save(gobj, file = glue("{res_dir}/web/rds/laplace_comparison.rds"))
   }
 })
 

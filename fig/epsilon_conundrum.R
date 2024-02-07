@@ -51,6 +51,8 @@ suppressMessages({
   pdf("./fig/epsilon_conundrum.pdf", height = 4 * ceiling(length(methods) / 2))
   grid.arrange(grobs = plots, nrow = ceiling(length(methods) / 2), left = left_label)
   dev.off()
-  gobj <- grid.arrange(grobs = plots, nrow = ceiling(length(methods) / 2), left = left_label)
-  save(gobj, file = glue("{res_dir}/web/rds/epsilon_conundrum.rds"))
+  if (save_rds) {
+    gobj <- grid.arrange(grobs = plots, nrow = ceiling(length(methods) / 2), left = left_label)
+    save(gobj, file = glue("{res_dir}/web/rds/epsilon_conundrum.rds"))
+  }
 })

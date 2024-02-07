@@ -2,8 +2,8 @@
 source("./fig/setup/setup.R")
 
 ## Load Data
-dataset <- "whoari"
-# dataset <- "Scheetz2006"
+# dataset <- "whoari"
+dataset <- "Scheetz2006"
 
 ## Plotting function
 plot_ci_comparison <- function(cis, nvars = 20) {
@@ -39,7 +39,7 @@ plot_ci_comparison <- function(cis, nvars = 20) {
           legend.margin = margin(6, 6, 6, 6),
           legend.background = element_rect(fill = "transparent")) +
     facet_wrap(~method) +
-    coord_cartesian(xlim = c(-0.6, 0.6))
+    coord_cartesian(xlim = c(-0.06, 0.06))
 
 }
 
@@ -55,11 +55,12 @@ cis <- do.call(rbind, cis) %>% data.frame()
 
 ## Plotting
 # suppressMessages({
-  pdf("./fig/comparison_data.pdf", width = 7.5)
+  pdf("./fig/comparison_data_scheetz.pdf", width = 7.5)
   plot_ci_comparison(cis)
   dev.off()
+  pobj <- plot_ci_comparison(cis)
   if (save_rds) {
     pobj <- plot_ci_comparison(cis)
-    save(pobj, file = glue("{res_dir}/web/rds/comparison_data.rds"))
+    save(pobj, file = glue("{res_dir}/web/rds/comparison_data_scheetz.rds"))
   }
 # })

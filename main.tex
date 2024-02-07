@@ -5,7 +5,7 @@ The prevailing opinion is that the traditional use of bootstrapping to produce c
 Specifically, we see two potential problems that arise when proposing to use bootstrapping for penalized regression, we will refer to these obstacles as,
 
 \begin{enumerate}
-\item the Bias Tradeoff, and \logan{Better term?}
+\item the Bias Tradeoff, and
 \item the Epsilon Conundrum.
 \end{enumerate}
 
@@ -111,8 +111,6 @@ p^* &= p \times (Pr_{\pm} / Post_{\pm}) \\
 
 Once this respective probabilities are mapped, one can simply use the inverse of the normal CDFs that the probabilities were mapped to. That being said, there is a nuance worth pointing out. When transforming the probabilities, the step to determine which tail the respective quantile comes from occurs first. With this, the probability should be adjusted so that it refers to the probability between the quantile of interest and the respective tail. After this, then the transformation can be applied.
 
-\logan{Need a better term for the two halves than tail....}
-
 This solution corresponds to a particular value of $\lam$ and $\hat{\sigma}^2$. The only thing prohibitive to producing intervals for the entire lasso path is computational resources since the bootstrap is already computationally expensive. That brings our decision down to producing an estimate for $\sigma^2$. Our recommendation is to first use cross validation (CV) once to produce an estimate. However, note that producing an estimate in this manner implicitly depends on $\lam$, so new estimates for $\sigma^2$ should be obtained for each value of $\lam$.
 
 Our recommendation is to use CV to select $\lam$ and produce an estimate for $\sigma^2$ and produce bootstrap confidence intervals corresponding to these values to report.
@@ -146,13 +144,20 @@ All together this leads to the following steps to perform the bootstrap (present
 
 \section{Simulation Studies}
 
-\subsection{Overall vs. per-feature coverage}
+\subsection{Comparing Methods}
 
-\includegraphics[width=\linewidth]{overall_v_feature.pdf}
+\subsubsection{Overall vs. per-feature coverage}
+
+\includegraphics[width=\linewidth]{laplace.pdf}
+
+\subsubsection{Width and Central Bias}
+
+\includegraphics[width=\linewidth]{laplace_width_bias.pdf}
 
 \subsection{Across \texorpdfstring{$\lambda$}{lambda} Performance}
 \includegraphics[width=\linewidth]{across_lambda_coverage_laplace.pdf}
 
+\includegraphics[width=\linewidth]{beta_lambda_heatmap_laplace.pdf}
 
 \subsection{Distribution of Beta}
 
@@ -160,11 +165,11 @@ All together this leads to the following steps to perform the bootstrap (present
 
 \subsection{Epsilon Conundrum (Comparison to Traditional Quantile Bootstrap)}
 
-\includegraphics[width=\linewidth]{method_comparison_traditional.pdf}
+\includegraphics[width=\linewidth]{epsilon_conundrum.pdf}
 
 \subsection{Correlated Features (Comparison to Ridge)}
 
-\includegraphics[width=\linewidth]{method_comparison_highcorr_100.pdf}
+\includegraphics[width=\linewidth]{highcorr.pdf}
 
 \subsection{Comparison to Other Methods}
 
@@ -180,18 +185,19 @@ All together this leads to the following steps to perform the bootstrap (present
 \item{Bootstrap Lasso Projection}
 \end{enumerate}
 
-\subsection{Single Example}
-
-\includegraphics[width=\linewidth]{method_comparison_laplace.pdf}
-
 \subsection{Comparison Similation}
 
-\includegraphics[width=\linewidth]{method_comparison_laplace_100.pdf}
+\includegraphics[width=\linewidth]{laplace_comparison.pdf}
 
-\includegraphics[width=\linewidth]{method_comparison_laplace_100_other.pdf}
+\includegraphics[width=\linewidth]{laplace_other.pdf}
 
-\section{Real data}
-\includegraphics[width=\linewidth]{method_comparison_whoari.pdf}
+\section{Application: Acute Respiratory Illness (WHO)}
+
+\includegraphics[width=\linewidth]{comparison_data.pdf}
+
+\section{Application: Gene expression in the mammalian eye}
+
+\includegraphics[width=\linewidth]{comparison_data_scheetz.pdf}
 
 \section{Limitations}
 

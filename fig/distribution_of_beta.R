@@ -5,7 +5,7 @@ source("./fig/setup/setup.R")
 n <- 100
 p <- 100
 quantiles <- "zerosample2"
-load(glue("{res_dir}/rds/distribution_of_beta_{quantiles}_{method}_n{n}_p{p}.rds"))
+load(glue("{res_dir}/rds/distribution_of_beta_n{n}_p{p}_{quantiles}.rds"))
 dist_types <- c("Sparse", "Laplace", "Normal", "T")
 
 all_res[[1]]$dist_type <- dist_types[1]
@@ -36,7 +36,7 @@ plot_function <- function(plot_list) {
     scale_x_continuous(trans = log10_trans(),
                        breaks = trans_breaks('log10', function(x) 10^x),
                        labels = trans_format('log10', math_format(10^.x))) +
-    coord_cartesian(xlim = c(10^(.7), 10^(-2.4)), ylim = c(0, 1.0)) +
+    coord_cartesian(xlim = c(10^(.6), 10^(-2.5)), ylim = c(0, 1.0)) +
     scale_color_manual(name = expression(abs(beta)), values = colors) +
     ggtitle(plot_list$dist_type)
 
