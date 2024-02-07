@@ -29,6 +29,18 @@ The idea of \textit{Order Inference} focuses on the variable space which inferen
 
 \section{Lasso Bootstrap Confidence Intervals}
 
+In what follows, we examine four different methods for obtaining confidence intervals via bootstrapping.
+
+The first is the traditional bootstrap which results simply from taking the point estimate for each $\beta_j$ for each bootstrap sample. As mentioned previously and as we will see, this is has clear pitfalls which the subsequent three alternatives attempt to address.
+
+The second is the sample bootstrap. This leverages the Bayesian formulation of the lasso. For each bootstrap sample, a random draw from the $O_1$ posterior os obtained instead of taking the point estimate (equivalent to the mode) of the posterior. \logan{discuss}
+
+The sample bootstrap tends to be too aggressive in the additional variability introduced. As such, the third (called zero sample) falls in between the first and the second and only samples from the $O_1$ posterior if the point estimate for a given $\beta_j$ is equal to zero for that bootstrap sample.
+
+The fourth and final method is a niave approach at producing debiased intervals and as such is called debiased. Instead of taking the point estimate as the traditional method would, this method uses the correlation between the partial residuals obtained from the lasso with $\boldsymbol{x}_j$. As such, one might expect this to address both issues mentioned above. As we will see, it does in fact, however, its performance in general is subpar when $p < n$.
+
+\subsection{An Overview of the Four Alternatives}
+
 As with other penalized regression models, the lasso can be formulated as a Bayesian regression model by setting an appropriate prior. For the lasso, this prior is a Laplace, also called double-exponential, distribution:
 
 \as{\p(\bb) = \prod_{j = 1}^{p} \frac{\gamma}{2}\exp(-\gamma \abs{\beta_j}), \gamma > 0}
