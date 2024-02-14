@@ -11,7 +11,7 @@ quietlyLoadPackage <- function(package) {
 
 packages <- c(
   "dplyr", "tidyr", "ggplot2", "ncvreg", "gridExtra", "scales", "kableExtra",
-  "grid", "glue", "lme4", "gam", "mgcv", "splines"
+  "grid", "glue", "lme4", "mgcv", "splines"
 )
 
 .libPaths(paste0(res_dir, "/local"))
