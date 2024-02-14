@@ -1,0 +1,15 @@
+\section{Inferential Paradigm}
+
+The method to be proposed falls into a bit of a grey area that isn't well encapsulated by common interential scopes such as "marginal", "conditional", or "joint". To that end, we breifly describe a different perspective here which we call \textit{Order Inference}.
+
+The idea of \textit{Order Inference} focuses on the variable space which inferential methods are conducted. Specifcally, we will let order referece the relation of the current variable under consideration, $\x_i$, to the other variables, $\x_j$, where $j \neq i$ as well as their relation to the outcome variable $\y$. To visualize the concept of \textit{Order Inference}, we will provide a simple example using multiple linear regression.
+
+\textbf{Zeroth Order} ($O_z$): Here, no consideration is given to $\x_j$. All inference for $\beta_i$ is done based on the residuals from $\hat{y}$ as a projection onto the column space of $X_i$.
+
+\textbf{First Order} ($O_1$): In this paradigm, this is the most difficult to capture since it could take a few forms. The way this occurs is by projecting $\y$ first onto the columns space of $\X_j$ then the residuals $\r_j$ onto the column space of $\X_i$. How the first projection occurs is where alternatives forms into play. A literal translation would involve p two-step regressions. An alternate form that is more akin to the approach to be proposed requires one joint regression, calculation of partial residuals $\r_{-i}$ then projecting $\r_{-i}$ onto the column space of $\x_i$.
+
+\textbf{Second Order} ($O_2$): With $n \gg p$ and $\epsilon \sim N(0, \sigma^2)$, this is the traditional analysis most would run: perform joint inference with residuals from $\hat{y}$ as a projection onto the column space of $\boldsymbol{X}$.
+
+\subsection{Bootstrap Sampling}
+
+There are various ways to perform a single iteration of a bootstrap, among them are the pairs bootstrap and the residual bootstrap. For high dimensional problems in general, the pairs bootstrap is attractive. First, it makes the fewest assumptions compared to other methods. Specifically, the only assumption made for the pairs bootstrap is that the original pairs were randomly sampled from some distribution $F$, where $F$ is a distribution on (p + 1)-dimensional vectors (Efron, Tibshirani). Additionally, the pairs bootstrap is simple to perform. Finally, and perhaps most importantly, it treats $\X$ as random which is almost surely the case in high dimensional settings. For this reason, we will solely focus on and use the pairs bootstrap in our proposed procedure.

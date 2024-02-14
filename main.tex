@@ -15,18 +15,6 @@ The second problem, the Epsilon Conundrum, is also related to the shrinkage but 
 
 The later of these two problems is addressed in our novel approach to producing bootstrap based confidence intervals for the lasso.
 
-\section{Inferential Paradigm}
-
-The method to be proposed falls into a bit of a grey area that isn't well encapsulated by common interential scopes such as "marginal", "conditional", or "joint". To that end, we breifly describe a different perspective here which we call \textit{Order Inference}.
-
-The idea of \textit{Order Inference} focuses on the variable space which inferential methods are conducted. Specifcally, we will let order referece the relation of the current variable under consideration, $\x_i$, to the other variables, $\x_j$, where $j \neq i$ as well as their relation to the outcome variable $\y$. To visualize the concept of \textit{Order Inference}, we will provide a simple example using multiple linear regression.
-
-\textbf{Zeroth Order} ($O_z$): Here, no consideration is given to $\x_j$. All inference for $\beta_i$ is done based on the residuals from $\hat{y}$ as a projection onto the column space of $X_i$.
-
-\textbf{First Order} ($O_1$): In this paradigm, this is the most difficult to capture since it could take a few forms. The way this occurs is by projecting $\y$ first onto the columns space of $\X_j$ then the residuals $\r_j$ onto the column space of $\X_i$. How the first projection occurs is where alternatives forms into play. A literal translation would involve p two-step regressions. An alternate form that is more akin to the approach to be proposed requires one joint regression, calculation of partial residuals $\r_{-i}$ then projecting $\r_{-i}$ onto the column space of $\x_i$.
-
-\textbf{Second Order} ($O_2$): With $n \gg p$ and $\epsilon \sim N(0, \sigma^2)$, this is the traditional analysis most would run: perform joint inference with residuals from $\hat{y}$ as a projection onto the column space of $\boldsymbol{X}$.
-
 \section{Lasso Bootstrap Confidence Intervals}
 
 In what follows, we examine four different methods for obtaining confidence intervals via bootstrapping.
@@ -60,17 +48,9 @@ We propose leveraging this relationship to build confidence intervals for $\bb$.
 \item For each $\beta_j$, combine the r*m samples and compute the quantiles for $p_L = (.5 - \l/2)$ and $p_U = (.5 + \l/2)$
 \end{enumerate}
 
-\section{Details}
+\subsection{Sampling from the Full Conditional}
 
-In this section, we describe the details of each of the steps outlined above along with other important considerations.
-
-\subsection{Bootstrap Sampling}
-
-There are various ways to perform a single iteration of a bootstrap, among them are the pairs bootstrap and the residual bootstrap. For high dimensional problems in general, the pairs bootstrap is attractive. First, it makes the fewest assumptions compared to other methods. Specifically, the only assumption made for the pairs bootstrap is that the original pairs were randomly sampled from some distribution $F$, where $F$ is a distribution on (p + 1)-dimensional vectors (Efron, Tibshirani). Additionally, the pairs bootstrap is simple to perform. Finally, and perhaps most importantly, it treats $\X$ as random which is almost surely the case in high dimensional settings. For this reason, we will solely focus on and use the pairs bootstrap in our proposed procedure.
-
-\subsection{Obtaining Intervals}
-
-\subsubsection{Computing the \texorpdfstring{$O_1$}{first order} posterior for \texorpdfstring{$\beta_j$}{betaj}}
+In this section, we describe the details and important considerations for the sampling performed in methods two and three above.
 
 Unfortunately, a Normal likelihood and Laplace prior are not conjugate and in general, the absolute value in the exponent of the Laplace makes many common manipulations for the posterior more difficult. Luckily, however, the marginal posterior can be shown to be a mixture of a right and left truncated normal where the truncation occurs at zero for right and left tails respectively. To obtain a $O_1$ posterior, we use the partial residuals, $\r_{-j}$, in the likelihood. This is natural due to the common CD algorithms used to arrive at lasso estimates. In the steps that follow, we will assume that $\X$ has been standardized s.t. $\x_j^T\x_j = n$. For $\beta_j$,
 
@@ -154,36 +134,94 @@ All together this leads to the following steps to perform the bootstrap (present
 \item For each $\beta_j$, combine the $r*m$ samples and compute the quantiles for $p_L = (.5 - \l/2)$ and $p_U = (.5 + \l/2)$ to produce a final confidence interval estimate
 \end{enumerate}
 
-\section{Simulation Studies}
+\section{Interval Behavior}
 
-\subsection{Comparing Methods}
+Need to make note on the rate used for the laplace. Which will come back into play with more or less sparse. Add extra plots to appendix for now.
 
-\subsubsection{Overall vs. per-feature coverage}
+\subsection{Comparing Lasso Bootstrap Methods}
 
 \includegraphics[width=\linewidth]{laplace.pdf}
 
-\subsubsection{Width and Central Bias}
+Say something...
 
 \includegraphics[width=\linewidth]{laplace_width_bias.pdf}
 
-\subsection{Across \texorpdfstring{$\lambda$}{lambda} Performance}
-\includegraphics[width=\linewidth]{across_lambda_coverage_laplace.pdf}
+\subsection{Nominal Coverage}
+
+\includegraphics[width=\linewidth]{nominal_coverage.pdf}
+
+\subsection{True lambda / sigma}
+
+\includegraphics[width=\linewidth]{true_lambda.pdf}
+
+\section{Sensitivity}
+
+\subsection{Correlation Structures}
+
+Nominal coverage: .95
+
+Data = laplace, Corr autoregressive - 0.7
+      n coverage
+  <dbl>    <dbl>
+1    30    0.910
+2    40    0.872
+3    80    0.931
+
+Data = abn, Corr exchangeable - 0.5
+      n coverage
+1    30    0.936
+2    40    0.945
+3    80    0.950
+
+Data = abn, Corr autoregressive - 0.8
+      n coverage
+  <dbl>    <dbl>
+1    30    0.946
+2    40    0.941
+3    80    0.946
+
+\subsection{Under Alternative Laplace Distributions}
+
+\includegraphics[width=\linewidth]{different_rates.pdf}
+
+\subsection{Selection of \texorpdfstring{$\lambda$}{lambda}}
 
 \includegraphics[width=\linewidth]{beta_lambda_heatmap_laplace.pdf}
 
 \subsection{Distribution of Beta}
 
+Sparse: more at zero, little moderate, heavier tails
+
+Sparse 1: 0 x 90, +/- $(0.5 x 3, 1, 2)$,
+- high, low, low  - brown
+Sparse 2: 0 x 70, 30 $\sim N(0, 1)$
+- high, moderate, low - purple
+Sparse 3: 0 x 50, 50 $\sim N(0, 1)$
+- moderate, moderate, low - yellow
+Laplace: 100 $\sim dexp(2)$
+- moderate, high, high - green
+T: 100 $\sim T(3)$
+- low, high, high - blue
+Normal: 100 $\sim N(0, 1)$
+- low, high, low - red
+
 \includegraphics[width=\linewidth]{distribution_of_beta.pdf}
+
+Here is a terrible plot just to give a general idea of them :
+
+\includegraphics[width=\linewidth]{sparsity.pdf}
 
 \subsection{Epsilon Conundrum (Comparison to Traditional Quantile Bootstrap)}
 
 \includegraphics[width=\linewidth]{epsilon_conundrum.pdf}
 
+\subsection{Correlation}
+
 \subsection{Correlated Features (Comparison to Ridge)}
 
 \includegraphics[width=\linewidth]{highcorr.pdf}
 
-\subsection{Comparison to Other Methods}
+\section{Comparison to Other Methods}
 
 \begin{enumerate}
 \item Selective inference
@@ -211,7 +249,7 @@ All together this leads to the following steps to perform the bootstrap (present
 
 \includegraphics[width=\linewidth]{comparison_data_scheetz.pdf}
 
-\section{Limitations}
+\section{Discussion}
 
 \subsection{Space Requirements}
 
@@ -226,10 +264,6 @@ We are currently working on implimenting and assessing using the method introduc
 Luckily, as far as problems go, this is a relatively benign use case. The primary obsticle that a method needs to be able to address is adhering to space requirements. Ideally, the storage space required should not grow with the number of draws or should at least grow at a much slower rate than the number of draws (i.e. no faster than $\log(\# of draws)$). In fact, per quantile tracked, the method presented by Tierney only requries 6 direct access storage points. As \cite{Tierney1983} notes, his method only has the requirement that F has "a bounded derivative that is continuous at $\xi$", where $\xi$ is the tracked quantile. The only point at which this could be violated for the distributions we are tracking would be if $\xi = 0$, since the derivative is not necessarily continuous at this point. However, since the distribution itself is continous at 0, $\xi = 0$ w.p. 0.
 
 One drawback of using the method as introduced by Tierney is that is only addresses tracking of a single quantile at a time. Recent research has focused on joint quantile tracking. Future exploration into how such methods perform would undoubtably add robustness, however, given the use case here of tracking two quantiles in seperate tails, we accept this limitation with caution.
-
-\section{Discussion}
-
-\section{Conclusions}
 
 \section*{Acknowledgments}
 

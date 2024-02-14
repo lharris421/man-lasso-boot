@@ -3,23 +3,30 @@ source("./fig/setup/setup.R")
 
 ## Load Data
 # method <- "bucketfill"
-cutoff <- 3
+cutoff <- 2
 xs <- seq(0, cutoff, by = .01)
 
 # methods <- c("selective_inference", "zerosample2", "blp")
 methods <- c("traditional", "sample", "debiased", "zerosample2")
+
+alpha <- .2
+data_type <- "laplace"
+corr <- "exchangeable"
+rho <- 0
+
 n_methods <- length(methods)
 
 per_var_data <- list()
 for (i in 1:n_methods) {
-  load(glue("{res_dir}/rds/laplace_{methods[i]}.rds"))
+  load(glue("{res_dir}/rds/{data_type}_{corr}_rho{rho*100}_{methods[i]}_alpha{alpha*100}.rds"))
   per_var_data[[i]] <- per_var
 }
 per_var_data <- do.call(rbind, per_var_data) %>%
   data.frame()
 ns <- unique(per_var_data$n)
-
+ns <- c(30, 40, 80)
 plots <- list()
+
 for (j in 1:length(ns)) {
 
   plot_res <- list()
@@ -103,49 +110,63 @@ for (j in 1:length(ns)) {
     scale_color_manual(name = "Method", values = colors)
 }
 
-plots[[1]] <- plots[[1]] +
-  theme(legend.position = "none",
-        axis.title.x = element_blank(),
-        axis.text.x = element_blank(),
-        axis.ticks.x = element_blank())
+# plots[[1]] <- plots[[1]] +
+#   theme(legend.position = "none",
+#         axis.title.x = element_blank(),
+#         axis.text.x = element_blank(),
+#         axis.ticks.x = element_blank())
+#
+# plots[[2]] <- plots[[2]] +
+#   theme(legend.position = "none",
+#         axis.title.x = element_blank(),
+#         axis.text.x = element_blank(),
+#         axis.ticks.x = element_blank())
+#
+# plots[[3]] <- plots[[3]] +
+#   theme(legend.position = "none")
+#
+# plots_bias[[1]] <- plots_bias[[1]] +
+#   theme(legend.position = "none",
+#         axis.title.x = element_blank(),
+#         axis.text.x = element_blank(),
+#         axis.ticks.x = element_blank())
+#
+# plots_bias[[2]] <- plots_bias[[2]] +
+#   theme(legend.position = "none",
+#         axis.title.x = element_blank(),
+#         axis.text.x = element_blank(),
+#         axis.ticks.x = element_blank())
+#
+# plots_bias[[3]] <- plots_bias[[3]] +
+#   theme(legend.position = c(0.5, 0.1),
+#                   legend.direction = "horizontal",
+#                   legend.background = element_rect(fill = NA),
+#                   legend.title = element_text(size = 8),
+#                   legend.text = element_text(size = 6),
+#                   legend.key.width = unit(0.3, "cm"),
+#                   legend.key.height = unit(0.2, "cm"))
+
 
 plots[[2]] <- plots[[2]] +
-  theme(legend.position = "none",
-        axis.title.x = element_blank(),
-        axis.text.x = element_blank(),
-        axis.ticks.x = element_blank())
-
-plots[[3]] <- plots[[3]] +
   theme(legend.position = "none")
 
-plots_bias[[1]] <- plots_bias[[1]] +
-  theme(legend.position = "none",
-        axis.title.x = element_blank(),
-        axis.text.x = element_blank(),
-        axis.ticks.x = element_blank())
-
 plots_bias[[2]] <- plots_bias[[2]] +
-  theme(legend.position = "none",
-        axis.title.x = element_blank(),
-        axis.text.x = element_blank(),
-        axis.ticks.x = element_blank())
-
-plots_bias[[3]] <- plots_bias[[3]] +
   theme(legend.position = c(0.5, 0.1),
-                  legend.direction = "horizontal",
-                  legend.background = element_rect(fill = NA),
-                  legend.title = element_text(size = 8),
-                  legend.text = element_text(size = 6),
-                  legend.key.width = unit(0.3, "cm"),
-                  legend.key.height = unit(0.2, "cm"))
+        legend.direction = "horizontal",
+        legend.background = element_rect(fill = NA),
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 6),
+        legend.key.width = unit(0.3, "cm"),
+        legend.key.height = unit(0.2, "cm"))
 
 left_label <- textGrob("Width", gp = gpar(fontsize = 12), rot = 90)
 right_label <- textGrob("Central Bias", gp = gpar(fontsize = 12), rot = 270)
 bottom_label <- textGrob(expression(abs(beta)), gp = gpar(fontsize = 12))
 
 suppressMessages({
-  pdf("./fig/laplace_width_bias.pdf", height = 6.5)
-  grid.arrange(grobs = list(plots[[1]], plots_bias[[1]], plots[[2]], plots_bias[[2]], plots[[3]], plots_bias[[3]]), nrow = 3, ncol = 2, left = left_label, right = right_label)
+  pdf("./fig/laplace_width_bias.pdf", height = 3.5)
+  # grid.arrange(grobs = list(plots[[1]], plots_bias[[1]], plots[[2]], plots_bias[[2]], plots[[3]], plots_bias[[3]]), nrow = 3, ncol = 2, left = left_label, right = right_label, bottom = bottom_label)
+  grid.arrange(grobs = list(plots[[2]], plots_bias[[2]]), nrow = 1, ncol = 2, left = left_label, right = right_label, bottom = bottom_label)
   dev.off()
   if (save_rds) {
     gobj <- grid.arrange(grobs = list(plots[[1]], plots_bias[[1]], plots[[2]], plots_bias[[2]], plots[[3]], plots_bias[[3]]), nrow = 3, ncol = 2, left = left_label, right = right_label, bottom = bottom_label)

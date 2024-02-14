@@ -64,7 +64,7 @@ for (j in 1:length(ns)) {
     ys <- predict(fit, data.frame(mag_truth = xs, group = 101), type ="response")
     line_data[[i]] <- data.frame(x = xs, y = ys, method = methods[i])
 
-    line_data_avg[[i]] <- data.frame(avg = sum(ys * density_data$density) / sum(density_data$density), method = methods_pretty[methods[i]])
+    line_data_avg[[i]] <- data.frame(avg = mean(tmp$covered), method = methods_pretty[methods[i]])
 
   }
 

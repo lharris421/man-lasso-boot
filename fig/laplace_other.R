@@ -6,13 +6,15 @@ source("./fig/setup/setup.R")
 
 
 methods <- c("selective_inference", "zerosample2", "blp")
+methods <- c("zerosample2")
 # methods <- c("traditional", "sample", "zerosample2", "debiased")
 n_methods <- length(methods)
+alpha <- .1
 
 per_var_data <- list()
 per_dataset_data <- list()
 for (i in 1:n_methods) {
-  load(glue("{res_dir}/rds/laplace_{methods[i]}.rds"))
+  load(glue("{res_dir}/rds/laplace_{methods[i]}_alpha{alpha*100}_n40.rds"))
   per_var_data[[i]] <- per_var
   per_dataset_data[[i]] <- per_dataset
 }
@@ -31,7 +33,7 @@ p1 <- per_var_data %>%
   mutate(group = glue("{method}-{n}"), n = as.factor(n)) %>%
   ggplot(aes(x = methods_pretty[method], y = coverage, group = group, fill = n)) +
   geom_boxplot() +
-  geom_hline(yintercept = .8) +
+  geom_hline(yintercept = 1 - alpha) +
   scale_fill_manual(values = colors, name = "Sample Size") +
   ylab("Average Coverage") + xlab(NULL) +
   theme_bw()
