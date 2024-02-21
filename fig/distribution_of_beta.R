@@ -4,8 +4,12 @@ source("./fig/setup/setup.R")
 ## Load Data
 n <- 100
 p <- 100
-quantiles <- "zerosample2"
-load(glue("{res_dir}/rds/distribution_of_beta_n{n}_p{p}_{quantiles}.rds"))
+ci_method <- "zerosample2"
+SNR <- 1
+corr <- "exchangeable"
+rho <- 0
+alpha <- 0.2
+load(glue("{res_dir}/rds/distribution_of_beta_SNR{SNR}_{corr}_rho{rho*100}_alpha{alpha*100}_p{100}.rds"))
 dist_types <- c("Sparse 1", "Sparse 2", "Sparse 3", "Normal", "Laplace", "T")
 
 all_res[[1]]$dist_type <- dist_types[1]

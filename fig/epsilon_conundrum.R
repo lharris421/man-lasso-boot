@@ -4,10 +4,11 @@ source("./fig/setup/setup.R")
 ## Load Data
 methods <- c("traditional", "zerosample2")
 
+
 ## Coverages first
 res <- list()
 for (i in 1:length(methods)) {
-  load(glue("{res_dir}/rds/epsilon_conundrum_{methods[i]}.rds"))
+  load(glue("{res_dir}/rds/epsilon_conundrum_{methods[i]}_p100.rds"))
   res[[i]] <- confidence_interval
 }
 names(res) <- methods
@@ -24,7 +25,7 @@ names(coverages) <- methods
 
 res <- list()
 for (i in 1:length(methods)) {
-  load(glue("{res_dir}/rds/epsilon_conundrum_example_{methods[i]}.rds"))
+  load(glue("{res_dir}/rds/epsilon_conundrum_example_{methods[i]}_p100.rds"))
   res[[i]] <- example
 }
 names(res) <- methods
@@ -32,10 +33,10 @@ names(res) <- methods
 ## Traditional Bootstrap
 plots <- list()
 for (i in 1:length(methods)) {
-  ci <- ci.boot.ncvreg(res[[i]], method = method)
+  ci <- ci.boot.ncvreg(res[[i]], ci_method = ci_method, original_data = dat)
   # cov <- mean(ci$lower <= dat$beta & dat$beta <= ci$upper) ## Traditional
   cov <- coverages[methods[i]]
-  plots[[i]] <- plot(res[[i]], n = 30, method = method) +
+  plots[[i]] <- plot(res[[i]], n = 30, ci_method = ci_method, original_data = dat) +
     ggtitle(glue("{methods_pretty[methods[i]]} - Coverage: {round(cov * 100, 1)} %")) +
     ylab(NULL) +
     theme(

@@ -2,8 +2,17 @@
 source("./fig/setup/setup.R")
 
 ## Load Data
-quantiles <- "zerosample2"
-load(glue("{res_dir}/rds/across_lambda_coverage_laplace_{quantiles}.rds"))
+# method <- "zerosample2"
+# load(glue("{res_dir}/rds/across_lambda_coverage_laplace_{method}.rds"))
+
+rt <- 2
+SNR <- 1
+corr <- "exchangeable"
+rho <- 0
+method <- "zerosample2"
+alpha <- 0.2
+p <- 100
+load(glue("{res_dir}/rds/across_lambda_laplace({rt})_SNR{SNR}_{corr}_rho{rho*100}_{method}_alpha{alpha*100}_p{100}.rds"))
 
 lambda_max <- 1
 lambda_min <- 0.001

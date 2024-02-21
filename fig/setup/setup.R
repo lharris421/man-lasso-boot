@@ -20,7 +20,7 @@ colors <- palette()[c(2, 4, 3, 6, 7, 5)]
 sec_colors <- c("black", "grey62")
 background_colors <- c("#E2E2E2", "#F5F5F5")
 
-method <- "quantile"
+ci_method <- "quantile"
 methods_pretty <- c(
   "traditional" = "Traditional",
   "sample" = "Random Sample",
@@ -29,7 +29,9 @@ methods_pretty <- c(
   "zerosample1" = "Zero Sample Single",
   "zerosample2" = "Zero Sample",
   "selective_inference" = "Selective Inference",
-  "blp" = "Bootstrap Lasso Projection"
+  "blp" = "Bootstrap Lasso Projection",
+  "fullconditional" = "Full Conditional",
+  "truncatedzs2" = "Truncated Zero Sample"
 )
 
 save_rds <- FALSE

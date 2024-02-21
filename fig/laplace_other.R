@@ -1,20 +1,34 @@
 ## Setup
 source("./fig/setup/setup.R")
 
-## Load Data
-# method <- "bucketfill"
-
-
-methods <- c("selective_inference", "zerosample2", "blp")
-methods <- c("zerosample2")
-# methods <- c("traditional", "sample", "zerosample2", "debiased")
+# methods <- c("selective_inference", "zerosample2", "blp")
 n_methods <- length(methods)
-alpha <- .1
+methods <- c("traditional", "sample", "debiased", "zerosample2")
+methods <- c("zerosample2")
+methods <- c("truncatedzs2")
+n_methods <- length(methods)
+
+data_type <- "laplace"
+
+rt <- 2
+SNR <- 1
+
+corr <- "exchangeable"
+rho <- 0
+
+# corr <- "autoregressive"
+# rho <- .7
+
+per_var_data <- list()
+alpha <- .2
+p <- 100
 
 per_var_data <- list()
 per_dataset_data <- list()
 for (i in 1:n_methods) {
-  load(glue("{res_dir}/rds/laplace_{methods[i]}_alpha{alpha*100}_n40.rds"))
+  # load(glue("{res_dir}/rds/laplace_{methods[i]}.rds"))
+  ad_inf <- ifelse(data_type == "laplace", rt, a)
+  load(glue("{res_dir}/rds/{data_type}({ad_inf})_SNR{SNR}_{corr}_rho{rho*100}_{methods[i]}_alpha{alpha*100}_p{p}.rds"))
   per_var_data[[i]] <- per_var
   per_dataset_data[[i]] <- per_dataset
 }

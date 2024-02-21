@@ -2,8 +2,6 @@
 source("./fig/setup/setup.R")
 
 ## Load Data
-## method <- "bucketfill"
-
 dlaplace <- function(x, rate = 1) {
   dexp(abs(x), rate) / 2
 }
@@ -13,9 +11,14 @@ plots <- list()
 methods <- c("traditional", "sample", "debiased", "zerosample2")
 # methods <- c("selective_inference", "zerosample2", "blp")
 # methods <- c("zerosample2")
+# methods <- c("fullconditional")
+# methods <- c("truncatedzs2")
 n_methods <- length(methods)
+
 data_type <- "laplace"
 
+rt <- 2
+SNR <- 1
 
 corr <- "exchangeable"
 rho <- 0
@@ -25,9 +28,11 @@ rho <- 0
 
 per_var_data <- list()
 alpha <- .2
+p <- 100
 for (i in 1:n_methods) {
-  load(glue("{res_dir}/rds/{data_type}_{corr}_rho{rho*100}_{methods[i]}_alpha{alpha*100}.rds"))
-  # load(glue("{res_dir}/rds/laplace_{methods[i]}.rds"))
+  # load(glue("{res_dir}/rds/{data_type}_{corr}_rho{rho*100}_{methods[i]}_alpha{alpha*100}_p{p}.rds"))
+  ad_inf <- ifelse(data_type == "laplace", rt, a)
+  load(glue("{res_dir}/rds/{data_type}({ad_inf})_SNR{SNR}_{corr}_rho{rho*100}_{methods[i]}_alpha{alpha*100}_p{p}.rds"))
   per_var_data[[i]] <- per_var
 }
 per_var_data <- do.call(rbind, per_var_data) %>%
@@ -35,7 +40,7 @@ per_var_data <- do.call(rbind, per_var_data) %>%
 
 cutoff <- 2
 ns <- unique(per_var_data$n)
-ns <- c(30, 40, 80)
+# ns <- c(30, 40, 80)
 for (j in 1:length(ns)) {
 
   model_res <- per_var_data %>%
@@ -59,18 +64,25 @@ for (j in 1:length(ns)) {
       density_data <- data.frame(x = xvals, density = 2 * dlaplace(xvals, rate = 2))
     }
 
-    tmp %>%
-      filter(!is.na(estimate)) %>%
+    # tmp %>%
+    #   filter(!is.na(estimate)) %>%
+    #   group_by(n) %>%
+    #   summarise(
+    #     perc_succ = length(unique(group))
+    #   ) %>%
+    #   left_join(
+    #     tmp %>%
+    #       group_by(n) %>%
+    #       summarise(
+    #         perc_incl = mean(!is.na(estimate))
+    #       )) %>%
+    #   print()
+
+    per_var_data %>%
+      mutate(covered = lower <= truth & upper >= truth) %>%
       group_by(n) %>%
-      summarise(
-        perc_succ = length(unique(group))
-      ) %>%
-      left_join(
-        tmp %>%
-          group_by(n) %>%
-          summarise(
-            perc_incl = mean(!is.na(estimate))
-          )) %>%
+      summarise(coverage = mean(covered)) %>%
+      # pull(coverage)
       print()
 
     tmp <- tmp %>%
@@ -138,9 +150,9 @@ p2 <- plots[[2]]
 p3 <- plots[[3]]
 
 # suppressMessages({
-  pdf("./fig/laplace.pdf", height = 3.5)
-  # grid.arrange(grobs = list(p1, p2, p3), nrow = 3, ncol = 1)
-  p2
+  pdf("./fig/laplace.pdf", width = 7.5)
+  grid.arrange(grobs = list(p1, p2, p3), nrow = 3, ncol = 1)
+  # p2
   dev.off()
   if (save_rds) {
     gobj <- grid.arrange(grobs = list(p1, p2, p3), nrow = 3, ncol = 1)

@@ -4,7 +4,7 @@ source("./fig/setup/setup.R")
 ## Load Data
 n <- 50
 p <- 25
-method <- "quantile"
+ci_method <- "quantile"
 methods <- c("ridge", "zerosample2")
 methods_pretty <- c(methods_pretty, "ridge" = "Ridge")
 
@@ -81,7 +81,7 @@ for (i in 1:length(methods)) {
    colnames(ridge_example) <- tolower(colnames(ridge_example))
    tmp_plot <- plot_ridge(ridge_example)
  } else {
-   tmp_plot <- plot(current_example, method = method)
+   tmp_plot <- plot(current_example, ci_method = ci_method)
  }
  plots[[2 + 2*(i-1)]] <- tmp_plot +
    coord_cartesian(xlim = c(-1, 2)) +

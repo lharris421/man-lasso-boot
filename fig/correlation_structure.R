@@ -11,9 +11,12 @@ method <- "zerosample2"
 data_types <- c("laplace", "abn", "abn")
 corrs <- c("autoregressive", "exchangeable", "autoregressive")
 rhos <- c(0.7, 0.5, 0.8)
+addtl <- c(2, 5, 5)
+p <- 100
 
+SNR <- 1
 per_var_data <- list()
-alpha <- .05
+alpha <- .2
 ns <- c(30, 40, 80)
 
 plots <- list()
@@ -21,7 +24,8 @@ for (i in 1:length(data_types)) {
   data_type <- data_types[i]
   rho <- rhos[i]
   corr <- corrs[i]
-  load(glue("{res_dir}/rds/{data_type}_{corr}_rho{rho*100}_{method}_alpha{alpha*100}.rds"))
+  ad_inf <- addtl[i]
+  load(glue("{res_dir}/rds/{data_type}({ad_inf})_SNR{SNR}_{corr}_rho{rho*100}_{method}_alpha{alpha*100}_p{p}.rds"))
   per_var_data <- per_var
   print(glue("Data = {data_type}, Corr {corr} ({rho})"))
   per_var_data %>%

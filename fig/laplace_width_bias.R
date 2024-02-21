@@ -2,7 +2,6 @@
 source("./fig/setup/setup.R")
 
 ## Load Data
-# method <- "bucketfill"
 cutoff <- 2
 xs <- seq(0, cutoff, by = .01)
 
@@ -14,17 +13,22 @@ data_type <- "laplace"
 corr <- "exchangeable"
 rho <- 0
 
+rt <- 2
+SNR <- 1
+
+p <- 100
 n_methods <- length(methods)
 
 per_var_data <- list()
 for (i in 1:n_methods) {
-  load(glue("{res_dir}/rds/{data_type}_{corr}_rho{rho*100}_{methods[i]}_alpha{alpha*100}.rds"))
+  ad_inf <- ifelse(data_type == "laplace", rt, a)
+  load(glue("{res_dir}/rds/{data_type}({ad_inf})_SNR{SNR}_{corr}_rho{rho*100}_{methods[i]}_alpha{alpha*100}_p{p}.rds"))
   per_var_data[[i]] <- per_var
 }
 per_var_data <- do.call(rbind, per_var_data) %>%
   data.frame()
 ns <- unique(per_var_data$n)
-ns <- c(30, 40, 80)
+# ns <- c(30, 40, 80)
 plots <- list()
 
 for (j in 1:length(ns)) {
@@ -164,8 +168,9 @@ right_label <- textGrob("Central Bias", gp = gpar(fontsize = 12), rot = 270)
 bottom_label <- textGrob(expression(abs(beta)), gp = gpar(fontsize = 12))
 
 suppressMessages({
-  pdf("./fig/laplace_width_bias.pdf", height = 3.5)
+  # pdf("./fig/laplace_width_bias.pdf", width = 7.5)
   # grid.arrange(grobs = list(plots[[1]], plots_bias[[1]], plots[[2]], plots_bias[[2]], plots[[3]], plots_bias[[3]]), nrow = 3, ncol = 2, left = left_label, right = right_label, bottom = bottom_label)
+  pdf("./fig/laplace_width_bias.pdf", height = 3.5)
   grid.arrange(grobs = list(plots[[2]], plots_bias[[2]]), nrow = 1, ncol = 2, left = left_label, right = right_label, bottom = bottom_label)
   dev.off()
   if (save_rds) {
