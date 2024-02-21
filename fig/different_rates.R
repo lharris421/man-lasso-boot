@@ -11,23 +11,19 @@ method <- "zerosample2"
 data_type <- "laplace"
 corr <- "exchangeable"
 rho <- 0
+SNR <- 1
+p <- 100
 
 per_var_data <- list()
 alpha <- .2
-rates <- c(0.5, 2, 10)
-ns <- c(30, 40, 80)
+rates <- c(2, 10)
 
 plots <- list()
 for (i in 1:length(rates)) {
   rate <- rates[i]
-  if (rate == 2) {
-    load(glue("{res_dir}/rds/{data_type}_{corr}_rho{rho*100}_{method}_alpha{alpha*100}.rds"))
-  } else if (rate == 0.5) {
-    load(glue("{res_dir}/rds/{data_type}_{corr}_rho{rho*100}_{method}_alpha{alpha*100}_rt05.rds"))
-  } else if (rate == 10) {
-    load(glue("{res_dir}/rds/{data_type}_{corr}_rho{rho*100}_{method}_alpha{alpha*100}_rt10.rds"))
-  }
+  load(glue("{res_dir}/rds/{data_type}({rate})_SNR{1}_{corr}_rho{rho*100}_{method}_alpha{alpha*100}_p{p}.rds"))
   per_var_data <- per_var
+  ns <- sort(unique(per_var$n))
   plots[[i]] <- single_method_plot(per_var_data, ns, alpha) +
     # annotate("text", x = 1, y = 0.5, label = paste0("alpha = ", alpha), size = 5) +
     ggtitle(paste0("Rate = ", rate)) +
@@ -45,7 +41,7 @@ plots[[1]] <- plots[[1]] +
 
 # suppressMessages({
 pdf("./fig/different_rates.pdf", height = 3.5)
-g <- grid.arrange(grobs = plots, ncol = 3, nrow = 1)
+g <- grid.arrange(grobs = plots, ncol = length(rates), nrow = 1)
 dev.off()
 # })
 

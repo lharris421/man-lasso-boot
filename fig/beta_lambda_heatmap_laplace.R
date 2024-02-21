@@ -60,7 +60,8 @@ plt_cov <- ggplot(grid, aes(x = lambda, y = truth, fill = adjusted_coverage)) +
                      breaks = trans_breaks('log10', function(x) 10^x),
                      labels = trans_format('log10', math_format(10^.x))) +
   coord_cartesian(xlim = c(1, .001))  +
-  # geom_vline(xintercept = lambdas[[1]], alpha = .1) +
+  geom_vline(xintercept = lambdas[[1]], alpha = .1) +
+  geom_vline(xintercept = mean(lambdas[[1]]), alpha = .5, col = "red") +
   theme(legend.title = element_text(size = 7),
         legend.text = element_text(size = 5),
         legend.key.width = unit(0.5, "cm"),
@@ -97,12 +98,13 @@ plt_overall <- pdat %>%
 
 
 # suppressMessages({
-  pdf("./fig/beta_lambda_heatmap_laplace.pdf", height = 4)
+  pdf("./fig/beta_lambda_heatmap_laplace.pdf", height = 4, width = 5)
   # grid.arrange(grobs = list(plt_cov, plt_width, plt_overall), nrow = 2,
   #              layout_matrix = rbind(c(1, 3), c(2, 3)),
   #              widths = c(100, 50))
-  grid.arrange(grobs = list(plt_cov, plt_overall), nrow = 1,
-               widths = c(60, 40))
+  plt_cov
+  # grid.arrange(grobs = list(plt_cov, plt_overall), nrow = 1,
+  #              widths = c(60, 40))
   dev.off()
   if (save_rds) save(plt, file = glue("{res_dir}/web/rds/beta_lambda_heatmap_laplace.rds"))
 # })

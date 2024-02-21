@@ -150,9 +150,10 @@ p2 <- plots[[2]]
 p3 <- plots[[3]]
 
 # suppressMessages({
-  pdf("./fig/laplace.pdf", width = 7.5)
-  grid.arrange(grobs = list(p1, p2, p3), nrow = 3, ncol = 1)
-  # p2
+  # pdf("./fig/laplace.pdf", width = 7.5)
+  # grid.arrange(grobs = list(p1, p2, p3), nrow = 3, ncol = 1)
+  pdf("./fig/laplace.pdf", height = 3.5)
+  p2
   dev.off()
   if (save_rds) {
     gobj <- grid.arrange(grobs = list(p1, p2, p3), nrow = 3, ncol = 1)

@@ -14,13 +14,16 @@ rho <- 0
 
 per_var_data <- list()
 alpha <- .2
-ns <- c(30, 40, 80)
 alts <- c("l", "ls")
+rate <- 2
+SNR <- 1
+p <- 100
+ns <- p * c(0.75, 1, 4)
 
 plots <- list()
 for (i in 1:length(alts)) {
   alt <- alts[i]
-  load(glue("{res_dir}/rds/{data_type}_{corr}_rho{rho*100}_{method}_alpha{alpha*100}_true{alt}.rds"))
+  load(glue("{res_dir}/rds/{data_type}({rate})_SNR{SNR}_{corr}_rho{rho*100}_{method}_alpha{alpha*100}_p{p}_t{alt}.rds"))
   per_var_data <- per_var
   plots[[i]] <- single_method_plot(per_var_data, ns, alpha) +
     # annotate("text", x = 1, y = 0.5, label = paste0("alpha = ", alpha), size = 5) +
