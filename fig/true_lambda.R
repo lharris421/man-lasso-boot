@@ -14,20 +14,29 @@ rho <- 0
 
 per_var_data <- list()
 alpha <- .2
-alts <- c("l", "ls")
+p <- 100
+ns <- p * nprod
 rate <- 2
 SNR <- 1
-p <- 100
-ns <- p * c(0.75, 1, 4)
+modifier <- c("tl", "tls")
 
+new_folder <- "/Users/loganharris/github/lasso-boot/new_rds/"
+
+# Fetching and combining data
 plots <- list()
-for (i in 1:length(alts)) {
-  alt <- alts[i]
-  load(glue("{res_dir}/rds/{data_type}({rate})_SNR{SNR}_{corr}_rho{rho*100}_{method}_alpha{alpha*100}_p{p}_t{alt}.rds"))
-  per_var_data <- per_var
+for (i in 1:length(modifier)) {
+  per_var_data <- list()
+  params_grid <- expand.grid(list(data = data_type, n = ns, rate = rate, snr = SNR,
+                                  correlation_structure = corr, correlation = rho, method = method,
+                                  ci_method = "quantile", nominal_coverage = alpha * 100, p = p, modifier = modifier[i]))
+  for (j in 1:length(ns)) {
+    read_objects(rds_path, params_grid[j,])
+    per_var_data[[j]] <- per_var_n
+  }
+  per_var_data <- do.call(rbind, per_var_data) %>%
+    data.frame()
   plots[[i]] <- single_method_plot(per_var_data, ns, alpha) +
-    # annotate("text", x = 1, y = 0.5, label = paste0("alpha = ", alpha), size = 5) +
-    ggtitle(paste0("Alt = ", alt)) +
+    ggtitle(paste0("Modifier = ", params_grid$modifier)) +
     theme(legend.position = "none")
 }
 

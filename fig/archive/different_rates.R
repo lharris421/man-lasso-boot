@@ -7,12 +7,17 @@ dlaplace <- function(x, rate = 1) {
 
 plots <- list()
 
-method <- "zerosample2"
+methods <- c("zerosample2")
+n_values <- c(75, 100, 400) # ns values you are interested in
+data_type <- "laplace"
+rate <- 2
+SNR <- 1
+alpha <- .2
+p <- 100
+modifier <- NA
 data_type <- "laplace"
 corr <- "exchangeable"
 rho <- 0
-SNR <- 1
-p <- 100
 
 per_var_data <- list()
 alpha <- .2

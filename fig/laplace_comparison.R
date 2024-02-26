@@ -6,49 +6,50 @@ source("./fig/setup/setup.R")
 
 plots <- list()
 
-# methods <- c("traditional", "sample", "debiased", "zerosample2")
-methods <- c("selective_inference", "zerosample2", "blp")
-methods <- c("selective_inference", "zerosample2")
-n_methods <- length(methods)
-
+methods <- c("selectiveinference", "zerosample2", "blp")
+ns <- c(50, 100, 400) # ns values you are interested in
 data_type <- "laplace"
-ad_inf <- 2 ## rate
+rate <- 2
 SNR <- 1
 corr <- "exchangeable"
 rho <- 0
 alpha <- .2
 p <- 100
+modifier <- NA
+lambda <- "cv"
 
+params_grid <- expand.grid(list(data = data_type, n = ns, rate = rate, snr = SNR, lambda = "cv",
+                                correlation_structure = corr, correlation = rho, method = methods,
+                                ci_method = "quantile", nominal_coverage = alpha * 100, p = p, modifier = modifier))
+# Fetching and combining data
 per_var_data <- list()
-for (i in 1:n_methods) {
-  load(glue("{res_dir}/rds/{data_type}({ad_inf})_SNR{SNR}_{corr}_rho{rho*100}_{methods[i]}_alpha{alpha*100}_p{p}.rds"))
-  per_var_data[[i]] <- per_var
+for (i in 1:nrow(params_grid)) {
+  read_objects(rds_path, params_grid[i,])
+  per_var_data[[i]] <- per_var_n
 }
-per_var_data <- do.call(rbind, per_var_data) %>%
-  data.frame()
+model_res <- do.call(rbind, per_var_data) %>%
+  data.frame() %>%
+  mutate(
+    covered = lower <= truth & upper >= truth,
+    mag_truth = abs(truth), covered = as.numeric(covered)
+  )
+
+n_methods <- length(methods)
 
 cutoff <- 3
-ns <- unique(per_var_data$n)
 for (j in 1:length(ns)) {
-
-  model_res <- per_var_data %>%
-    mutate(
-      covered = lower <= truth & upper >= truth,
-      mag_truth = abs(truth), covered = as.numeric(covered)
-    )
-
-
-  # methods <- unique(model_res$method)
   line_data <- list()
   line_data_avg <- list()
   for (i in 1:length(methods)) {
     print(methods[i])
     tmp <- model_res %>%
+      mutate(method = stringr::str_remove(method, "_")) %>%
       filter(method == methods[i] & n == ns[j])
 
     if (i == 1) {
-      density_data <- density(abs(tmp$truth), bw = .25, n = cutoff * 100 + 1, from = 0, to = cutoff)
-      density_data <- data.frame(x = density_data$x, density = density_data$y)
+      # density_data <- density(abs(tmp$truth), bw = .05, n = cutoff * 100 + 1, from = 0, to = cutoff)
+      xvals <- seq(from = 0, to = cutoff, length.out = cutoff * 100 + 1)
+      density_data <- data.frame(x = xvals, density = 2 * dlaplace(xvals, rate = 2))
     }
 
     tmp %>%

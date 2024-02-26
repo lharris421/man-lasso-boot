@@ -1,42 +1,38 @@
 ## Setup
 source("./fig/setup/setup.R")
 
-# methods <- c("selective_inference", "zerosample2", "blp")
-# methods <- c("traditional", "sample", "debiased", "zerosample2")
-methods <- c("selective_inference", "zerosample2")
-n_methods <- length(methods)
-
+methods <- c("selectiveinference", "zerosample2", "blp"); n_methods <- length(methods)
+ns <- c(50, 100, 400) # ns values you are interested in
 data_type <- "laplace"
-
-rt <- 2
+rate <- 2
 SNR <- 1
-
 corr <- "exchangeable"
 rho <- 0
-
-# corr <- "autoregressive"
-# rho <- .7
-
-per_var_data <- list()
 alpha <- .2
 p <- 100
+modifier <- NA
+lambda <- "cv"
 
+params_grid <- expand.grid(list(data = data_type, n = ns, rate = rate, snr = SNR, lambda = lambda,
+                                correlation_structure = corr, correlation = rho, method = methods,
+                                ci_method = "quantile", nominal_coverage = alpha * 100, p = p, modifier = modifier))
+# Fetching and combining data
 per_var_data <- list()
 per_dataset_data <- list()
-ns <- p * c(0.75, 1, 4)
- for (i in 1:n_methods) {
-  # load(glue("{res_dir}/rds/laplace_{methods[i]}.rds"))
-  ad_inf <- ifelse(data_type == "laplace", rt, a)
-  load(glue("{res_dir}/rds/{data_type}({ad_inf})_SNR{SNR}_{corr}_rho{rho*100}_{methods[i]}_alpha{alpha*100}_p{p}.rds"))
-  per_var_data[[i]] <- per_var
-  per_dataset_data[[i]] <- per_dataset
+for (i in 1:nrow(params_grid)) {
+  read_objects(rds_path, params_grid[i,])
+  per_var_data[[i]] <- per_var_n
+  per_dataset_data[[i]] <- per_dataset_n
 }
+
 per_var_data <- do.call(rbind, per_var_data) %>%
-  data.frame() %>%
-  mutate(n = as.numeric(n))
+  data.frame()
+per_var_data$n <- glue("({sapply(per_var_data$n, function(x) which(ns == x))}) {per_var_data$n}")
 per_dataset_data <- do.call(rbind, per_dataset_data) %>%
   data.frame() %>%
-  mutate(n = as.numeric(n))
+  mutate(n = factor(n, levels = ns, ordered = TRUE))
+per_dataset_data$n <- glue("({sapply(per_dataset_data$n, function(x) which(ns == x))}) {per_dataset_data$n}")
+
 
 ## Coverage
 p1 <- per_var_data %>%
@@ -44,7 +40,7 @@ p1 <- per_var_data %>%
   group_by(method, group, n) %>%
   summarise(coverage = mean(covered, na.rm = TRUE)) %>%
   ungroup() %>%
-  mutate(group = glue("{method}-{n}"), n = factor(n)) %>%
+  mutate(group = glue("{method}-{n}")) %>%
   ggplot(aes(x = methods_pretty[method], y = coverage, group = group, fill = n)) +
   geom_boxplot() +
   geom_hline(yintercept = 1 - alpha) +
@@ -54,7 +50,7 @@ p1 <- per_var_data %>%
 
 ## Time
 p2 <- per_dataset_data %>%
-  mutate(group = glue("{method}-{n}"), n = as.factor(n)) %>%
+  mutate(group = glue("{method}-{n}")) %>%
   ggplot(aes(x = methods_pretty[method], y = time, group = group, fill = n)) +
   geom_boxplot() +
   scale_fill_manual(values = colors, name = "Sample Size") +
@@ -67,30 +63,14 @@ p3 <- per_var_data %>%
   group_by(method, group, n) %>%
   summarise(width = median(width, na.rm = TRUE)) %>%
   ungroup() %>%
-  mutate(group = glue("{method}-{n}"), n = as.factor(n)) %>%
-  # ggplot(aes(x = methods_pretty[method], y = log10(width), group = group, fill = n)) +
+  mutate(group = glue("{method}-{n}")) %>%
   ggplot(aes(x = methods_pretty[method], y = width, group = group, fill = n)) +
   geom_boxplot() +
   scale_fill_manual(values = colors, name = "Sample Size") +
-  # ylab(expression(log10(`Median Width`))) +
   ylab(expression(`Median Width`)) +
   xlab(NULL) +
   theme_bw() +
   scale_y_continuous(labels = function(x) x, trans = "log10")
-
-# p3 <- per_var_data %>%
-#   mutate(width = upper - lower) %>%
-#   group_by(method, group, n) %>%
-#   summarise(width = median(width, na.rm = TRUE)) %>%
-#   ungroup() %>%
-#   mutate(group = glue("{method}-{n}"), n = as.factor(n)) %>%
-#   ggplot(aes(x = methods_pretty[method], y = log10(width), group = group, fill = n)) +
-#   geom_boxplot() +
-#   scale_fill_manual(values = colors, name = "Sample Size") +
-#   ylab(expression(`Median Width`)) +
-#   xlab(NULL) +
-#   scale_y_continuous(labels = trans_format("log10", math_format(10^.x))) +
-#   theme_bw()
 
 ## 28, 2 failed / 4, 10, 3, infinite median
 per_var_data %>%
@@ -98,13 +78,13 @@ per_var_data %>%
   group_by(method, group, n) %>%
   summarise(width = median(width, na.rm = TRUE)) %>%
   ungroup() %>%
-  mutate(group = glue("{method}-{n}"), n = as.factor(n)) %>%
+  mutate(group = glue("{method}-{n}")) %>%
   group_by(group) %>%
   summarise(nonfinite_median = mean(is.na(width) | is.infinite(width)))
 
 ## Get summaries of times failed / infinite width / number of variables selected for si
 p4 <- per_dataset_data %>%
-  mutate(group = glue("{method}-{n}"), n = as.factor(n)) %>%
+  mutate(group = glue("{method}-{n}")) %>%
   ggplot(aes(x = methods_pretty[method], y = lambda, group = group, fill = n)) +
   geom_boxplot() +
   scale_fill_manual(values = colors, name = "Sample Size") +
@@ -119,7 +99,7 @@ glist <- lapply(glist, function(x) {
 })
 
 glist[[2]] <- glist[[2]] +
-  theme(legend.position = c(0.2, 0.8))
+  theme(legend.position = c(0.2, 0.2))
 
 bottom_label <- textGrob("Method", gp = gpar(fontsize = 12))
 

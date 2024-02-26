@@ -3,32 +3,38 @@ source("./fig/setup/setup.R")
 
 ## Load Data
 methods <- c("traditional", "zerosample2")
+n_values <- 100
+data_type <- "sparse"
+SNR <- 1
+corr <- "exchangeable"
+rho <- 0
+alpha <- .2
+p <- 100
+modifier <- NA
 
+params_grid <- expand.grid(list(data = data_type, n = n_values, snr = SNR, lambda = "cv",
+                                correlation_structure = corr, correlation = rho, method = methods,
+                                ci_method = "quantile", nominal_coverage = alpha * 100, p = p, modifier = modifier))
 
-## Coverages first
+# Fetching and combining data
+res_ci <- list()
 res <- list()
-for (i in 1:length(methods)) {
-  load(glue("{res_dir}/rds/epsilon_conundrum_{methods[i]}_p100.rds"))
-  res[[i]] <- confidence_interval
-}
-names(res) <- methods
-
 coverages <- numeric()
+for (i in 1:nrow(params_grid)) {
+  read_objects(rds_path, params_grid[i,])
+  res_ci[[i]] <- confidence_interval
+  res[[i]] <- example
+}
+names(res_ci) <- methods
+names(res) <- methods
 for (i in 1:length(methods)) {
-  coverages[i] <- do.call(rbind, res[[methods[i]]]) %>%
+  coverages[i] <- do.call(rbind, res_ci[[methods[i]]]) %>%
     data.frame() %>%
     mutate(covered = lower <= truth & upper >= truth) %>%
     pull(covered) %>%
     mean()
 }
 names(coverages) <- methods
-
-res <- list()
-for (i in 1:length(methods)) {
-  load(glue("{res_dir}/rds/epsilon_conundrum_example_{methods[i]}_p100.rds"))
-  res[[i]] <- example
-}
-names(res) <- methods
 
 ## Traditional Bootstrap
 plots <- list()

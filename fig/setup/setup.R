@@ -29,12 +29,16 @@ methods_pretty <- c(
   "zerosample1" = "Zero Sample Single",
   "zerosample2" = "Zero Sample",
   "selective_inference" = "Selective Inference",
+  "selectiveinference" = "Selective Inference",
   "blp" = "Bootstrap Lasso Projection",
   "fullconditional" = "Full Conditional",
   "truncatedzs2" = "Truncated Zero Sample"
 )
 
+rds_path <- glue("{res_dir}/rds/")
 save_rds <- FALSE
+
+nprod <- c(0.5, 1, 4)
 
 single_method_plot <- function(per_var_data, ns, alpha) {
   cutoff <- round(quantile(abs(per_var_data$truth), .98), 1)
@@ -59,19 +63,130 @@ single_method_plot <- function(per_var_data, ns, alpha) {
 
   line_data_avg <- do.call(rbind, line_data_avg)
   line_data <- do.call(rbind, line_data)
+  nom_data <- data.frame(alpha = alpha)
 
-  print(alpha)
   plt <- ggplot() +
     geom_line(data = line_data, aes(x = x, y = y, color = n)) +
     geom_hline(data = line_data_avg, aes(yintercept = avg, color = n), linetype = 2) +
-    geom_hline(aes(yintercept = (1 - alpha)), linetype = 1, alpha = .5) +
+    geom_hline(data = nom_data, aes(yintercept = (1 - alpha)), linetype = 1, alpha = .5) +
     geom_text() +
     theme_bw() +
     xlab(expression(abs(beta))) +
     ylab(NULL) +
     coord_cartesian(ylim = c(0, 1), xlim = c(0, round(quantile(abs(per_var_data$truth), .98), 1))) +
     scale_color_manual(name = "N", values = colors)
-  print(1 - alpha)
 
   return(plt)
 }
+
+library(dplyr)
+library(tidyr)
+
+## Plotting function
+plot_ci_comparison <- function(cis, nvars = 20) {
+
+  plot_vars <- list()
+  for (current_method in unique(cis$method)) {
+    plot_vars[[current_method]] <- cis %>%
+      filter(method == current_method) %>%
+      dplyr::arrange(desc(abs(estimate))) %>%
+      slice_head(n = nvars) %>%
+      pull(variable)
+  }
+  plot_vars <- unique(unlist(plot_vars))
+
+  plot_res <- cis %>%
+    filter(variable %in% plot_vars) %>%
+    dplyr::arrange(desc(abs(estimate)))
+
+  plot_res$variable <- factor(plot_res$variable, levels = rev(plot_vars))
+
+  plot_res %>%
+    mutate(method = factor(methods_pretty[method], levels = methods_pretty[unique(cis$method)])) %>%
+    ggplot() +
+    geom_errorbar(aes(xmin = lower, xmax = upper, y = variable)) +
+    geom_point(aes(x = estimate, y = variable)) +
+    theme_bw() +
+    ylab(NULL) + xlab(NULL) +
+    scale_color_manual(name = "Method", values = colors) +
+    theme(legend.position = "none",
+          # legend.position = c(.9, .05),
+          legend.justification = c("right", "bottom"),
+          legend.box.just = "right",
+          legend.margin = margin(6, 6, 6, 6),
+          legend.background = element_rect(fill = "transparent")) +
+    facet_wrap(~method)
+
+}
+
+plot_function <- function(plot_list) {
+
+  lambda_max <- 1
+  lambda_min <- 0.001
+  lambda_seq <- 10^(seq(log(lambda_max, 10), log(lambda_min, 10), length.out = 10))
+
+  plot_list <- plot_list %>%
+    mutate(covered = truth >= lower & truth <= upper)
+
+  overall_cov <- plot_list %>%
+    dplyr::mutate(lambda = lambda_seq[lambda]) %>%
+    dplyr::group_by(lambda) %>%
+    dplyr::summarise(coverage = mean(covered)) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(group = "Overall")
+  size_cov <- plot_list %>%
+    dplyr::mutate(lambda = lambda_seq[lambda]) %>%
+    dplyr::mutate(group = as.character(group)) %>%
+    dplyr::group_by(lambda, group) %>%
+    dplyr::summarise(coverage = mean(covered)) %>%
+    dplyr::ungroup()
+  coverage_data <- dplyr::bind_rows(overall_cov, size_cov) %>%
+    dplyr::mutate(group = factor(group, levels = c("Small", "Moderate", "Large", "Overall")))
+
+  gg <- ggplot(data = coverage_data, aes(x = lambda, y = coverage, group = group, color = group)) +
+    geom_line() +
+    # geom_vline(xintercept = plot_list[[2]], linetype = "dashed", color = sec_colors[1], linewidth = .5) +
+    geom_hline(yintercept = 0.8, linewidth = .5) +
+    theme_bw() +
+    scale_x_continuous(trans = log10_trans(),
+                       breaks = trans_breaks('log10', function(x) 10^x),
+                       labels = trans_format('log10', math_format(10^.x))) +
+    coord_cartesian(xlim = c(1, .001), ylim = c(0, 1.0)) +
+    scale_color_manual(name = expression(abs(beta)), values = colors) +
+    ggtitle(plot_list$dist_type)
+
+  return(gg)
+
+}
+
+dlaplace <- function(x, rate = 1) {
+  dexp(abs(x), rate) / 2
+}
+
+read_objects <- function(folder, params_grid) {
+  # Read the crosswalk CSV
+  crosswalk_path <- file.path(folder, "crosswalk.csv")
+  crosswalk <- read.csv(crosswalk_path, stringsAsFactors = FALSE)
+
+  # Identify columns in crosswalk that are not all NA and are in params_list
+  valid_cols <- names(crosswalk)[colSums(!is.na(crosswalk)) > 0 & names(crosswalk) %in% names(params_grid)]
+  # Expand the parameters to all combinations
+  params_combinations <- params_grid[valid_cols]
+
+  # Perform an inner join to find matching rows in crosswalk
+  uuids <- inner_join(crosswalk, params_combinations, by = names(params_combinations)) %>%
+    pull(uuid4)
+  print(uuids)
+
+  # Read the corresponding .rds files and bind them
+  for (i in 1:length(uuids)) {
+    file_path <- file.path(folder, paste0(uuids[i], ".rds"))
+    load(file_path, envir = globalenv())
+  }
+
+  # Optionally, bind the data together if needed
+  # all_data_combined <- do.call(rbind, all_data) # Example for row-binding
+
+  # return(all_data_combined)
+}
+

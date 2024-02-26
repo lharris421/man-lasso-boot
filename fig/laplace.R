@@ -1,42 +1,34 @@
 ## Setup
 source("./fig/setup/setup.R")
 
-## Load Data
-dlaplace <- function(x, rate = 1) {
-  dexp(abs(x), rate) / 2
-}
-
 plots <- list()
 
 methods <- c("traditional", "sample", "debiased", "zerosample2")
-# methods <- c("selective_inference", "zerosample2", "blp")
-# methods <- c("zerosample2")
-# methods <- c("fullconditional")
-# methods <- c("truncatedzs2")
-n_methods <- length(methods)
-
+n_values <- c(50, 100, 400) # ns values you are interested in
 data_type <- "laplace"
-
-rt <- 2
+rate <- 2
 SNR <- 1
-
 corr <- "exchangeable"
 rho <- 0
-
-# corr <- "autoregressive"
-# rho <- .7
-
-per_var_data <- list()
 alpha <- .2
 p <- 100
-for (i in 1:n_methods) {
-  # load(glue("{res_dir}/rds/{data_type}_{corr}_rho{rho*100}_{methods[i]}_alpha{alpha*100}_p{p}.rds"))
-  ad_inf <- ifelse(data_type == "laplace", rt, a)
-  load(glue("{res_dir}/rds/{data_type}({ad_inf})_SNR{SNR}_{corr}_rho{rho*100}_{methods[i]}_alpha{alpha*100}_p{p}.rds"))
-  per_var_data[[i]] <- per_var
+modifier <- NA
+
+new_folder <- "/Users/loganharris/github/lasso-boot/new_rds/"
+
+params_grid <- expand.grid(list(data = data_type, n = n_values, rate = rate, snr = SNR,
+                    correlation_structure = corr, correlation = rho, method = methods,
+                    ci_method = "quantile", nominal_coverage = alpha * 100, p = p, modifier = modifier))
+# Fetching and combining data
+per_var_data <- list()
+for (i in 1:nrow(params_grid)) {
+  read_objects(rds_path, params_grid[i,])
+  print(unique(per_var_n$n))
+  per_var_data[[i]] <- per_var_n
 }
 per_var_data <- do.call(rbind, per_var_data) %>%
   data.frame()
+
 
 cutoff <- 2
 ns <- unique(per_var_data$n)
@@ -89,7 +81,7 @@ for (j in 1:length(ns)) {
       filter(!is.na(estimate))
 
     print(mean(tmp$covered))
-    fit <- gam(covered ~ s(mag_truth) + s(group, bs = "re"), data = tmp %>% filter(mag_truth <= 2), family = binomial)
+    fit <- gam(covered ~ s(mag_truth) + s(group, bs = "re"), data = tmp, family = binomial)
     xs <- seq(0, cutoff, by = .01)
     ys <- predict(fit, data.frame(mag_truth = xs, group = 101), type ="response")
     line_data[[i]] <- data.frame(x = xs, y = ys, method = methods[i])

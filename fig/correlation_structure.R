@@ -7,31 +7,54 @@ dlaplace <- function(x, rate = 1) {
 
 plots <- list()
 
-method <- "zerosample2"
-data_types <- c("laplace", "abn", "abn")
-corrs <- c("autoregressive", "exchangeable", "autoregressive")
-rhos <- c(0.7, 0.5, 0.8)
-addtl <- c(2, 5, 5)
-p <- 100
+# methods <- c("zerosample2")
+# n_values <- c(50, 100, 400) # ns values you are interested in
+# data_types <- c("laplace", "abn", "abn")
+# corrs <- c("autoregressive", "exchangeable", "autoregressive")
+# rhos <- c(0.7, 0.5, 0.8)
+# rhos.noise <- c()
+# rate <- c(2, NA, NA)
+# a <- c(NA, 5, 5)
+# b <- c(NA, 2, 2)
+# SNR <- 1
+# alpha <- .2
+# p <- 100
+#
+# params_grid <- data.frame(
+#   method = methods,
+#   data_type = data_types,
+#   correlation_structure = corrs,
+#   correlation = rhos
+# )
 
+methods <- c("zerosample2")
+n_values <- c(75, 100, 400) # ns values you are interested in
+data_type <- "laplace"
+rate <- 2
 SNR <- 1
-per_var_data <- list()
+corr <- "autoregressive"
+rho <- c(.4, .7, .95)
 alpha <- .2
+p <- 100
+modifier <- NA
+
+# Fetching and combining data
+
+
 
 plots <- list()
-for (i in 1:length(data_types)) {
-  data_type <- data_types[i]
-  rho <- rhos[i]
-  corr <- corrs[i]
-  ad_inf <- addtl[i]
-  load(glue("{res_dir}/rds/{data_type}({ad_inf})_SNR{SNR}_{corr}_rho{rho*100}_{method}_alpha{alpha*100}_p{p}.rds"))
-  per_var_data <- per_var
-  print(glue("Data = {data_type}, Corr {corr} ({rho})"))
-  # per_var_data %>%
-  #   mutate(covered = lower <= truth & upper >= truth) %>%
-  #   group_by(n) %>%
-  #   summarise(coverage = mean(covered)) %>%
-  #   print()
+for (i in 1:length(rho)) {
+
+  params_grid <- expand.grid(list(data = data_type, n = n_values, rate = rate, snr = SNR,
+                                  correlation_structure = corr, correlation = rho[i] * 100, method = methods,
+                                  ci_method = "quantile", nominal_coverage = alpha * 100, p = p, modifier = modifier))
+  per_var_data <- list()
+  for (j in 1:nrow(params_grid)) {
+    read_objects(rds_path, params_grid[j,])
+    per_var_data[[j]] <- per_var_n
+  }
+  per_var_data <- do.call(rbind, per_var_data) %>%
+    data.frame()
 
   plots[[i]] <- per_var_data %>%
     mutate(covered = lower <= truth & upper >= truth, n = as.factor(n)) %>%
@@ -39,16 +62,13 @@ for (i in 1:length(data_types)) {
     summarise(coverage = mean(covered)) %>%
     ggplot(aes(x = n, y = coverage, fill = n)) +
     geom_boxplot() +
-    ggtitle(glue("Data = {data_type}, Corr {corr} ({rho})")) +
+    ggtitle(glue("{corr} ({rho[i]})")) +
     theme_bw() +
     theme(legend.position = "none")
 
-  # plots[[i]] <- single_method_plot(per_var_data, ns, alpha) +
-  #   # annotate("text", x = 1, y = 0.5, label = paste0("alpha = ", alpha), size = 5) +
-  #   ggtitle(glue("Data = {data_type}, Corr {corr} ({rho})")) +
-  #   theme(legend.position = "none")
 }
-#
+
+
 plots[[1]] <- plots[[1]] +
   theme(legend.position = c(1, .05),
         legend.justification = c("right", "bottom"),
@@ -59,8 +79,8 @@ plots[[1]] <- plots[[1]] +
 #
 #
 # suppressMessages({
-pdf("./fig/correlation_structure.pdf", height = 7.5)
-g <- grid.arrange(grobs = plots, ncol = 2, nrow = 2)
+pdf("./fig/correlation_structure.pdf", width = 7.5, height = 4)
+g <- grid.arrange(grobs = plots, ncol = 3, nrow = 1)
 dev.off()
 # })
 
