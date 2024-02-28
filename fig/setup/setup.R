@@ -16,9 +16,13 @@ packages <- c(
 
 .libPaths(paste0(res_dir, "/local"))
 lapply(packages, quietlyLoadPackage)
+source(paste0(res_dir, "/R/saveR.R"))
+
+
 colors <- palette()[c(2, 4, 3, 6, 7, 5)]
 sec_colors <- c("black", "grey62")
 background_colors <- c("#E2E2E2", "#F5F5F5")
+#"black"   "#DF536B" "#61D04F" "#2297E6" "#28E2E5" "#CD0BBC" "#F5C710" "gray62"
 
 ci_method <- "quantile"
 methods_pretty <- c(
@@ -161,32 +165,5 @@ plot_function <- function(plot_list) {
 
 dlaplace <- function(x, rate = 1) {
   dexp(abs(x), rate) / 2
-}
-
-read_objects <- function(folder, params_grid) {
-  # Read the crosswalk CSV
-  crosswalk_path <- file.path(folder, "crosswalk.csv")
-  crosswalk <- read.csv(crosswalk_path, stringsAsFactors = FALSE)
-
-  # Identify columns in crosswalk that are not all NA and are in params_list
-  valid_cols <- names(crosswalk)[colSums(!is.na(crosswalk)) > 0 & names(crosswalk) %in% names(params_grid)]
-  # Expand the parameters to all combinations
-  params_combinations <- params_grid[valid_cols]
-
-  # Perform an inner join to find matching rows in crosswalk
-  uuids <- inner_join(crosswalk, params_combinations, by = names(params_combinations)) %>%
-    pull(uuid4)
-  print(uuids)
-
-  # Read the corresponding .rds files and bind them
-  for (i in 1:length(uuids)) {
-    file_path <- file.path(folder, paste0(uuids[i], ".rds"))
-    load(file_path, envir = globalenv())
-  }
-
-  # Optionally, bind the data together if needed
-  # all_data_combined <- do.call(rbind, all_data) # Example for row-binding
-
-  # return(all_data_combined)
 }
 

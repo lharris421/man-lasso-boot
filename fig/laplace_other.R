@@ -27,10 +27,11 @@ for (i in 1:nrow(params_grid)) {
 
 per_var_data <- do.call(rbind, per_var_data) %>%
   data.frame()
+# %>% mutate(n = factor(n, levels = ns, ordered = TRUE))
 per_var_data$n <- glue("({sapply(per_var_data$n, function(x) which(ns == x))}) {per_var_data$n}")
 per_dataset_data <- do.call(rbind, per_dataset_data) %>%
-  data.frame() %>%
-  mutate(n = factor(n, levels = ns, ordered = TRUE))
+  data.frame()
+# %>% mutate(n = factor(n, levels = ns, ordered = TRUE))
 per_dataset_data$n <- glue("({sapply(per_dataset_data$n, function(x) which(ns == x))}) {per_dataset_data$n}")
 
 

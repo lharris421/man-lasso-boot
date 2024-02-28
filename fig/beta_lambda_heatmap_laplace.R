@@ -39,8 +39,8 @@ model_cov <- mgcv::gam(covered ~ te(lambda, truth), data = pdat, family = binomi
 model_width <- mgcv::gam(width ~ te(lambda, truth), data = pdat)
 
 # Create a grid for prediction on the transformed lambda scale
-lambda_seq <- 10^seq(log(1, 10), log(0.001, 10), length.out = 50)
-truth_seq <- seq(0, 2, length.out = 50)
+lambda_seq <- 10^seq(log(1, 10), log(0.001, 10), length.out = 100)
+truth_seq <- seq(0, 2, length.out = 100)
 grid <- expand.grid(lambda = lambda_seq, truth = truth_seq) %>% data.frame()
 
 # Predict coverage probability
@@ -56,15 +56,15 @@ grid$width <- predict(model_width, newdata = grid, type ="response")
 # Plot the heatmap with reversed lambda on the log10 scale
 plt_cov <- ggplot(grid, aes(x = lambda, y = truth, fill = adjusted_coverage)) +
   geom_tile() +
-  scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0) +
+  scale_fill_gradient2(low = "#DF536B", high = "#2297E6", mid = "white", midpoint = 0) +
   labs(y = "Truth", fill = "Rel. Cov.", x = expression(lambda)) +
   theme_minimal() +
   scale_x_continuous(trans = log10_trans(),
                      breaks = trans_breaks('log10', function(x) 10^x),
                      labels = trans_format('log10', math_format(10^.x))) +
-  coord_cartesian(xlim = c(1, .001))  +
-  geom_vline(xintercept = lambdas[[1]], alpha = .1) +
-  geom_vline(xintercept = mean(lambdas[[1]]), alpha = .5, col = "red") +
+  coord_cartesian(xlim = c(max(lambdas[[1]]), min(lambdas[[1]])))  +
+  # geom_vline(xintercept = lambdas[[1]], alpha = .1) +
+  geom_vline(xintercept = median(lambdas[[1]]), alpha = .5, col = "red") +
   theme(legend.title = element_text(size = 7),
         legend.text = element_text(size = 5),
         legend.key.width = unit(0.5, "cm"),

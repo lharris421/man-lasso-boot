@@ -136,25 +136,13 @@ All together this leads to the following steps to perform the bootstrap (present
 
 \section{Interval Behavior}
 
-Need to make note on the rate used for the laplace. Which will come back into play with more or less sparse. Add extra plots to appendix for now.
+We make the assertion that the "ideal" scenario for this method is when the true distribution of $\beta$ follows a laplace distribution. In what follows, the reader can assume that unless otherwise noted $\beta \sim laplace(rate = 2)$. This may raise the question of how the results change if a different rate is used. However, under a constant Signal-to-Noise ratio (SNR), the results are identical.
 
 \subsection{Comparing Lasso Bootstrap Methods}
 
-Need to say something (and show) about the full conditional posterior itself not being enough
-
 \includegraphics[width=\linewidth]{laplace.pdf}
 
-Say something about rate choice being arbitary under fixed SNR
-
 \includegraphics[width=\linewidth]{laplace_width_bias.pdf}
-
-\subsection{Nominal Coverage}
-
-\includegraphics[width=\linewidth]{nominal_coverage.pdf}
-
-\subsection{True lambda / sigma}
-
-\includegraphics[width=\linewidth]{true_lambda.pdf}
 
 \section{Sensitivity}
 
@@ -168,26 +156,7 @@ Say something about rate choice being arbitary under fixed SNR
 
 \subsection{Distribution of Beta}
 
-Sparse: more at zero, little moderate, heavier tails
-
-Sparse 1: 0 x 90, +/- $(0.5 x 3, 1, 2)$,
-- high, low, low  - brown
-Sparse 2: 0 x 70, 30 $\sim N(0, 1)$
-- high, moderate, low - purple
-Sparse 3: 0 x 50, 50 $\sim N(0, 1)$
-- moderate, moderate, low - yellow
-Laplace: 100 $\sim dexp(2)$
-- moderate, high, high - green
-T: 100 $\sim T(3)$
-- low, high, high - blue
-Normal: 100 $\sim N(0, 1)$
-- low, high, low - red
-
 \includegraphics[width=\linewidth]{distribution_of_beta.pdf}
-
-Here is a terrible plot just to give a general idea of them :
-
-\includegraphics[width=\linewidth]{sparsity.pdf}
 
 \subsection{Epsilon Conundrum (Comparison to Traditional Quantile Bootstrap)}
 
@@ -206,11 +175,16 @@ Here is a terrible plot just to give a general idea of them :
 \begin{enumerate}
 \item Does not work for $p > n$ case
 \item Only produced CI for variables in active set
-\item Seems cumbersome and unstable as implemented
+\item Cumbersome and unstable as implemented
 \item Unclear recommended selection of $\lam$
 \item Non-finite endpoints not uncommon
 \end{enumerate}
 \item{Bootstrap Lasso Projection}
+\begin{enumerate}
+\item Computationally expensive
+\item Not true to model fit
+\item Only for 1-SE solution as implimented
+\end{enumerate}
 \end{enumerate}
 
 \subsection{Comparison Similation}
@@ -246,3 +220,15 @@ One drawback of using the method as introduced by Tierney is that is only addres
 \section*{Acknowledgments}
 
 \section*{Appendix}
+
+\subsection{Nominal Coverage}
+
+\includegraphics[width=\linewidth]{nominal_coverage.pdf}
+
+\subsection{True lambda / sigma}
+
+\includegraphics[width=\linewidth]{true_lambda.pdf}
+
+\subsection{LM Bootstrap}
+
+\includegraphics[width=\linewidth]{lm_bootstrap.pdf}

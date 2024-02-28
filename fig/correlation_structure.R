@@ -28,7 +28,7 @@ plots <- list()
 # )
 
 methods <- c("zerosample2")
-n_values <- c(75, 100, 400) # ns values you are interested in
+n_values <- c(50, 100, 400) # ns values you are interested in
 data_type <- "laplace"
 rate <- 2
 SNR <- 1
@@ -51,7 +51,8 @@ for (i in 1:length(rho)) {
   per_var_data <- list()
   for (j in 1:nrow(params_grid)) {
     read_objects(rds_path, params_grid[j,])
-    per_var_data[[j]] <- per_var_n
+    per_var_data[[j]] <- per_var_n %>%
+      filter(n == params_grid[j, "n"])
   }
   per_var_data <- do.call(rbind, per_var_data) %>%
     data.frame()
