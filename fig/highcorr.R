@@ -2,7 +2,6 @@
 source("./fig/setup/setup.R")
 
 ## Load Data
-new_folder <- "/Users/loganharris/github/lasso-boot/new_rds"
 data_type <- "abn"
 alpha <- .2
 modifier <- character()
@@ -92,6 +91,15 @@ for (i in 1:length(arg_list$method)) {
     xlab(NULL) +
     scale_color_manual(values = colors) +
     annotate("text", x = 1.2, y = 3.4, label = methods_pretty[arg_list$method[i]], size = 5)
+
+ if (arg_list$method[i] == "zerosample2") {
+   current_cis %>%
+     filter(variable == "B1") %>%
+     mutate(under0 = lower <= 0) %>%
+     pull(under0) %>% mean() %>%
+     print()
+ }
+
 
  if (arg_list$method[i] == "ridge") {
    ridge_example <- current_example

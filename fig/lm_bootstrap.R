@@ -38,7 +38,7 @@ pdat <- do.call(rbind, partial_res) %>%
 pdf("./fig/lm_bootstrap.pdf", height = 4, width = 5)
 ggplot(pdat, aes(y = coverage, group = n, fill = n)) +
   geom_boxplot() +
-  geom_hline(yintercept = 1 - alpha, col = "red") +
+  geom_hline(yintercept = 1 - alpha) +
   theme_bw() + ylab("Coverage") +
   ggtitle(glue("Bootstrap CI Coverage, p = {args_list$p}"), subtitle = expression(beta %~% N(0, 1))) +
   scale_color_manual(values = colors)

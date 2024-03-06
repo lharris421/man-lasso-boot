@@ -36,7 +36,8 @@ methods_pretty <- c(
   "selectiveinference" = "Selective Inference",
   "blp" = "Bootstrap Lasso Projection",
   "fullconditional" = "Full Conditional",
-  "truncatedzs2" = "Truncated Zero Sample"
+  "truncatedzs2" = "Truncated Zero Sample",
+  "zerosample2la" = "Lambda Adjusted"
 )
 
 rds_path <- glue("{res_dir}/rds/")
@@ -129,8 +130,15 @@ plot_function <- function(plot_list) {
   lambda_min <- 0.001
   lambda_seq <- 10^(seq(log(lambda_max, 10), log(lambda_min, 10), length.out = 10))
 
+  cv_coverage <- plot_list %>%
+    mutate(covered = truth >= lower & truth <= upper)  %>%
+    filter(lambda == 11) %>%
+    pull(covered) %>%
+    mean()
+
   plot_list <- plot_list %>%
-    mutate(covered = truth >= lower & truth <= upper)
+    mutate(covered = truth >= lower & truth <= upper)  %>%
+    filter(lambda <= 10)
 
   overall_cov <- plot_list %>%
     dplyr::mutate(lambda = lambda_seq[lambda]) %>%
@@ -157,7 +165,7 @@ plot_function <- function(plot_list) {
                        labels = trans_format('log10', math_format(10^.x))) +
     coord_cartesian(xlim = c(1, .001), ylim = c(0, 1.0)) +
     scale_color_manual(name = expression(abs(beta)), values = colors) +
-    ggtitle(plot_list$dist_type)
+    ggtitle(glue("{plot_list$dist_type}"), subtitle = glue("CV Coverage: {cv_coverage}"))
 
   return(gg)
 

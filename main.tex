@@ -9,7 +9,23 @@ Specifically, we see two potential problems that arise when proposing to use boo
 \item the Epsilon Conundrum.
 \end{enumerate}
 
-The Bias Tradeoff refers to the inherent bias introduced by penalization in order to be able to fit oversaturated models. This penalization leads to coverages much higher than nominal coverage rates for coefficients with true values at or very near zero and leads to much lower coverage when coefficients are non-zero. We argue that coverage in the traditional sense is too ridged of a paradigm to apply to penalized regression inference. Instead, we offer a different perspective and argue that the impact that penalization induced bias has is an inherent feature of penalized regression rather than a flaw. Since high dimensional problems often necessitate such an alternate approach, we offer guidance on how to interpret the confidence intervals for lasso as presented in this paper. Additionally, we compare the proposed method to two other inferential methods which take a different perspective.
+The Bias Tradeoff refers to the inherent bias introduced by penalization in order to be able to fit oversaturated models. This penalization leads to coverages higher than nominal coverage rates for coefficients with true values at or very near zero and leads to lower coverage when coefficients are non-zero. We argue that coverage in the traditional sense is too ridged of a paradigm to apply to penalized regression inference. Instead, we offer a different perspective and argue that the impact that penalization induced bias has is an inherent feature of penalized regression rather than a flaw. Since high dimensional problems often necessitate such an alternate approach, we offer guidance on how to interpret the confidence intervals for lasso as presented in this paper. Additionally, we compare the proposed method to two other inferential methods which take a different perspective.
+
+\logan{Want to review this:}
+
+Before going further, it will be helpful to specify the behavior of the intervals we are interested in. Specifically, we are interest in intervals that are true to the model being fit. This inherently excludes most intervals that attempt to debias.
+
+This restriction imposes a behavior on the intervals. Since, bias behing introduced into the model has varying effects on coefficients of increasing magitude, this implies that interval behavior will vary with the magnitude of $\beta$.
+
+There are generally three components to interval behvaior: center, spread, coverage.
+
+By limiting focus to intervals that are true to the model fit, we have little control over the center of the intervals. If we wanted to maintain nominal coverage across all magnitudes of $\beta$, a method would need to be devised then that determined appropriate interval width. The resulting intervals would potentially be very narrow if $\beta$ is believed to be small and be very wide as $\beta$ increases in magnitude. However, the increase in width to cover larger non-zero values of $\beta$ not only means inducing additional uncertainty into parameters that are potentially most of interest, but as a direct these intervals are then also more likely to contain 0.
+
+Instead, we propose to focus on the third component: coverage. As a direct result of this, one must expect that such intervals are going to overcover values of $\beta$ that are small and undercover those which are larger in magnitude. The goal then being finding a method that is well calibarated to provide overall coverage near that of nominal.
+
+MOVE LATER: In classical high dimension scenarios, it is expected that the solution is often sparse. It should be no surprise then that when the true data generating mechanism is more sparse than the laplace indicated by the respective $\lambda$ that is method will provide over coverage.
+
+\includegraphics[width=\linewidth]{lm_bootstrap}
 
 The second problem, the Epsilon Conundrum, is also related to the shrinkage but arises as an arguably more disturbing manifestation: confidence intervals of length zero or, more often, with a single endpoint that is exactly zero. Some penalized regression methods, particularly the lasso, often result in a sparse solution. If using a traditional quantile based bootstrap confidence interval, this will lead to an interval of [0,0] if a given variable is rarely or never included in the active set. As the dimensionality of the problem grows, this becomes an increasing occurrence leading to a large majority of intervals possessing a length of zero. When the true value of the coefficient is 0, the interval at least contains the truth. However, this issue is particularly troublesome when one considers what happens when the true value is not precisely zero, as is likely the case in most reasonable scenarios. By just shifting the true value by $\eps$, an immediate drop in coverage would occur, hence the name: the Epsilon Conundrum.
 
@@ -134,41 +150,113 @@ All together this leads to the following steps to perform the bootstrap (present
 \item For each $\beta_j$, combine the $r*m$ samples and compute the quantiles for $p_L = (.5 - \l/2)$ and $p_U = (.5 + \l/2)$ to produce a final confidence interval estimate
 \end{enumerate}
 
-\section{Interval Behavior}
+\subsection{Intuition behind the Zero-Sample}
+
+So, where does the idea of the Zero-Sample method come from? For a moment, lets hold p constant.
+
+As n increases and we let $\lambda$ get selected by CV, this method will converge to that of applying the bootstrap to a classical linear model. This is the case because with increasing n, $\lambda_{CV} \rightarrow 0$.
+
+On the other hand, as n decreases $\lambda_{CV} \rightarrow \lambda_{max}$ and $\boldsymbol{\beta} \rightarrow \boldsymbol{0}$. On this end of the extreme, bootstrap samples are then drawn from the marginal posterior with a relatively influential prior.
+
+The coverage behavior is well understood for the bootstrap applied to linear regression as n increases. By only sampling from the posterior when $\boldsymbol{\hat{\beta}} = 0$, we minimize unnecessary variability as n increases.
+
+The behvaior on the other end of the extreme is less understood ... \logan{Don't want to open up too much here.}
+
+\section{Results}
 
 We make the assertion that the "ideal" scenario for this method is when the true distribution of $\beta$ follows a laplace distribution. In what follows, the reader can assume that unless otherwise noted $\beta \sim laplace(rate = 2)$. This may raise the question of how the results change if a different rate is used. However, under a constant Signal-to-Noise ratio (SNR), the results are identical.
 
-\subsection{Comparing Lasso Bootstrap Methods}
+\subsection{Lasso Bootstrap Methods}
 
-\includegraphics[width=\linewidth]{laplace.pdf}
+\logan{How detailed to describe the plots?}
 
-\includegraphics[width=\linewidth]{laplace_width_bias.pdf}
+\logan{Very clunky to keep using "Zero Sample"}
 
-\section{Sensitivity}
+\textbf{Figure X} displays simulation results for the four previously described bootstrapping methods for the lasso when n = p = 100 and $\beta \sim laplace(rate = 2)$. In this simulation, 100 datasets were generated and each bootstrap method was applied using B = 1000 bootstrap iterations. The dotted line represents the average coverage across all 100 datasets and the smooth line is the fitted line from a GAMM, estimating the coverage for a given value of $\beta$ based on its magnitude. The distribution the $\beta$ values were sampled from is also provided.
 
-\subsection{Correlation Structures}
+What is likely most striking is the decreasing coverage rate seen for both the Random Sample and Zero Sample methods. This pattern is typical for these methods but is to be expected from intervals arising from methods that are true to the model fit. As emphasized earlier, introducing bias through penalization is an inherent feature of the lasso. However, bias tends to increase for increasing values of $\beta$ as a result of soft thresholding. We would also expect to see such behavior in the traditional approach if it also didn't have fundemental problems for values of $\beta$ near zero. The Debias method is the only of the four we would not expect to display this behavior. That said, since the debias method fails to fully account for bias, we do see the same behavior, although in a milder manifestation.
 
-\includegraphics[width=\linewidth]{correlation_structure.pdf}
+As a result, each method noticably undercovers as $\beta$ increases in magnitude.
 
-\subsection{Selection of \texorpdfstring{$\lambda$}{lambda}}
+\logan{Need to emphasize overcoverage is also due to the bias introduced}
 
-\includegraphics[width=\linewidth]{beta_lambda_heatmap_laplace.pdf}
+In general, the traditional bootstrap fails to provide adequate coverage for any magnitude of $\beta$ resulting in coverage far below that of nominal. On the other hand, the Random Sample method, which draws from the full conditional for every bootstrap draw, tends to produce intervals that significantly over cover relative to nominal coverage. This is mainly due to a very high coverage for smaller values of $\beta$. In this scenario, however, both the Zero Sample method, which only samples from the full conditional when $\bh = 0$, and Debias produce coverage near the $80\%$ nominal coverage.
 
-\subsection{Distribution of Beta}
+\includegraphics[width=\linewidth]{laplace}
 
-\includegraphics[width=\linewidth]{distribution_of_beta.pdf}
+Taking a look at \textbf{Figure Y}, we can begin to understand the behavior seen in \textbf{Figure X}. The lines in each plot are constructed in the same manner as for \textbf{Figure X}. In \textbf{plot (a)}, we see that the interval width tends to increase as $\beta$ increases in magnitude. We also see that Random Sample produces the widest intervals and even more noticably that Traditional produces very narrow intervals. Debias and Zero Sample tend to produce intervals of similar width. There are a few details to take away from \textbf{plot (b)}. First, the center of the intervals tends to be increasingly biased towards zero for larger values of $|\beta|$ as one would expect. Second, Random Sample, Zero Sample, and Traditional all have similar amount of bias. Third, although the Debias method cuts the bias in about half, it is unable to completely eliminate bias.
 
-\subsection{Epsilon Conundrum (Comparison to Traditional Quantile Bootstrap)}
+\logan{Discuss why can't fully debias?}
 
-\includegraphics[width=\linewidth]{epsilon_conundrum.pdf}
+Turning back towards \textbf{plot (a)}, we see the issue with the Traditional method, especially for small values of $\beta$ which is a manifestation of the Epsilon Conundrum which will be depicted in more detail later.This also indicates that the issue with Random Sample is that it produces intervals that are far too wide.
 
-\subsection{Correlation}
+\logan{What isn't as clear from this depiction is that for smaller values of $\beta$ that Debiad intervals may fail to cover $\beta$ due to having lower bounds that are too large in magnitude. The coverage tends to be near nominal, but under coverage results due to behavior for larger magnitude $\beta$}. Additionally, while this tends to work well for larger values of n, Debias tends to undercover for smaller values of n which is magnified under other conditions like if correlation is introduced.
 
-\subsection{Correlated Features (Comparison to Ridge)}
+This behavior of Debias emhapsizes an interesting point. Without a method that mostly corrects bias, the method with ideal coverage will be the one that produces a balance of overcoverage for smaller values of $\beta$ with undercoverage for large magnitudes of $\beta$.
 
-\includegraphics[width=\linewidth]{highcorr.pdf}
+Zero Sample tends exhibit this behavior but errors on the side of overcoverage when n is small relative to p.
 
-\section{Comparison to Other Methods}
+\includegraphics[width=\linewidth]{laplace_width_bias}
+
+\textbf{Figure Z} is similar to \textbf{Figure X}, but it focuses only on Zero Sample and gives simulation results for three values of n across three different nominal coverage rates. Since the method has a varying coverage rate based on the magnitude of $\beta$, it is important to consider different nominal coverages. Otherwise, it is concievable that a method could perform well at one coverage rate but not another. However, that is not the case here. Regardless of the nominal coverage, the general pattern remains the same: the method over covers for smaller values of n but coverage converges to the nominal coverage rate relatively quickly. The only difference seen is the compression of this pattern for higher nominal coverage rate. Going forward, the nominal coverage will be set at $80\%$ to reduce compression so that any patterns present are easier to observe.
+
+\includegraphics[width=\linewidth]{nominal_coverage}
+
+\subsection{Robustness}
+
+\subsubsection{Selection of \texorpdfstring{$\lambda$}{lambda}}
+
+\includegraphics[width=\linewidth]{beta_lambda_heatmap_laplace}
+
+\subsubsection{Distribution of Beta}
+
+\logan{What story do we want to tell here and is this the best visual? Specifically, what range of lambdas do we really care about considering?}
+
+\includegraphics[width=\linewidth]{distribution_of_beta}
+
+\subsubsection{Correlation}
+
+We start of with a simple example and compare the intervals produced by Zero Sample with that of Ridge. In this example again n = p = 100, however, only one $\beta$ is non-zero. That is, $\beta_{A1} = 1$ and $\beta_{B1}, \beta{N_1}, \ldots, \beta_{N98} = 0$. Additionally, the data is simulated such that $\rho(\beta_{A1}, \beta_{B1}) = .99$ but all of the N (noise) $\beta$s are uncorrelated with $\beta_{A1}, \beta_{B1}$, and each other.
+
+100 datasets were generated in this manner and each method was applied and respective confidence intervals obtained.
+
+\textbf{Figure A} depicts the results from the simulation with the plot on the right giving boxplots for the lower (red) and upper (blue) bounds across the 100 datasets for 3 variables, A1, B1, and N1. On the right, Confidence Intervals for a randomly selected example from the 100 simulated datasets is displayed.
+
+Focusing on A1 and B1, what we would hope to see is wide intervals. Although A1 truly is the signal variable, its high correlation with B1 should produce a large amount of uncertainty about which variable (if not both) contain signal. Ridge, however, fails in this respect in that the intervals are very narrow. On the other hand, Zero Sample displays the desired behavior. The uncertainty entangled in A1 and B1 is reflected in wider intervals. Additionally, intervals for A1 usually do not contain 0 whereas the intervals for B1 contains 0 over 40\% of the time. In general, there is a clear shift in the intervals for A1 compared to B1 suggesting that even with very high correlation, Zero Sample often attributed more of the signal to A1, which was clearly not the case with Ridge.
+
+\includegraphics[width=\linewidth]{highcorr}
+
+Now, lets consider some cases with higher levels of correlation. In \textbf{Figure B}, the first row contains the coverages across 100 simulated datasets with n = p = 100 with $\beta \sim laplace(rate = 2)$ but with autoregressive correlation added. Note that for a moderate amount of correlation ($\rho = 0.4$), there is little impact of the coverage of the intervals \logan{(reference plot lower in methods comparison for matching plot, may want to consider moving up?)}. As we increase the correlation, however, we begin to see under coverage for larger values of n. That said, even with a significant amount of autoregressive correlation, we still observe a median coverage just under 70\%.
+
+\logan{May want to run for larger n in case a reviewer would ask if overage keeps decreasing.}
+
+I did, for AR .95, and with n = 1000, becomes relativly stable around the same coverage. Running now for n = 3000.
+
+\logan{Compare to simulation in earlier Chaterjee paper?}
+
+In the second row, we have data generated under a different mechanism. Here, the data size is the same, but the $\beta$ values and $cor(X)$ is different. Here, there are only 5 non-zero $\beta$ values (denoted with A). However, for each non-zero $\beta$, there are 2 noise variables generated with the specified correlation (denoted with B). For the other 85 zero $\beta$s (denoted with N), they are generated independent of the A and B variables but have exchangeable correlation amoung each other with $\rho = 0.2, 0.5, and 0.6$ respectively. As previosuly discussed, we see a significant amount of overcoverage due to the high level of sparsity. Regardless, the overall trend remains the same in the the overall coverage gradually decreases with increasing levels of correlation.
+
+\logan{May be easier to keep correlation for noise variables the same?}
+
+\includegraphics[width=\linewidth]{correlation_structure}
+
+Its natrual to close this section by considering the performance on a scenario that was the main motivator of the Zero Sample method: the Epsilon conundrum. So how does Zero Sample Perform in this scenario? It avoids the downfall we observe with applying the Traditional bootstrap. Clearly, however, it also over covers due to the fact that the large majority of $\beta$s are near zero, but, again, this is to be expected and the important take away is that Zero-Sample provides viable intervals for values of $\beta$ near zero.
+
+\logan{Split this graph and move Traditional earlier}
+
+\subsubsection{Epsilon Conundrum (Comparison to Traditional Quantile Bootstrap)}
+
+\includegraphics[width=\linewidth]{epsilon_conundrum}
+
+\subsection{Comparison to Other Methods}
+
+There are few other methods for obtaining intervals for the lasso. There are even fewer that provide R packages to provide comparisons with. Two that were were able to identify were Selective Inference (from `selectiveInference`) and Bootstrap Lasso Projection (from `hdi`). It should be noted, however, that neither methods fits the criteria of remaining "true" to the model fit.
+
+Specifically, the Bootstrap Lasso Projection is also known as the de-sparsified Lasso and by default the method reselects $\lambda$ for each bootstrap sample.
+
+Selective Inference only provides intervals for variables with non-zero coefficients and itself is another alternative which provides debiased intervals.
+
+Regardless, we compare the relative performance of the Zero-Sample with these two methods.
 
 \begin{enumerate}
 \item Selective inference
@@ -189,17 +277,17 @@ We make the assertion that the "ideal" scenario for this method is when the true
 
 \subsection{Comparison Similation}
 
-\includegraphics[width=\linewidth]{laplace_comparison.pdf}
+\includegraphics[width=\linewidth]{laplace_comparison}
 
-\includegraphics[width=\linewidth]{laplace_other.pdf}
+\includegraphics[width=\linewidth]{laplace_other}
 
 \section{Application: Acute Respiratory Illness (WHO)}
 
-\includegraphics[width=\linewidth]{comparison_data.pdf}
+\includegraphics[width=\linewidth]{comparison_data}
 
 \section{Application: Gene expression in the mammalian eye}
 
-\includegraphics[width=\linewidth]{comparison_data_scheetz.pdf}
+\includegraphics[width=\linewidth]{comparison_data_scheetz}
 
 \section{Discussion}
 
@@ -213,7 +301,7 @@ This of course opens up the large question of what method to use for incremental
 
 We are currently working on implimenting and assessing using the method introduced by \cite{Tierney1983}, but this is an area of ongoing interest for us.
 
-Luckily, as far as problems go, this is a relatively benign use case. The primary obsticle that a method needs to be able to address is adhering to space requirements. Ideally, the storage space required should not grow with the number of draws or should at least grow at a much slower rate than the number of draws (i.e. no faster than $\log(\# of draws)$). In fact, per quantile tracked, the method presented by Tierney only requries 6 direct access storage points. As \cite{Tierney1983} notes, his method only has the requirement that F has "a bounded derivative that is continuous at $\xi$", where $\xi$ is the tracked quantile. The only point at which this could be violated for the distributions we are tracking would be if $\xi = 0$, since the derivative is not necessarily continuous at this point. However, since the distribution itself is continous at 0, $\xi = 0$ w.p. 0.
+Luckily, as far as problems go, this is a relatively benign use case. The primary obsticle that a method needs to be able to address is adhering to space requirements. Ideally, the storage space required should not grow with the number of draws or should at least grow at a slower rate than the number of draws (i.e. no faster than $\log(\# of draws)$). In fact, per quantile tracked, the method presented by Tierney only requries 6 direct access storage points. As \cite{Tierney1983} notes, his method only has the requirement that F has "a bounded derivative that is continuous at $\xi$", where $\xi$ is the tracked quantile. The only point at which this could be violated for the distributions we are tracking would be if $\xi = 0$, since the derivative is not necessarily continuous at this point. However, since the distribution itself is continous at 0, $\xi = 0$ w.p. 0.
 
 One drawback of using the method as introduced by Tierney is that is only addresses tracking of a single quantile at a time. Recent research has focused on joint quantile tracking. Future exploration into how such methods perform would undoubtably add robustness, however, given the use case here of tracking two quantiles in seperate tails, we accept this limitation with caution.
 
@@ -221,14 +309,6 @@ One drawback of using the method as introduced by Tierney is that is only addres
 
 \section*{Appendix}
 
-\subsection{Nominal Coverage}
-
-\includegraphics[width=\linewidth]{nominal_coverage.pdf}
-
 \subsection{True lambda / sigma}
 
-\includegraphics[width=\linewidth]{true_lambda.pdf}
-
-\subsection{LM Bootstrap}
-
-\includegraphics[width=\linewidth]{lm_bootstrap.pdf}
+\includegraphics[width=\linewidth]{true_lambda}

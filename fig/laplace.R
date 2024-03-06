@@ -71,6 +71,7 @@ for (j in 1:length(ns)) {
     #   print()
 
     per_var_data %>%
+      filter(method == methods[i]) %>%
       mutate(covered = lower <= truth & upper >= truth) %>%
       group_by(n) %>%
       summarise(coverage = mean(covered)) %>%
@@ -142,8 +143,7 @@ p2 <- plots[[2]]
 p3 <- plots[[3]]
 
 # suppressMessages({
-  # pdf("./fig/laplace.pdf", width = 7.5)
-  # grid.arrange(grobs = list(p1, p2, p3), nrow = 3, ncol = 1)
+# grid.arrange(grobs = list(p1, p2, p3), nrow = 3, ncol = 1)
   pdf("./fig/laplace.pdf", height = 3.5)
   p2
   dev.off()
