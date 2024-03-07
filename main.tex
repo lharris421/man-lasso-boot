@@ -1,5 +1,15 @@
 \section{Introduction}
 
+P0?: lasso is cool, but CIs hard
+
+P1: Conventional wisdom is that bootstrap for lasso doesn't work
+
+P2: We take a closer look at this and question: does it not work, or do we need to rethink confidence interval properties in high dimensions?
+
+P3: We find that it's a combination of both. There does need to be a methodological fix (zero-sample). But also we need to rethink HDCIs.
+
+P4: Section 2 does x, section 3 does y....
+
 The prevailing opinion is that the traditional use of bootstrapping to produce confidence intervals for penalized regression is suboptimal due to the inherent behavior of estimates produced by penalization.
 
 Specifically, we see two potential problems that arise when proposing to use bootstrapping for penalized regression, we will refer to these obstacles as,
@@ -25,7 +35,12 @@ Instead, we propose to focus on the third component: coverage. As a direct resul
 
 MOVE LATER: In classical high dimension scenarios, it is expected that the solution is often sparse. It should be no surprise then that when the true data generating mechanism is more sparse than the laplace indicated by the respective $\lambda$ that is method will provide over coverage.
 
-\includegraphics[width=\linewidth]{lm_bootstrap}
+\begin{figure}
+  \includegraphics[width=\linewidth]{lm_bootstrap}
+  \caption{\label{Fig:lm_bootstrap} Caption goes here}
+\end{figure}
+
+See how cool Figure~\ref{Fig:lm_bootstrap} is?
 
 The second problem, the Epsilon Conundrum, is also related to the shrinkage but arises as an arguably more disturbing manifestation: confidence intervals of length zero or, more often, with a single endpoint that is exactly zero. Some penalized regression methods, particularly the lasso, often result in a sparse solution. If using a traditional quantile based bootstrap confidence interval, this will lead to an interval of [0,0] if a given variable is rarely or never included in the active set. As the dimensionality of the problem grows, this becomes an increasing occurrence leading to a large majority of intervals possessing a length of zero. When the true value of the coefficient is 0, the interval at least contains the truth. However, this issue is particularly troublesome when one considers what happens when the true value is not precisely zero, as is likely the case in most reasonable scenarios. By just shifting the true value by $\eps$, an immediate drop in coverage would occur, hence the name: the Epsilon Conundrum.
 
