@@ -37,7 +37,10 @@ methods_pretty <- c(
   "blp" = "Bootstrap Lasso Projection",
   "fullconditional" = "Full Conditional",
   "truncatedzs2" = "Truncated Zero Sample",
-  "zerosample2la" = "Lambda Adjusted"
+  "zerosample2la" = "Lambda Adjusted",
+  "debiased_normalized" = "Norm Debias",
+  "debiased_corrected" = "Corrected Debias",
+  "full_debias" = "Full Debias"
 )
 
 rds_path <- glue("{res_dir}/rds/")
@@ -158,7 +161,7 @@ plot_function <- function(plot_list) {
   gg <- ggplot(data = coverage_data, aes(x = lambda, y = coverage, group = group, color = group)) +
     geom_line() +
     # geom_vline(xintercept = plot_list[[2]], linetype = "dashed", color = sec_colors[1], linewidth = .5) +
-    geom_hline(yintercept = 0.8, linewidth = .5) +
+    geom_hline(yintercept = 0.8, linewidth = .5, linetype = 2) +
     theme_bw() +
     scale_x_continuous(trans = log10_trans(),
                        breaks = trans_breaks('log10', function(x) 10^x),

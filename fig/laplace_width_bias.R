@@ -6,7 +6,7 @@ cutoff <- 2
 xs <- seq(0, cutoff, by = .01)
 
 
-methods <- c("traditional", "sample", "debiased", "zerosample2"); n_methods <- length(methods)
+methods <- c("sample", "zerosample2", "debiased", "traditional")
 ns <- c(50, 100, 400) # ns values you are interested in
 data_type <- "laplace"
 rate <- 2
@@ -18,18 +18,32 @@ p <- 100
 modifier <- NA
 lambda <- "cv"
 
-params_grid <- expand.grid(list(data = data_type, n = ns, rate = rate, snr = SNR, lambda = lambda,
+params_grid <- expand.grid(list(data = data_type, n = ns, rate = rate, snr = SNR,
                                 correlation_structure = corr, correlation = rho, method = methods,
                                 ci_method = "quantile", nominal_coverage = alpha * 100, p = p, modifier = modifier))
+# params_grid2 <- expand.grid(list(data = data_type, n = ns, rate = rate, snr = SNR,
+#                                  correlation_structure = corr, correlation = rho, method = "debiased",
+#                                  ci_method = c("full_debias"), nominal_coverage = alpha * 100, p = p, modifier = modifier))
+# params_grid <- rbind(params_grid, params_grid2)
+#
+# methods <- c(methods, "full_debias")
+
+
+n_methods <- length(methods)
 # Fetching and combining data
 per_var_data <- list()
 for (i in 1:nrow(params_grid)) {
   read_objects(rds_path, params_grid[i,])
-  per_var_data[[i]] <- per_var_n
+  per_var_data[[i]] <- per_var_n %>%
+    mutate(method = ifelse(params_grid[i,"ci_method"] == "mvn_uni", "debiased_normalized", method),
+           method = ifelse(params_grid[i,"ci_method"] == "mvn_corrected", "debiased_corrected", method),
+           method = ifelse(params_grid[i,"ci_method"] == "full_debias", "full_debias", method))
 }
 per_var_data <- do.call(rbind, per_var_data) %>%
-  data.frame() %>%
-  mutate(method = stringr::str_remove(method, "_"))
+  data.frame()
+
+# %>%
+#   mutate(method = stringr::str_remove(method, "_"))
 
 
 plots <- list()
@@ -137,10 +151,11 @@ for (j in 1:length(ns)) {
 #                   legend.key.height = unit(0.2, "cm"))
 
 
-plots[[2]] <- plots[[2]] +
+which_n <- 2
+plots[[which_n]] <- plots[[which_n]] +
   theme(legend.position = "none")
 
-plots_bias[[2]] <- plots_bias[[2]] +
+plots_bias[[which_n]] <- plots_bias[[which_n]] +
   theme(legend.position = c(0.5, 0.1),
         legend.direction = "horizontal",
         legend.background = element_rect(fill = NA),
@@ -157,7 +172,7 @@ suppressMessages({
   # pdf("./fig/laplace_width_bias.pdf", width = 7.5)
   # grid.arrange(grobs = list(plots[[1]], plots_bias[[1]], plots[[2]], plots_bias[[2]], plots[[3]], plots_bias[[3]]), nrow = 3, ncol = 2, left = left_label, right = right_label, bottom = bottom_label)
   pdf("./fig/laplace_width_bias.pdf", height = 3.5)
-  grid.arrange(grobs = list(plots[[2]], plots_bias[[2]]), nrow = 1, ncol = 2, left = left_label, right = right_label, bottom = bottom_label)
+  grid.arrange(grobs = list(plots[[which_n]], plots_bias[[which_n]]), nrow = 1, ncol = 2, left = left_label, right = right_label, bottom = bottom_label)
   dev.off()
   if (save_rds) {
     gobj <- grid.arrange(grobs = list(plots[[1]], plots_bias[[1]], plots[[2]], plots_bias[[2]], plots[[3]], plots_bias[[3]]), nrow = 3, ncol = 2, left = left_label, right = right_label, bottom = bottom_label)

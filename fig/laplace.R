@@ -3,7 +3,7 @@ source("./fig/setup/setup.R")
 
 plots <- list()
 
-methods <- c("traditional", "sample", "debiased", "zerosample2")
+methods <- c("sample", "zerosample2", "debiased", "traditional")
 n_values <- c(50, 100, 400) # ns values you are interested in
 data_type <- "laplace"
 rate <- 2
@@ -19,12 +19,22 @@ new_folder <- "/Users/loganharris/github/lasso-boot/new_rds/"
 params_grid <- expand.grid(list(data = data_type, n = n_values, rate = rate, snr = SNR,
                     correlation_structure = corr, correlation = rho, method = methods,
                     ci_method = "quantile", nominal_coverage = alpha * 100, p = p, modifier = modifier))
+# params_grid2 <- expand.grid(list(data = data_type, n = n_values, rate = rate, snr = SNR,
+#                                 correlation_structure = corr, correlation = rho, method = "debiased",
+#                                 ci_method = c("mvn_uni", "mvn_corrected"), nominal_coverage = alpha * 100, p = p, modifier = modifier))
+# params_grid <- rbind(params_grid, params_grid2)
+#
+# methods <- c(methods, "debiased_normalized", "debiased_corrected")
+
+
 # Fetching and combining data
 per_var_data <- list()
 for (i in 1:nrow(params_grid)) {
   read_objects(rds_path, params_grid[i,])
   print(unique(per_var_n$n))
-  per_var_data[[i]] <- per_var_n
+  per_var_data[[i]] <- per_var_n %>%
+    mutate(method = ifelse(params_grid[i,"ci_method"] == "mvn_uni", "debiased_normalized", method),
+           method = ifelse(params_grid[i,"ci_method"] == "mvn_corrected", "debiased_corrected", method))
 }
 per_var_data <- do.call(rbind, per_var_data) %>%
   data.frame()

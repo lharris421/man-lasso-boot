@@ -35,26 +35,12 @@ a <- c(NA, NA, NA, 5, 5, 5)
 b <- c(NA, NA, NA, 2, 2, 2)
 SNR <- 1
 corr <- c("autoregressive", "autoregressive", "autoregressive", "exchangeable", "exchangeable", "exchangeable")
-rho <- c(.4, .7, .95, .5, .8, .99)
-rho_noise <- c(NA, NA, NA, .2, .5, .6)
+rho <- c(.4, .6, .8, .5, .7, .9)
+rho_noise <- c(NA, NA, NA, .2, .4, .6)
 alpha <- .2
 p <- 100
 modifier <- NA
 
-
-# methods <- c("zerosample2")
-# n_values <- c(50, 100, 400, 1000) # ns values you are interested in
-# data_type <- c("laplace")
-# rate <- c(2)
-# a <- c(NA)
-# b <- c(NA)
-# SNR <- 1
-# corr <- c("autoregressive")
-# rho <- c(.95)
-# rho_noise <- c(NA)
-# alpha <- .2
-# p <- 100
-# modifier <- NA
 
 plots <- list()
 for (i in 1:length(rho)) {
@@ -64,7 +50,16 @@ for (i in 1:length(rho)) {
                                   snr = SNR,
                                   correlation_structure = corr[i], correlation = rho[i] * 100, correlation_noise = rho_noise[i] * 100,
                                   method = methods,
-                                  ci_method = "quantile", nominal_coverage = alpha * 100, p = p, modifier = modifier))
+                                  ci_method = ci_method, nominal_coverage = alpha * 100, p = p, modifier = modifier))
+
+  # params_grid <- expand.grid(list(data = data_type, n = n_values,
+  #                                 rate = rate, a = a, b = b,
+  #                                 snr = SNR,
+  #                                 correlation_structure = corr, correlation = rho[i] * 100, correlation_noise = rho_noise,
+  #                                 method = methods,
+  #                                 ci_method = ci_method, nominal_coverage = alpha * 100, p = p, modifier = modifier))
+
+
   per_var_data <- list()
   for (j in 1:nrow(params_grid)) {
     read_objects(rds_path, params_grid[j,])
@@ -89,7 +84,7 @@ for (i in 1:length(rho)) {
     ggtitle(glue("{corr[i]} ({rho[i]})")) +
     theme_bw() +
     theme(legend.position = "none") +
-    coord_cartesian(ylim = c(ifelse(i > 3, .8, .5), 1)) +
+    coord_cartesian(ylim = c(ifelse(i > 3, .8, .4), 1)) +
     geom_hline(yintercept = 1 - alpha)
 
 }
@@ -105,7 +100,7 @@ plots[[1]] <- plots[[1]] +
 #
 #
 # suppressMessages({
-pdf("./fig/correlation_structure.pdf", width = 7.5, height = 4)
+pdf("./fig/correlation_structure.pdf", width = 7.5, height = 6)
 g <- grid.arrange(grobs = plots, ncol = 3, nrow = 2)
 dev.off()
 # })

@@ -7,7 +7,3 @@ lasso-boot.pdf: lasso-boot.tex main.tex $(PDF_FILES)
 ## Run R files for pdfs
 %.pdf: %.R
 	@Rscript $< > /dev/null 2>&1
-
-## Run R files for latex
-# %.tex: %.R
-# 	@Rscript $< > /dev/null 2>&1

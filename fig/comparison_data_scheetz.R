@@ -9,20 +9,26 @@ lambda <- "cv"
 
 params_grid <- expand.grid(list(data = data_type, method = methods, lambda = lambda,
                                 ci_method = "quantile", nominal_coverage = alpha * 100))
+
+# params_grid2 <- expand.grid(list(data = data_type, method = "debiased", lambda = lambda,
+#                                 ci_method = "mvn_uni", nominal_coverage = alpha * 100))
+#
+# params_grid <- rbind(params_grid, params_grid2)
+
 # Fetching and combining data
 cis <- list()
 for (i in 1:nrow(params_grid)) {
   read_objects(rds_path, params_grid[i,])
   cis[[i]] <- res$confidence_interval
 }
-cis <- do.call(rbind, cis) %>% data.frame()
+cis <- do.call(dplyr::bind_rows, cis) %>% data.frame()
 
 
 ## Plotting
 # suppressMessages({
-  pdf("./fig/comparison_data_scheetz.pdf", width = 7.5)
-  plot_ci_comparison(cis) +
-    coord_cartesian(xlim = c(-0.06, 0.06))
+  pdf("./fig/comparison_data_scheetz.pdf", width = 7.5, height = 3.5)
+  plot_ci_comparison(cis, nvars = 10) +
+    coord_cartesian(xlim = c(-0.6, 0.6))
   dev.off()
   if (save_rds) {
     pobj <- plot_ci_comparison(cis)

@@ -1,7 +1,6 @@
 ## Setup
 source("./fig/setup/setup.R")
 
-methods <- c("selectiveinference", "zerosample2", "blp"); n_methods <- length(methods)
 ns <- c(50, 100, 400) # ns values you are interested in
 data_type <- "laplace"
 rate <- 2
@@ -14,8 +13,17 @@ modifier <- NA
 lambda <- "cv"
 
 params_grid <- expand.grid(list(data = data_type, n = ns, rate = rate, snr = SNR, lambda = lambda,
-                                correlation_structure = corr, correlation = rho, method = methods,
+                                correlation_structure = corr, correlation = rho, method = c("selectiveinference", "zerosample2", "blp"),
                                 ci_method = "quantile", nominal_coverage = alpha * 100, p = p, modifier = modifier))
+
+# params_grid2 <- expand.grid(list(data = data_type, n = ns, rate = rate, snr = SNR, lambda = lambda,
+#                                 correlation_structure = corr, correlation = rho, method = "debiased",
+#                                 ci_method = "mvn", nominal_coverage = alpha * 100, p = p, modifier = modifier))
+#
+# params_grid <- rbind(params_grid, params_grid2)
+
+methods <- c("selectiveinference", "zerosample2", "blp"); n_methods <- length(methods)
+
 # Fetching and combining data
 per_var_data <- list()
 per_dataset_data <- list()
@@ -92,7 +100,7 @@ p4 <- per_dataset_data %>%
   ylab(expression(lambda)) + xlab(NULL) +
   theme_bw()
 
-glist <- list(p1, p2, p3, p4)
+glist <- list(p1, p2, p3)
 glist <- lapply(glist, function(x) {
   x +
     theme(legend.position = "none",

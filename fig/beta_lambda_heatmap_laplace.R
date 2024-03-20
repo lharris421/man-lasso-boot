@@ -22,6 +22,7 @@ lambda_min <- 0.001
 lambda_seq <- 10^(seq(log(lambda_max, 10), log(lambda_min, 10), length.out = 10))
 
 pdat <- res[[1]] %>%
+  dplyr::filter(lambda_ind <= 10) %>%
   dplyr::mutate(covered = truth >= lower & truth <= upper,
                 width = upper - lower,
                 group = as.factor(group),
@@ -64,7 +65,7 @@ plt_cov <- ggplot(grid, aes(x = lambda, y = truth, fill = adjusted_coverage)) +
                      labels = trans_format('log10', math_format(10^.x))) +
   coord_cartesian(xlim = c(max(lambdas[[1]]), min(lambdas[[1]])))  +
   # geom_vline(xintercept = lambdas[[1]], alpha = .1) +
-  geom_vline(xintercept = median(lambdas[[1]]), alpha = .5, col = "red") +
+  geom_vline(xintercept = mean(lambdas[[1]]), alpha = .5, col = "red") +
   theme(legend.title = element_text(size = 7),
         legend.text = element_text(size = 5),
         legend.key.width = unit(0.5, "cm"),

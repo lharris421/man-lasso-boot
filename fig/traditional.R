@@ -11,10 +11,11 @@ rho <- 0
 alpha <- .2
 p <- 100
 modifier <- NA
+ci_method <- "quantile"
 
 params_grid <- expand.grid(list(data = data_type, n = n_values, snr = SNR, lambda = "cv",
                                 correlation_structure = corr, correlation = rho, method = methods,
-                                ci_method = "quantile", nominal_coverage = alpha * 100, p = p, modifier = modifier))
+                                ci_method = ci_method, nominal_coverage = alpha * 100, p = p, modifier = modifier))
 
 # Fetching and combining data
 res_ci <- list()
@@ -54,12 +55,17 @@ for (i in 1:length(methods)) {
 
 left_label <- textGrob("Variable", gp = gpar(fontsize = 10), rot = 90)
 
-suppressMessages({
-  pdf("./fig/epsilon_conundrum.pdf", height = 4 * ceiling(length(methods) / 2))
-  grid.arrange(grobs = plots, nrow = ceiling(length(methods) / 2), left = left_label)
+#suppressMessages({
+  # pdf("./fig/zerosample2.pdf", height = 4 * ceiling(length(methods) / 2))
+  # grid.arrange(grobs = plots, nrow = ceiling(length(methods) / 2), left = left_label)
+  pdf("./fig/zerosample2.pdf", height = 4, width = 7.5)
+  plots[[2]]
+  dev.off()
+  pdf("./fig/traditional.pdf", height = 4, width = 7.5)
+  plots[[1]]
   dev.off()
   if (save_rds) {
     gobj <- grid.arrange(grobs = plots, nrow = ceiling(length(methods) / 2), left = left_label)
     save(gobj, file = glue("{res_dir}/web/rds/epsilon_conundrum.rds"))
   }
-})
+# })

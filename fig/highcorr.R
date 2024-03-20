@@ -17,7 +17,22 @@ arg_list <- list(data = data_type,
                  correlation_structure = "exchangeable",
                  correlation = 0.99,
                  correlation_noise = ifelse(data_type == "abn", 0, NA),
-                 method = c("ridge", "zerosample2"),
+                 method = c("ridge"),
+                 ci_method = "quantile",
+                 nominal_coverage = alpha * 100,
+                 modifier = modifier)
+arg_list2 <- list(data = data_type,
+                 n = 100,
+                 p = 100,
+                 snr = 1,
+                 sd = ifelse(data_type == "normal", sd, NA),
+                 rate = ifelse(data_type == "laplace", rt, NA),
+                 a = ifelse(data_type == "abn", 1, NA),
+                 b = ifelse(data_type == "abn", 1, NA),
+                 correlation_structure = "exchangeable",
+                 correlation = 0.99,
+                 correlation_noise = ifelse(data_type == "abn", 0, NA),
+                 method = c("zerosample2"),
                  ci_method = "quantile",
                  nominal_coverage = alpha * 100,
                  modifier = modifier)
@@ -25,15 +40,15 @@ methods_pretty <- c(methods_pretty, "ridge" = "Ridge")
 
 cis <- list()
 examples <- list()
-params_grid <- expand.grid(arg_list)
+params_grid <- rbind(expand.grid(arg_list), expand.grid(arg_list2))
 
 for (i in 1:nrow(params_grid)) {
   read_objects(rds_path, params_grid[i,])
   cis[[i]] <- confidence_interval
   examples[[i]] <- example
 }
-names(cis) <- arg_list$method
-names(examples) <- arg_list$method
+names(cis) <- params_grid$method
+names(examples) <- params_grid$method
 
 plot_ridge <- function(ridge_ci, n = 20, quiet = TRUE) {
 
@@ -58,8 +73,8 @@ plot_ridge <- function(ridge_ci, n = 20, quiet = TRUE) {
 
 plots <- list()
 eplots <- list()
-for (i in 1:length(arg_list$method)) {
-  curr_method <- arg_list$method[i]
+for (i in 1:nrow(params_grid)) {
+  curr_method <- params_grid$method[i]
   current_cis <- do.call(rbind, cis[[curr_method]]) %>%
     data.frame()
   current_example <- examples[[curr_method]]
@@ -90,9 +105,9 @@ for (i in 1:length(arg_list$method)) {
     ylab(NULL) +
     xlab(NULL) +
     scale_color_manual(values = colors) +
-    annotate("text", x = 1.2, y = 3.4, label = methods_pretty[arg_list$method[i]], size = 5)
+    annotate("text", x = 1.2, y = 3.4, label = methods_pretty[as.character(params_grid$method[i])], size = 5)
 
- if (arg_list$method[i] == "zerosample2") {
+ if (params_grid$method[i] == "zerosample2") {
    current_cis %>%
      filter(variable == "B1") %>%
      mutate(under0 = lower <= 0) %>%
@@ -101,7 +116,7 @@ for (i in 1:length(arg_list$method)) {
  }
 
 
- if (arg_list$method[i] == "ridge") {
+ if (params_grid$method[i] == "ridge") {
    ridge_example <- current_example
    colnames(ridge_example) <- tolower(colnames(ridge_example))
    tmp_plot <- plot_ridge(ridge_example, n = 20)
@@ -120,7 +135,7 @@ left_label <- textGrob("Variable", gp = gpar(fontsize = 12), rot = 90)
 bottom_label <- textGrob("Interval Endpoint", gp = gpar(fontsize = 12))
 
 suppressMessages({
-  pdf("./fig/highcorr.pdf", height = length(arg_list$method) * 3)
+  pdf("./fig/highcorr.pdf", height = length(params_grid$method) * 3)
   grid.arrange(grobs = plots, ncol = 2, left = left_label, bottom = bottom_label)
   dev.off()
   if (save_rds) {
