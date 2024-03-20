@@ -14,6 +14,7 @@ packages <- c(
   "grid", "glue", "lme4", "mgcv", "splines"
 )
 
+stopifnot(dir.exists(paste0(res_dir, "/local")))
 .libPaths(paste0(res_dir, "/local"))
 lapply(packages, quietlyLoadPackage)
 source(paste0(res_dir, "/R/saveR.R"))

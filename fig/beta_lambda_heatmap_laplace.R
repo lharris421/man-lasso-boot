@@ -60,10 +60,8 @@ plt_cov <- ggplot(grid, aes(x = lambda, y = truth, fill = adjusted_coverage)) +
   scale_fill_gradient2(low = "#DF536B", high = "#2297E6", mid = "white", midpoint = 0) +
   labs(y = "Truth", fill = "Rel. Cov.", x = expression(lambda)) +
   theme_minimal() +
-  scale_x_continuous(trans = log10_trans(),
-                     breaks = trans_breaks('log10', function(x) 10^x),
-                     labels = trans_format('log10', math_format(10^.x))) +
-  coord_cartesian(xlim = c(max(lambdas[[1]]), min(lambdas[[1]])))  +
+  scale_x_log10(trans = c("log10", "reverse"), breaks = breaks_log(base=10), labels = label_log(10)) +
+  #coord_cartesian(xlim = c(max(lambdas[[1]]), min(lambdas[[1]])))  +
   # geom_vline(xintercept = lambdas[[1]], alpha = .1) +
   geom_vline(xintercept = mean(lambdas[[1]]), alpha = .5, col = "red") +
   theme(legend.title = element_text(size = 7),
