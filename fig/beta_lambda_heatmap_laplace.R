@@ -61,7 +61,7 @@ plt_cov <- ggplot(grid, aes(x = lambda, y = truth, fill = adjusted_coverage)) +
 
 
 # suppressMessages({
-  pdf("./fig/beta_lambda_heatmap_laplace.pdf", height = 4, width = 6)
+  pdf("./fig/beta_lambda_heatmap_laplace.pdf", height = 4, width = 5)
   plt_cov
   dev.off()
 # })

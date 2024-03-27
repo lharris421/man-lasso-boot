@@ -7,26 +7,6 @@ dlaplace <- function(x, rate = 1) {
 
 plots <- list()
 
-# methods <- c("zerosample2")
-# n_values <- c(50, 100, 400) # ns values you are interested in
-# data_types <- c("laplace", "abn", "abn")
-# corrs <- c("autoregressive", "exchangeable", "autoregressive")
-# rhos <- c(0.7, 0.5, 0.8)
-# rhos.noise <- c()
-# rate <- c(2, NA, NA)
-# a <- c(NA, 5, 5)
-# b <- c(NA, 2, 2)
-# SNR <- 1
-# alpha <- .2
-# p <- 100
-#
-# params_grid <- data.frame(
-#   method = methods,
-#   data_type = data_types,
-#   correlation_structure = corrs,
-#   correlation = rhos
-# )
-
 methods <- c("zerosample2")
 n_values <- c(50, 100, 400) # ns values you are interested in
 data_type <- c("laplace", "laplace", "laplace", "abn", "abn", "abn")
@@ -51,13 +31,6 @@ for (i in 1:length(rho)) {
                                   correlation_structure = corr[i], correlation = rho[i] * 100, correlation_noise = rho_noise[i] * 100,
                                   method = methods,
                                   ci_method = ci_method, nominal_coverage = alpha * 100, p = p, modifier = modifier))
-
-  # params_grid <- expand.grid(list(data = data_type, n = n_values,
-  #                                 rate = rate, a = a, b = b,
-  #                                 snr = SNR,
-  #                                 correlation_structure = corr, correlation = rho[i] * 100, correlation_noise = rho_noise,
-  #                                 method = methods,
-  #                                 ci_method = ci_method, nominal_coverage = alpha * 100, p = p, modifier = modifier))
 
 
   per_var_data <- list()
@@ -97,11 +70,8 @@ plots[[1]] <- plots[[1]] +
         legend.box.just = "right",
         legend.margin = margin(6, 6, 6, 6),
         legend.background = element_rect(fill = "transparent"))
-#
-#
-# suppressMessages({
-pdf("./fig/correlation_structure.pdf", width = 7.5, height = 6)
+
+pdf("./fig/correlation_structure.pdf", width = 6, height = 4)
 g <- grid.arrange(grobs = plots, ncol = 3, nrow = 2)
 dev.off()
-# })
 

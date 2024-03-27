@@ -1,13 +1,10 @@
 ## Setup
 source("./fig/setup/setup.R")
 
-## Load Data
-## method <- "bucketfill"
-
 plots <- list()
 
 methods <- c("selectiveinference", "zerosample2", "blp")
-ns <- c(50, 100, 400) # ns values you are interested in
+ns <- c(100)
 data_type <- "laplace"
 rate <- 2
 SNR <- 1
@@ -47,7 +44,6 @@ for (j in 1:length(ns)) {
       filter(method == methods[i] & n == ns[j])
 
     if (i == 1) {
-      # density_data <- density(abs(tmp$truth), bw = .05, n = cutoff * 100 + 1, from = 0, to = cutoff)
       xvals <- seq(from = 0, to = cutoff, length.out = cutoff * 100 + 1)
       density_data <- data.frame(x = xvals, density = 2 * dlaplace(xvals, rate = 2))
     }
@@ -90,7 +86,7 @@ for (j in 1:length(ns)) {
     theme_bw() +
     xlab(expression(abs(beta))) +
     ylab(NULL) +
-    annotate("text", x = 0.1, y = 0.1, label = paste0("N = ", ns[j]), size = 5) +
+    # annotate("text", x = 0.1, y = 0.1, label = paste0("N = ", ns[j]), size = 5) +
     coord_cartesian(ylim = c(0, 1)) +
     scale_color_manual(name = "Method", values = colors)
 
@@ -98,36 +94,15 @@ for (j in 1:length(ns)) {
 }
 
 plots[[1]] <- plots[[1]] +
-  theme(axis.title.x = element_blank(),
-        axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        legend.position = c(.95, .05),
+  theme(legend.position = c(.95, .05),
         legend.justification = c("right", "bottom"),
         legend.direction = "horizontal",
         legend.box.just = "right",
         legend.margin = margin(6, 6, 6, 6),
         legend.background = element_rect(fill = "transparent"))
-plots[[2]] <- plots[[2]] +
-  theme(axis.title.x = element_blank(),
-        axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        legend.position = "none")
-plots[[3]] <- plots[[3]] +
-  theme(
-    legend.position = "none")
 
 
-p1 <- plots[[1]]
-p2 <- plots[[2]]
-p3 <- plots[[3]]
-
-suppressMessages({
-  pdf("./fig/laplace_comparison.pdf", height = 6.5)
-  grid.arrange(grobs = list(p1, p2, p3), nrow = 3, ncol = 1)
-  dev.off()
-  if (save_rds) {
-    gobj <- grid.arrange(grobs = list(p1, p2, p3), nrow = 3, ncol = 1)
-    save(gobj, file = glue("{res_dir}/web/rds/laplace_comparison.rds"))
-  }
-})
+pdf("./fig/laplace_comparison.pdf", height = 4, width = 6)
+plots[[1]]
+dev.off()
 

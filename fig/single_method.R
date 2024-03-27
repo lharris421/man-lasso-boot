@@ -6,20 +6,18 @@ cutoff <- 2
 xs <- seq(0, cutoff, by = .01)
 
 
-methods <- c("sample", "zerosample2", "debiased", "traditional")
-ns <- c(50, 100, 400) # ns values you are interested in
-data_type <- "laplace"
-rate <- 2
+methods <- c("debiased", "zerosample2")
+ns <- c(100) # ns values you are interested in
+data_type <- "orthogonal"
+rate <- NA
 SNR <- 1
-corr <- "exchangeable"
-rho <- 0
 alpha <- .2
 p <- 100
 modifier <- NA
 lambda <- "cv"
 
 params_grid <- expand.grid(list(data = data_type, n = ns, rate = rate, snr = SNR,
-                                correlation_structure = corr, correlation = rho, method = methods,
+                                method = methods, lambda = "cv",
                                 ci_method = "quantile", nominal_coverage = alpha * 100, p = p, modifier = modifier))
 
 
@@ -28,7 +26,10 @@ n_methods <- length(methods)
 per_var_data <- list()
 for (i in 1:nrow(params_grid)) {
   read_objects(rds_path, params_grid[i,])
-  per_var_data[[i]] <- per_var_n
+  per_var_data[[i]] <- per_var_n %>%
+    mutate(method = ifelse(params_grid[i,"ci_method"] == "mvn_uni", "debiased_normalized", method),
+           method = ifelse(params_grid[i,"ci_method"] == "mvn_corrected", "debiased_corrected", method),
+           method = ifelse(params_grid[i,"ci_method"] == "full_debias", "full_debias", method))
 }
 per_var_data <- do.call(rbind, per_var_data) %>%
   data.frame()
@@ -99,7 +100,8 @@ for (j in 1:length(ns)) {
     scale_color_manual(name = "Method", values = colors)
 }
 
-which_n <- 2
+
+which_n <- 1
 plots[[which_n]] <- plots[[which_n]] +
   theme(legend.position = "none")
 
@@ -117,7 +119,7 @@ right_label <- textGrob("Central Bias", gp = gpar(fontsize = 12), rot = 270)
 bottom_label <- textGrob(expression(abs(beta)), gp = gpar(fontsize = 12))
 
 suppressMessages({
-  pdf("./fig/laplace_width_bias.pdf", height = 3.5)
+  pdf("./fig/single_method.pdf", height = 3.5)
   grid.arrange(grobs = list(plots[[which_n]], plots_bias[[which_n]]), nrow = 1, ncol = 2, left = left_label, right = right_label, bottom = bottom_label)
   dev.off()
   if (save_rds) {

@@ -41,7 +41,6 @@ names(coverages) <- methods
 plots <- list()
 for (i in 1:length(methods)) {
   ci <- ci.boot.ncvreg(res[[i]], ci_method = ci_method, original_data = dat)
-  # cov <- mean(ci$lower <= dat$beta & dat$beta <= ci$upper) ## Traditional
   cov <- coverages[methods[i]]
   plots[[i]] <- plot(res[[i]], n = 30, ci_method = ci_method, original_data = dat) +
     ggtitle(glue("{methods_pretty[methods[i]]} - Coverage: {round(cov * 100, 1)} %")) +
@@ -55,17 +54,10 @@ for (i in 1:length(methods)) {
 
 left_label <- textGrob("Variable", gp = gpar(fontsize = 10), rot = 90)
 
-#suppressMessages({
-  # pdf("./fig/zerosample2.pdf", height = 4 * ceiling(length(methods) / 2))
-  # grid.arrange(grobs = plots, nrow = ceiling(length(methods) / 2), left = left_label)
-  pdf("./fig/zerosample2.pdf", height = 4, width = 7.5)
-  plots[[2]]
-  dev.off()
-  pdf("./fig/traditional.pdf", height = 4, width = 7.5)
-  plots[[1]]
-  dev.off()
-  if (save_rds) {
-    gobj <- grid.arrange(grobs = plots, nrow = ceiling(length(methods) / 2), left = left_label)
-    save(gobj, file = glue("{res_dir}/web/rds/epsilon_conundrum.rds"))
-  }
-# })
+pdf("./fig/zerosample2.pdf", height = 4, width = 6)
+plots[[2]]
+dev.off()
+pdf("./fig/traditional.pdf", height = 4, width = 6)
+plots[[1]]
+dev.off()
+
