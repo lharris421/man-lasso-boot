@@ -26,10 +26,7 @@ n_methods <- length(methods)
 per_var_data <- list()
 for (i in 1:nrow(params_grid)) {
   read_objects(rds_path, params_grid[i,])
-  per_var_data[[i]] <- per_var_n %>%
-    mutate(method = ifelse(params_grid[i,"ci_method"] == "mvn_uni", "debiased_normalized", method),
-           method = ifelse(params_grid[i,"ci_method"] == "mvn_corrected", "debiased_corrected", method),
-           method = ifelse(params_grid[i,"ci_method"] == "full_debias", "full_debias", method))
+  per_var_data[[i]] <- per_var_n
 }
 per_var_data <- do.call(rbind, per_var_data) %>%
   data.frame()
@@ -119,11 +116,7 @@ right_label <- textGrob("Central Bias", gp = gpar(fontsize = 12), rot = 270)
 bottom_label <- textGrob(expression(abs(beta)), gp = gpar(fontsize = 12))
 
 suppressMessages({
-  pdf("./fig/single_method.pdf", height = 3.5)
+  pdf("./fig/explore_wb.pdf", height = 3.5)
   grid.arrange(grobs = list(plots[[which_n]], plots_bias[[which_n]]), nrow = 1, ncol = 2, left = left_label, right = right_label, bottom = bottom_label)
   dev.off()
-  if (save_rds) {
-    gobj <- grid.arrange(grobs = list(plots[[1]], plots_bias[[1]], plots[[2]], plots_bias[[2]], plots[[3]], plots_bias[[3]]), nrow = 3, ncol = 2, left = left_label, right = right_label, bottom = bottom_label)
-    save(gobj, file = glue("{res_dir}/web/rds/laplace_width_bias.rds"))
-  }
 })
