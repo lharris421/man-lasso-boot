@@ -18,14 +18,7 @@ for (i in 1:nrow(params_grid)) {
 cis <- do.call(rbind, cis) %>% data.frame()
 
 ## Plotting
-# suppressMessages({
-  pdf("./fig/comparison_data.pdf", width = 7.5)
-  plot_ci_comparison(cis) +
-    coord_cartesian(xlim = c(-0.6, 0.6))
-  dev.off()
-  if (save_rds) {
-    pobj <- plot_ci_comparison(cis) +
-      coord_cartesian(xlim = c(-0.6, 0.6))
-    save(pobj, file = glue("{res_dir}/web/rds/comparison_data.rds"))
-  }
-# })
+pdf("./fig/comparison_data.pdf", width = 7.5)
+plot_ci_comparison(cis) +
+  coord_cartesian(xlim = c(-0.6, 0.6))
+dev.off()

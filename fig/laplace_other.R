@@ -16,12 +16,6 @@ params_grid <- expand.grid(list(data = data_type, n = ns, rate = rate, snr = SNR
                                 correlation_structure = corr, correlation = rho, method = c("selectiveinference", "zerosample2", "blp"),
                                 ci_method = "quantile", nominal_coverage = alpha * 100, p = p, modifier = modifier))
 
-# params_grid2 <- expand.grid(list(data = data_type, n = ns, rate = rate, snr = SNR, lambda = lambda,
-#                                 correlation_structure = corr, correlation = rho, method = "debiased",
-#                                 ci_method = "mvn", nominal_coverage = alpha * 100, p = p, modifier = modifier))
-#
-# params_grid <- rbind(params_grid, params_grid2)
-
 methods <- c("selectiveinference", "zerosample2", "blp"); n_methods <- length(methods)
 
 # Fetching and combining data
@@ -35,11 +29,9 @@ for (i in 1:nrow(params_grid)) {
 
 per_var_data <- do.call(rbind, per_var_data) %>%
   data.frame()
-# %>% mutate(n = factor(n, levels = ns, ordered = TRUE))
 per_var_data$n <- glue("({sapply(per_var_data$n, function(x) which(ns == x))}) {per_var_data$n}")
 per_dataset_data <- do.call(rbind, per_dataset_data) %>%
   data.frame()
-# %>% mutate(n = factor(n, levels = ns, ordered = TRUE))
 per_dataset_data$n <- glue("({sapply(per_dataset_data$n, function(x) which(ns == x))}) {per_dataset_data$n}")
 
 

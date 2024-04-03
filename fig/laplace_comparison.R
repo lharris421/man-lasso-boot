@@ -86,7 +86,6 @@ for (j in 1:length(ns)) {
     theme_bw() +
     xlab(expression(abs(beta))) +
     ylab(NULL) +
-    # annotate("text", x = 0.1, y = 0.1, label = paste0("N = ", ns[j]), size = 5) +
     coord_cartesian(ylim = c(0, 1)) +
     scale_color_manual(name = "Method", values = colors)
 

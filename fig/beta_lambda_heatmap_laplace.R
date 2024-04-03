@@ -9,13 +9,17 @@ base_params <- list(data = "laplace",
                     p = 100,
                     correlation_structure = "exchangeable",
                     correlation = 0,
-                    correlation_noise = NA,
                     method = "zerosample2",
                     ci_method = "quantile",
                     lambda = "across",
                     nominal_coverage = alpha * 100)
 
+# rehash(rds_path)
 read_objects(rds_path, expand.grid(base_params))
+#create_hash_table(rds_path, glue("{rds_path}/tmp.csv"))
+#update_hash_table(glue("{rds_path}/tmp.csv"), "../lasso-boot/rds")
+#generate_hash(base_params)
+
 
 lambda_max <- 1
 lambda_min <- 0.001
@@ -28,10 +32,6 @@ pdat <- res[[1]] %>%
                 group = as.factor(group),
                 lambda = lambda_seq[lambda_ind],
                 truth = abs(truth))
-
-pdat %>%
-  group_by(lambda) %>%
-  summarise(coverage = mean(covered))
 
 
 # Fit a binomial model with the transformed lambda
@@ -60,8 +60,6 @@ plt_cov <- ggplot(grid, aes(x = lambda, y = truth, fill = adjusted_coverage)) +
         legend.key.height = unit(0.6, "cm"))
 
 
-# suppressMessages({
-  pdf("./fig/beta_lambda_heatmap_laplace.pdf", height = 4, width = 5)
-  plt_cov
-  dev.off()
-# })
+pdf("./fig/beta_lambda_heatmap_laplace.pdf", height = 4, width = 5)
+plt_cov
+dev.off()

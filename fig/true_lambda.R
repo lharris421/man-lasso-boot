@@ -24,7 +24,7 @@ modifier <- c("tl", "tls")
 plots <- list()
 for (i in 1:length(modifier)) {
   per_var_data <- list()
-  params_grid <- expand.grid(list(data = data_type, n = ns, rate = rate, snr = SNR,
+  params_grid <- expand.grid(list(data = data_type, n = ns, rate = rate, snr = SNR, lambda = "cv",
                                   correlation_structure = corr, correlation = rho, method = method,
                                   ci_method = "quantile", nominal_coverage = alpha * 100, p = p, modifier = modifier[i]))
 
@@ -47,10 +47,7 @@ plots[[1]] <- plots[[1]] +
         legend.margin = margin(6, 6, 6, 6),
         legend.background = element_rect(fill = "transparent"))
 
-
-# suppressMessages({
 pdf("./fig/true_lambda.pdf", height = 3.5)
 g <- grid.arrange(grobs = plots, ncol = 2, nrow = 1)
 dev.off()
-# })
 

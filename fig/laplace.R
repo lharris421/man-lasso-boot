@@ -17,14 +17,8 @@ modifier <- NA
 new_folder <- "/Users/loganharris/github/lasso-boot/new_rds/"
 
 params_grid <- expand.grid(list(data = data_type, n = n_values, rate = rate, snr = SNR,
-                    correlation_structure = corr, correlation = rho, method = methods,
+                    correlation_structure = corr, correlation = rho, method = methods, lambda = "cv",
                     ci_method = "quantile", nominal_coverage = alpha * 100, p = p, modifier = modifier))
-# params_grid2 <- expand.grid(list(data = data_type, n = n_values, rate = rate, snr = SNR,
-#                                 correlation_structure = corr, correlation = rho, method = "debiased",
-#                                 ci_method = c("mvn_uni", "mvn_corrected"), nominal_coverage = alpha * 100, p = p, modifier = modifier))
-# params_grid <- rbind(params_grid, params_grid2)
-#
-# methods <- c(methods, "debiased_normalized", "debiased_corrected")
 
 
 # Fetching and combining data
@@ -42,7 +36,6 @@ per_var_data <- do.call(rbind, per_var_data) %>%
 
 cutoff <- 2
 ns <- unique(per_var_data$n)
-# ns <- c(30, 40, 80)
 for (j in 1:length(ns)) {
 
   model_res <- per_var_data %>%
@@ -51,8 +44,6 @@ for (j in 1:length(ns)) {
       mag_truth = abs(truth), covered = as.numeric(covered)
     )
 
-
-  # methods <- unique(model_res$method)
   line_data <- list()
   line_data_avg <- list()
   for (i in 1:length(methods)) {
@@ -61,32 +52,9 @@ for (j in 1:length(ns)) {
       filter(method == methods[i] & n == ns[j])
 
     if (i == 1) {
-      # density_data <- density(abs(tmp$truth), bw = .05, n = cutoff * 100 + 1, from = 0, to = cutoff)
       xvals <- seq(from = 0, to = cutoff, length.out = cutoff * 100 + 1)
       density_data <- data.frame(x = xvals, density = 2 * dlaplace(xvals, rate = 2))
     }
-
-    # tmp %>%
-    #   filter(!is.na(estimate)) %>%
-    #   group_by(n) %>%
-    #   summarise(
-    #     perc_succ = length(unique(group))
-    #   ) %>%
-    #   left_join(
-    #     tmp %>%
-    #       group_by(n) %>%
-    #       summarise(
-    #         perc_incl = mean(!is.na(estimate))
-    #       )) %>%
-    #   print()
-
-    per_var_data %>%
-      filter(method == methods[i]) %>%
-      mutate(covered = lower <= truth & upper >= truth) %>%
-      group_by(n) %>%
-      summarise(coverage = mean(covered)) %>%
-      # pull(coverage)
-      print()
 
     tmp <- tmp %>%
       filter(!is.na(estimate))
@@ -97,8 +65,6 @@ for (j in 1:length(ns)) {
     ys <- predict(fit, data.frame(mag_truth = xs, group = 101), type ="response")
     line_data[[i]] <- data.frame(x = xs, y = ys, method = methods[i])
 
-    # print(sum(ys * density_data$density) / sum(density_data$density))
-    # line_data_avg[[i]] <- data.frame(avg = sum(ys * density_data$density) / sum(density_data$density), method = methods_pretty[methods[i]])
     line_data_avg[[i]] <- data.frame(avg = mean(tmp$covered), method = methods_pretty[methods[i]])
   }
 
@@ -109,7 +75,6 @@ for (j in 1:length(ns)) {
   plots[[j]] <- ggplot() +
     geom_line(data = line_data %>% mutate(method = methods_pretty[method]), aes(x = x, y = y, color = method)) +
     geom_hline(data = line_data_avg, aes(yintercept = avg, color = method), linetype = 2) +
-    # geom_hline(aes(yintercept = .95), linetype = 1) +
     geom_hline(aes(yintercept = 1 - alpha), linetype = 1, alpha = .5) +
     geom_area(data = density_data, aes(x = x, y = density / max(density)), fill = "grey", alpha = 0.5) +
     theme_bw() +
@@ -122,23 +87,6 @@ for (j in 1:length(ns)) {
 
 }
 
-# plots[[1]] <- plots[[1]] +
-#   theme(axis.title.x = element_blank(),
-#         axis.text.x = element_blank(),
-#         axis.ticks.x = element_blank(),
-#         legend.position = c(.95, .05),
-#         legend.justification = c("right", "bottom"),
-#         legend.direction = "horizontal",
-#         legend.box.just = "right",
-#         legend.margin = margin(6, 6, 6, 6),
-#         legend.background = element_rect(fill = "transparent"))
-# plots[[2]] <- plots[[2]] +
-#   theme(axis.title.x = element_blank(),
-#         axis.text.x = element_blank(),
-#         axis.ticks.x = element_blank(),
-#         legend.position = "none")
-# plots[[3]] <- plots[[3]] +
-#   theme(legend.position = "none")
 plots[[2]] <- plots[[2]] +
   theme(legend.position = c(.95, .05),
         legend.justification = c("right", "bottom"),
@@ -152,14 +100,8 @@ p1 <- plots[[1]]
 p2 <- plots[[2]]
 p3 <- plots[[3]]
 
-# suppressMessages({
-# grid.arrange(grobs = list(p1, p2, p3), nrow = 3, ncol = 1)
-  pdf("./fig/laplace.pdf", height = 3.5)
-  p2
-  dev.off()
-  if (save_rds) {
-    gobj <- grid.arrange(grobs = list(p1, p2, p3), nrow = 3, ncol = 1)
-    save(gobj, file = glue("{res_dir}/web/rds/laplace.rds"))
-  }
-# })
+pdf("./fig/laplace.pdf", height = 3.5)
+p2
+dev.off()
+
 

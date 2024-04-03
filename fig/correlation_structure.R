@@ -19,8 +19,6 @@ rho <- c(.4, .6, .8, .5, .7, .9)
 rho_noise <- c(NA, NA, NA, .2, .4, .6)
 alpha <- .2
 p <- 100
-modifier <- NA
-
 
 plots <- list()
 for (i in 1:length(rho)) {
@@ -29,8 +27,8 @@ for (i in 1:length(rho)) {
                                   rate = rate[i], a = a[i], b = b[i],
                                   snr = SNR,
                                   correlation_structure = corr[i], correlation = rho[i] * 100, correlation_noise = rho_noise[i] * 100,
-                                  method = methods,
-                                  ci_method = ci_method, nominal_coverage = alpha * 100, p = p, modifier = modifier))
+                                  method = methods, lambda = "cv",
+                                  ci_method = ci_method, nominal_coverage = alpha * 100, p = p))
 
 
   per_var_data <- list()

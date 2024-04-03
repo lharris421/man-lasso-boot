@@ -13,10 +13,22 @@
 \usepackage[shortlabels]{enumitem}
 \numberwithin{equation}{section}
 \usepackage{booktabs}
-\usepackage{algpseudocodex}
+\usepackage{algpseudocode}
 \usepackage{tikz}
 \usetikzlibrary{tikzmark}
 
+% New definitions
+\algnewcommand\algorithmicswitch{\textbf{switch}}
+\algnewcommand\algorithmiccase{\textbf{case}}
+\algnewcommand\algorithmicassert{\texttt{then }}
+\algnewcommand\Assert[1]{\State \algorithmicassert #1}%
+\algnewcommand\Assertif[2]{\State \textbf{if} #1 \algorithmicassert #2}
+\algnewcommand\Assertelse[1]{\State \textbf{else} #1}
+% New "environments"
+\algdef{SE}[SWITCH]{Switch}{EndSwitch}[1]{\algorithmicswitch\ #1}{\algorithmicend\ \algorithmicswitch}%
+\algdef{SE}[CASE]{Case}{EndCase}[1]{\algorithmiccase\ #1}{\algorithmicend\ \algorithmiccase}%
+\algtext*{EndSwitch}%
+\algtext*{EndCase}%
 
 % Macros
 \input{commands}

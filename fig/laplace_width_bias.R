@@ -19,7 +19,7 @@ modifier <- NA
 lambda <- "cv"
 
 params_grid <- expand.grid(list(data = data_type, n = ns, rate = rate, snr = SNR,
-                                correlation_structure = corr, correlation = rho, method = methods,
+                                correlation_structure = corr, correlation = rho, method = methods, lambda = lambda,
                                 ci_method = "quantile", nominal_coverage = alpha * 100, p = p, modifier = modifier))
 
 

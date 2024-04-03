@@ -20,6 +20,7 @@ arg_list <- list(data = data_type,
                  method = c("ridge"),
                  ci_method = "quantile",
                  nominal_coverage = alpha * 100,
+                 lambda = "cv",
                  modifier = modifier)
 arg_list2 <- list(data = data_type,
                  n = 100,
@@ -35,6 +36,7 @@ arg_list2 <- list(data = data_type,
                  method = c("zerosample2"),
                  ci_method = "quantile",
                  nominal_coverage = alpha * 100,
+                 lambda = "cv",
                  modifier = modifier)
 methods_pretty <- c(methods_pretty, "ridge" = "Ridge")
 
@@ -49,27 +51,6 @@ for (i in 1:nrow(params_grid)) {
 }
 names(cis) <- params_grid$method
 names(examples) <- params_grid$method
-
-plot_ridge <- function(ridge_ci, n = 20, quiet = TRUE) {
-
-  plot_res <- ridge_ci[-1,] %>%
-    data.frame()
-
-  plot_res$variable <- rownames(plot_res)
-  plot_res <- plot_res %>%
-    dplyr::arrange(desc(abs(estimate))) %>%
-    head(n)
-
-  plot_res$variable <- factor(plot_res$variable, levels = rev(plot_res$variable))
-
-  plot_res %>%
-    ggplot() +
-    geom_errorbar(aes(xmin = lower, xmax = upper, y = variable)) +
-    geom_point(aes(x = estimate, y = variable)) +
-    theme_bw() +
-    labs(y = "Variable", x = "Estimate")
-
-}
 
 plots <- list()
 eplots <- list()
@@ -130,17 +111,10 @@ for (i in 1:nrow(params_grid)) {
 
 }
 
-
 left_label <- textGrob("Variable", gp = gpar(fontsize = 12), rot = 90)
 bottom_label <- textGrob("Interval Endpoint", gp = gpar(fontsize = 12))
 
-suppressMessages({
-  pdf("./fig/highcorr.pdf", height = length(params_grid$method) * 3)
-  grid.arrange(grobs = plots, ncol = 2, left = left_label, bottom = bottom_label)
-  dev.off()
-  if (save_rds) {
-    gobj <- grid.arrange(grobs = plots, ncol = 2, left = left_label, bottom = bottom_label)
-    save(gobj, file = glue("{res_dir}/web/rds/highcorr.rds"))
-  }
-})
+pdf("./fig/highcorr.pdf", height = length(params_grid$method) * 3)
+grid.arrange(grobs = plots, ncol = 2, left = left_label, bottom = bottom_label)
+dev.off()
 

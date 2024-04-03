@@ -68,6 +68,13 @@ bias_est <- function(estimate, lower, upper, truth) {
   )
 }
 
+# bias_est <- function(center, truth) {
+#   case_when(
+#     sign(truth) == -1 ~ center - truth,
+#     sign(truth) == 1 ~ truth - center
+#   )
+# }
+
 plots_bias <- list()
 for (j in 1:length(ns)) {
 
@@ -78,6 +85,7 @@ for (j in 1:length(ns)) {
     plot_data <- per_var_data %>%
       filter(method == methods[i] & n == ns[j]) %>%
       rowwise() %>%
+      # mutate(bias = bias_est(center, truth)) %>%
       mutate(bias = bias_est(estimate, lower, upper, truth)) %>%
       filter(!is.na(bias) & is.finite(bias)) %>%
       mutate(mag_truth = abs(truth))
@@ -88,9 +96,9 @@ for (j in 1:length(ns)) {
     plot_res[[i]] <- data.frame(xs = xs, bias = ys, method = methods_pretty[methods[i]])
   }
 
-  plots_bias[[j]] <- do.call(rbind, plot_res) %>%
-    ggplot(aes(x = xs, y = bias, color = method)) +
-    geom_line() +
+  plots_bias[[j]] <-  ggplot() +
+    geom_line(data = do.call(rbind, plot_res), aes(x = xs, y = bias, color = method)) +
+    geom_point(data = plot_data %>% filter(method == "debiased"), aes(color = method, y = bias, x = mag_truth)) +
     theme_bw() +
     xlab(NULL) +
     ylab(NULL) +
@@ -115,8 +123,6 @@ left_label <- textGrob("Width", gp = gpar(fontsize = 12), rot = 90)
 right_label <- textGrob("Central Bias", gp = gpar(fontsize = 12), rot = 270)
 bottom_label <- textGrob(expression(abs(beta)), gp = gpar(fontsize = 12))
 
-suppressMessages({
-  pdf("./fig/explore_wb.pdf", height = 3.5)
-  grid.arrange(grobs = list(plots[[which_n]], plots_bias[[which_n]]), nrow = 1, ncol = 2, left = left_label, right = right_label, bottom = bottom_label)
-  dev.off()
-})
+pdf("./fig/explore_wb.pdf", height = 3.5)
+grid.arrange(grobs = list(plots[[which_n]], plots_bias[[which_n]]), nrow = 1, ncol = 2, left = left_label, right = right_label, bottom = bottom_label)
+dev.off()

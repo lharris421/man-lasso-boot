@@ -1,10 +1,6 @@
 ## Setup
 source("./fig/setup/setup.R")
 
-dlaplace <- function(x, rate = 1) {
-  dexp(abs(x), rate) / 2
-}
-
 plots <- list()
 
 method <- "zerosample2"
@@ -47,10 +43,7 @@ plots[[1]] <- plots[[1]] +
         legend.margin = margin(6, 6, 6, 6),
         legend.background = element_rect(fill = "transparent"))
 
-
-# suppressMessages({
 pdf("./fig/nominal_coverage.pdf", height = 3.5)
 g <- grid.arrange(grobs = plots, ncol = 3, nrow = 1)
 dev.off()
-# })
 
