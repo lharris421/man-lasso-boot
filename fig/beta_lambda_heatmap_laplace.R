@@ -15,6 +15,7 @@ base_params <- list(data = "laplace",
                     nominal_coverage = alpha * 100)
 
 # rehash(rds_path)
+
 read_objects(rds_path, expand.grid(base_params))
 #create_hash_table(rds_path, glue("{rds_path}/tmp.csv"))
 #update_hash_table(glue("{rds_path}/tmp.csv"), "../lasso-boot/rds")

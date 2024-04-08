@@ -70,10 +70,11 @@ Unfortunately, a Normal likelihood and Laplace prior are not conjugate and in ge
 
 Note that in what follows, the full conditional represents the distribution for a given value of $\lambda$ and $\sigma^2$. Further discussion will be given to selecting these values later, however, in the meantime to reduce notational distractions we will treat them as known quantities and implicitly condition on them.
 
-Now, for $\beta_j$,
+Then, for $\beta_j$,
 
 \as{
-L(\beta_j | \r_{-j}) &\propto \exp(-\frac{n}{2\sigma^2} (\beta_j^2 - 2z_j\beta_j)), \text{ where } z_{j} = \frac{1}{n} \x_{j}^{T}\r_{-j} \text{, and} \\
+L(\beta_j | \r_{-j}) &\propto \exp(-\frac{n}{2\sigma^2} (\beta_j^2 - 2z_j\beta_j)), \\
+\text{ where } z_{j} &= \frac{1}{n} \x_{j}^{T}\r_{-j} \text{, and} \\
 P(\beta_j | \r_{-j}) &\propto
 \begin{cases}
 C_{-} \exp(-\frac{n}{2\sigma^2} (\beta_j - (z_j + \lambda))^2), \text{ if } \beta_j < 0, \\
@@ -102,11 +103,17 @@ All together this leads to the following steps to obtain CIs through the various
       \Assert{$q_j = \bh_j$}
     \EndCase
 	  \Case{posterior}
-	    \Assert{$q_j$ = sample from the full conditional}
+    \Assert{
+      $p^* = U(n = 1, 0, 1)$ \\
+      \hspace{1.95cm} $q_j = P^{-1}(p^*|\r_{-j})$
+    }
     \EndCase
     \Case{hybrid}
       \Assertif{$\bh_j \neq 0$}{$q_j = \bh_j$}
-      \Assertelse{$q_j$ = sample from the full conditional}
+      \Assertelse{
+        $p^* = U(n = 1, 0, 1)$ \\
+        \hspace{1.8cm} $q_j = P^{-1}(p^*|\r_{-j})$
+      }
     \EndCase
     \Case{debiased}
 	    \Assert{$q_j = z_j$}
@@ -121,55 +128,62 @@ All together this leads to the following steps to obtain CIs through the various
 
 \section{Results}
 
-We make the assertion that the ``ideal'' scenario for this method is when the true distribution of $\beta$ follows a laplace (double exponential) distribution. In what follows, the reader can assume that unless otherwise noted $\beta \sim dexp(\tau = 2)$. This may raise the question of how the results change if a different rate is used. However, under a constant Signal-to-Noise ratio (SNR), the results are identical.
+We make the assertion that the ideal scenario for these methods is when the true distribution of $\beta$ follows a laplace (double exponential) distribution. In what follows, the reader can assume that unless otherwise noted $\beta \sim dexp(\tau = 2)$. This may raise the question of how the results change if a different rate is used. However, under a constant Signal-to-Noise ratio (SNR), the results described below are identical.
 
-\subsection{Lasso Bootstrap Methods}
+\subsection{Interval Behavior}
 
-\subsubsection{Overall and Per Feature Coverage}
+\logan{My main convern for this section so far is making sure discussions with respect to coverage and width/bias are clearly discussed but logically seperated. Specifically, width/bias is a main explainatory piece of coverage and I want to make sure I cover what is appropriate in width/bias without awkwardly leaving holes or commenting too much that "this will be covered in the next section" in the coverage section.}
 
-Figure~\ref{Fig:laplace} displays simulation results for the four previously described bootstrapping methods for the lasso when $n = p = 100$. In this simulation, 100 datasets were generated and each bootstrap method was applied using $B = 1000$ bootstrap iterations. The dotted line represents the average coverage across all 100 datasets and the smooth line is the fitted line from a GAM, estimating the coverage for a given value of $\beta$ based on its magnitude. The distribution the $\beta$ values were sampled from is also provided.
+\subsubsection{Coverage}\label{Sec:Coverage}
 
-What is most striking is the decreasing coverage rate seen for both the Random Sample and Zero Sample methods. This pattern is typical for these methods and is to be expected from intervals arising from methods that are faithful to the model fit. As emphasized earlier, introducing bias through penalization is an inherent feature of the lasso. Bias tends to increase for increasing values of $\beta$ as a result of soft thresholding. We would also expect to see such behavior in the traditional approach if it didn't have fundamental problems for values of $\beta$ near zero. The Debiased method is the only of the four we would not expect to display this behavior. That said, since the debias method fails to fully account for bias, we do see the same behavior, although in a milder manifestation. As a result, each method noticeably under covers as $\beta$ increases in magnitude.
-
-On the other hand, as $\beta$ decreases in magnitude, we observe over coverage. Again, this is inherent to the bias introduced by the model. Intervals are are biased towards zero, and as such tend to over cover when $\beta$ is near zero.
-
-In general, the Traditional fails to provide adequate coverage for any magnitude of $\beta$ resulting in coverage far below that of nominal. At the other end of the extreme, Random Sample, which draws from the full conditional for every bootstrap draw, tends to produce intervals that significantly over cover relative to nominal coverage. This is mainly due to a very high coverage for smaller values of $\beta$. In this scenario, however, both Zero Sample, which only samples from the full conditional when $\bh = 0$, and Debias produce coverage near the $80\%$ nominal coverage.
+Figure~\ref{Fig:laplace} displays simulation results for CIs obtained via the four previously described bootstrap methods. In this simulation, 100 independent datasets were generated and each bootstrap method was applied using $B = 1000$ bootstrap iterations. Each dataset was simulated as follows. $\X$ was generated independently with $n = p = 100$ and $\bb$ was generated from a Laplace distribution. Then, $\Y$ was constructed as $\Y = \X\bb + \boldsymbol{\epsilon}$, where $\boldsymbol{\epsilon} \sim N(0, \sigma^2_y)$ with $\sigma^2_y$ set such that the $SNR = 1$. The dotted lines represents the average coverage across all variables for all 100 datasets per method. The smooth lines are the fitted curves from Binomial GAMMs on the raw coverage data, estimating the coverage for a given magnitude of $\beta$. The GAMMs also include a random effect on the dataset each variable is from.
 
 \begin{figure}
   \includegraphics[width=\linewidth]{laplace}
-  \caption{\label{Fig:laplace} Caption goes here}
+  \caption{\label{Fig:laplace} Results are from the simulation described in Section~\ref{Sec:Coverage}. The fitted curves are from Binomial GAMMs (one for each method) fit with coverage being modeled as a smooth function of $|\beta|$ and with a random intercept on dataset to account for deviations in coverage specific to a given randomly generated dataset. The data used for modeling contains a row for each variable per simulated dataset. The dashed lines represent the average for each method across all 100 independently generated datasets and the solid black line indicates the nominal coverage rate. The shaded distribution in the background depicts the positive tail of the distribution the $\beta$s were drawn from, $dexp(\tau = 2)$.}
 \end{figure}
 
-\subsubsection{Width and Bias}
+What is most striking is the decreasing coverage rate seen for both the Posterior and Hybrid methods. This pattern is typical for these methods and is to be expected from intervals arising from procedures that are faithful to the model fit. As emphasized earlier, introducing bias through penalization is an inherent feature of the lasso. Bias tends to increase for increasing values of $|\beta|$ as a result of soft thresholding. We would also expect to see such behavior in the traditional approach if it also did not have fundamental problems for values of $\beta$ near zero. The Debiased method is the only of the four we would not expect to display this behavior. That said, since the Debiased method fails to fully account for bias, we do see the same behavior, although in a milder manifestation. As a result, each method noticeably under covers as $\beta$ increases in magnitude.
 
-Figure~\ref{Fig:laplace_width_bias} largely explains the behavior seen in Figure~\ref{Fig:laplace}. The fitted curves in each plot are constructed in the same manner as for Figure~\ref{Fig:laplace}. Plot (a) demonstrates the expected behavior that the interval width tends to increase as $\beta$ increases in magnitude which is directly related to the proportion of times a variable is selected to be in the model. Said more explicitly, when a given $\beta$ is near zero, its estimate will often be shrunk to zero which results in less variable bootstrap draws than for a variable which is always selected. This effect is most notable for the Traditional bootstrap, as it is the only method which will result in a draw exactly equal to zero when $\bh^b_j = 0$. The three other methods all introduce some additional variability in this scenario. This also explains why then traditional produces much narrower intervals for values of $\beta$ smaller in magnitude. This is a manifestation of the Epsilon Conundrum which will be discussed in more detail later. This plots also depicts the over coverage issue with the Posterior bootstrap, as it produces significantly wider intervals regardless of the magnitude of $\beta$.
+On the other hand, for Posterior and Hybrid, as $\beta$ decreases in magnitude, we observe over coverage. Again, this is inherent to the bias introduced by the model. Intervals are are biased towards zero, and as such tend to over cover when $\beta$ is near zero. We do not see this behavior for Traditional and Debiased, both for different reasons which will be covered in the subsequent section. 
 
-Plot (b) provides a depiction of the bias that the intervals produced by each method display. Before going forward, however, it is important to emphasize that while informative, this is an imperfect measure of bias. To better understand the limitations, it helps to consider the scenario of applying the debiased method to data generated orthogonally. In this case, we would expect the debias method to produce unbiased point estimates. However, the bootstrap complicates the behavior of the intervals. When bootstrap samples are taken, the data is not longer orthogonal, and any chance correlation will result in bias being introduced in the estimate used for that bootstrap draw. This leads to another important point, due to the bias of the model, bootstrap intervals will be skewed towards zero, so determining the ``center'' of these intervals is unclear. This all is to say that this measure of bias does not directly translate into bias of their respective point estimates. This of course explains why the debiased method fails to fully debias here even when the data are generate independent of one another. This point can not be emphasizes enough, a key source of bias arises when chance correlation occurs between independent variables and both variables are included in the model.
+In general, Traditional fails to provide adequate coverage for any magnitude of $\beta$ resulting in coverage far below that of nominal. At the other end of the extreme, Posterior, which draws from the full conditional for every bootstrap draw, tends to produce intervals that significantly over cover relative to nominal coverage. This is mainly due to a very high coverage for smaller values of $\beta$. In this scenario, both Hybrid, which only samples from the full conditional when $\bh = 0$, and Debiased produce coverage near the $80\%$ nominal coverage.
 
-With this point in mind, we see the expected behavior that center of the intervals tends to be increasingly biased towards zero for larger values of $|\beta|$. This also indicates that Traditional, Posterior, and Hybrid have similar amount of bias central bias. Although the Debias method cuts the bias in about half, it is unable to completely eliminate bias for the reasons previously described.
-
-What isn't as clear from this depiction is that the Debiased intervals sometimes fail to cover $\beta$ due to having lower bounds that are too large in magnitude. This happens ocassionally for the other intervals, but is more common for Debiased and tends to be occur for $\beta$ values that are smaller in magnitude. This is why we do not observe over coverage for Debiased like we do for Hybrid, even though they has similar widths and Debias has less bias. For simple cases of independence, Debias does tend to produce coverage near nominal, although slightly under covers due to the uncorrected bias for larger magnitude $\beta$s. Additionally, while this tends to work well for larger values of n, Debias tends to undercover for smaller values of n which is magnified under more challenging conditions such as if correlation is introduced.
+\subsubsection{Width and Bias}\label{Sec:Width and Bias}
 
 \begin{figure}
   \includegraphics[width=\linewidth]{laplace_width_bias}
-  \caption{\label{Fig:laplace_width_bias} The fitted lines are on data from the simulation set up as described in Section 5.1.1. Central bias is defined here as the difference between the center of an interval and the true value of $\beta$, with positive values indicating bias towards zero. Further discussion on central bias can be found in Section 5.1.2.}
+  \caption{\label{Fig:laplace_width_bias} Results are from the simulation described in Section~\ref{Sec:Coverage}. The fitted curves are from GAMMs (one for each method) fit with width and central bias being modeled as a smooth function of $|\beta|$. The data used for modeling contains a row for each variable per simulated dataset. Additionally, the models contain a random intercept on dataset to account for deviations in width and central bias specific to a given randomly generated dataset. Central bias is defined here as the difference between the center of an interval and the true value of $\beta$, with positive values indicating bias towards zero. Further discussion on central bias can be found in Section~\ref{Sec:Width and Bias}}
 \end{figure}
 
-Figure~\ref{Fig:nominal_coverage} is similar to Figure~\ref{Fig:laplace}, but it focuses only on Zero Sample and gives simulation results for three values of n across three different nominal coverage rates. Since the method has a varying coverage rate based on the magnitude of $\beta$, it is important to consider different nominal coverages. Otherwise, it is conceivable that a method could perform well at one coverage rate but not another. However, that is not the case here. Regardless of the nominal coverage, the general pattern remains the same: the method over covers for smaller values of n but coverage converges to the nominal coverage rate relatively quickly. The only difference seen is the compression of this pattern for higher nominal coverage rate. Going forward, the nominal coverage will be set at $80\%$ to reduce compression so that any patterns present are easier to observe.
+Figure~\ref{Fig:laplace_width_bias} largely explains the behavior seen in Figure~\ref{Fig:laplace}. The fitted curves in each plot are constructed in the same manner as for Figure~\ref{Fig:laplace}, albeit on the respective outcome of interest. \logan{Plot (a)} demonstrates the expected behavior that the interval width tends to increase as $\beta$ increases in magnitude. This behavior is directly related to the proportion of times a variable is selected to be in the model. Said more explicitly, when a given $\beta$ is near zero, its estimate will often be shrunk to zero which results in less variable bootstrap draws than for a variable which is always selected. This effect is most notable for the Traditional bootstrap, as it is the only method which will result in a draw exactly equal to zero when $\bh^b_j = 0$. The three other methods all introduce some additional variability in this scenario. This also explains why then Traditional produces much narrower intervals for values of $\beta$ smaller in magnitude. This explains the drastic under coverage observed in the previous section and is a manifestation of the Epsilon Conundrum which will be discussed in more detail in Section~\ref{Sec:Epsilon}. This plots also depicts the explains the coverage issue with the Posterior bootstrap, as it produces significantly wider intervals regardless of the magnitude of $\beta$.
 
+\logan{Plot (b)} provides a depiction of the bias of each method for obtaining intervals. Before going forward, however, it is important to emphasize that while informative, this is an imperfect measure of bias. To better understand the limitations, it helps to consider the scenario of applying the Debiased method to data generated orthogonally. In this case, we would expect the Debiased method to produce unbiased point estimates. While true, the bootstrap complicates the behavior of the intervals obtained. When bootstrap samples are taken, the data is no longer orthogonal, and any chance correlation will result in bias being introduced in the estimate used for that bootstrap draw. This leads to another important point, due to the bias of the model, bootstrap intervals will be skewed towards zero, so determining the ``center'' of these intervals is unclear. This all is to say that this measure of bias does not directly translate into bias of their respective point estimates. This explains why the Debiased method fails to fully debias as seen in Section~\ref{Sec:Coverage} where the data are generated under independence. This point can not be emphasized enough, a key source of bias arises when chance correlation occurs between independent variables and both variables are included in the model.
+
+With this point in mind, we see the expected behavior that center of the intervals tend to be increasingly biased towards zero for larger absolute values of $\beta$. \logan{Plot (b)} also indicates that Traditional, Posterior, and Hybrid have similar amounts of central bias. Although the Debiased method cuts the bias in about half, we again see that it is unable to completely eliminate bias for the reasons previously described.
+
+What is not as clear from this depiction is that the Debiased intervals sometimes fail to cover $\beta$ due to having \textit{lower} bounds that are too large in magnitude. This happens occasionally for the other intervals, but is more common for Debiased and tends to occur more often for $\beta$ values that are smaller in magnitude. This is why we do not observe over coverage for Debiased like we do for Hybrid, even though they have similar widths and Debias has less bias. 
+
+We hope the reader is exceedingly convinced that the Traditional bootstrap is a poor choice. Additionally, as will be demonstrated throughout the remainder of this manuscript, the Hybrid generally provides over coverage except in scenarios with very high amounts of correlation. \logan{Need to emphasize that we don't need intervals wider than Hybrid without making it sound bad.} So then, it should be noted that the additional over coverage for the Posterior Bootstrap seen in Figure~\ref{Fig:laplace} is a hallmark of this method making it a suboptimal option as well. For simple cases of independence, Debiased does tend to produce coverage near nominal, although approaches nominal (with increasing sample size) from below as the uncorrected bias for larger magnitude $\beta$s slowly diminishes. However, while Debiased tends to work well for larger values of n, it tends to undercover for smaller values of n which is magnified under more challenging conditions such as if correlation is introduced. Hybrid, does not behave as sensitively as Debiased and tends to approach nominal coverage from above rather than below. As such, the remainder of this manuscript will focus on the behavior of th Hybrid bootstrap.
+
+\subsection{Robustness}
+
+This section explores a number of scenarios to help understand the behavior of the Hybrid bootstrap. It begins with a brief look at how behavior differs at different nominal coverages. This section also gives the first look at how the behavior changes with sample size. From there, focus is shifted to the selection of $\lam$ (and estimation of $\sh^2$) before considering how the Hybrid Bootstrap performs under other distributions of $\bb$. From there, we pivot and take a look at various (including rather extreme) introductions of correlation which includes one simulation with a direct comparison to Ridge Regression. This section ends with a revisit to the Epsilon Conundrum.
+
+\subsubsection{Nominal Coverage}
 
 \begin{figure}
   \includegraphics[width=\linewidth]{nominal_coverage}
   \caption{\label{Fig:nominal_coverage} Caption goes here}
 \end{figure}
 
-\subsection{Robustness}
+Figure~\ref{Fig:nominal_coverage} is similar to Figure~\ref{Fig:laplace}, but it focuses only on Hybrid and gives simulation results for three values of n across three different nominal coverage rates. Since the method has a varying coverage rate based on the magnitude of $\beta$, it is important to consider different nominal coverages. Otherwise, it is conceivable that a method could perform well at one coverage rate but not another. However, that is not the case here. Regardless of the nominal coverage, the general pattern remains the same: the method over covers for smaller values of n but coverage converges to the nominal coverage rate relatively quickly. The only difference seen is the compression of this pattern for higher nominal coverage rate. Going forward, the nominal coverage will be set at $80\%$ to reduce compression so that any patterns present are easier to observe.
 
 \subsubsection{Selection of \texorpdfstring{$\lambda$}{lambda}}
 
-The reader may be wondering about what happens if the as the value of $\lambda$ is changed. The data in Figure~\ref{Fig:beta_lambda_heatmap_laplace} comes from a simulation where $\lambda$ was evenly distributed on the $log_{10}$ scale from $\lam_{max}$ to $\lam{min} = \lam_{max} * 0.001$. At each value, confidence intervals were obtained and coverage was recorded. This was repeated 100 times, then a gam was fit to provide a smooth estimate of the coverage rate. The relative coverage is defined as estimated coverage minus nominal coverage.
+The reader may be wondering about what happens if the as the value of $\lambda$ is changed. The data in Figure~\ref{Fig:beta_lambda_heatmap_laplace} comes from a simulation where $\lambda$ was evenly distributed on the $log_{10}$ scale from $\lam_{max}$ to $\lam_{min} = \lam_{max} * 0.001$. At each value, confidence intervals were obtained and coverage was recorded. This was repeated 100 times, then a gam was fit to provide a smooth estimate of the coverage rate. The relative coverage is defined as estimated coverage minus nominal coverage.
 
-The pattern is exactly as we would intuitively expect. Depending on the value of $\lam$, values closer to zero see moderate amounts of over coverage whereas there is increasingly greater under coverage as $|\beta|$ increases. The value at where this transition occurs (and at which coverage of a specific value of $\beta$ = nominal) varies considerably over the range of $\lam$. At $lam_{max}$, this transition occurs at a relatively small $|\beta|$. As the value of $\lam$ decreases from $\lam_{max}$ this transition occurs at increasingly large values of $\beta$ until all values of $\beta$ have an estimated coverage rate at or above that of nominal. To obtain a covariate rate near that of nominal, $\lam$ needs to be selected such that over and under coverage is balanced. In this scenario, $\lam_{CV}$ does a reasonable job at providing such a balance. This balance, of course, depends on the true distribution of $\beta$ (recall that here it is laplace). However, as we will see next, $\lam_{CV}$ generally does well regardless of the distribution of $\beta$.
+The pattern is exactly as we would intuitively expect. Depending on the value of $\lam$, values closer to zero see moderate amounts of over coverage whereas there is increasingly greater under coverage as $|\beta|$ increases. The value at where this transition occurs (and at which coverage of a specific value of $\beta$ = nominal) varies considerably over the range of $\lam$. At $\lam_{max}$, this transition occurs at a relatively small $|\beta|$. As the value of $\lam$ decreases from $\lam_{max}$ this transition occurs at increasingly large values of $\beta$ until all values of $\beta$ have an estimated coverage rate at or above that of nominal. To obtain a covariate rate near that of nominal, $\lam$ needs to be selected such that over and under coverage is balanced. In this scenario, $\lam_{CV}$ does a reasonable job at providing such a balance. This balance, of course, depends on the true distribution of $\beta$ (recall that here it is laplace). However, as we will see next, $\lam_{CV}$ generally does well regardless of the distribution of $\beta$.
 
 At this point, it is also important to note that this performance is in spite of needing to provide estimate for the true values of $\lam$ and $\sigma^2$. In fact, we found that knowing these values actually produces worse performance, suggesting that for this method $\lam_{CV}$ and $\sigma^2(\lam_{CV})$ are reliable selections.
 
@@ -185,6 +199,8 @@ As mentioned in the previous section, the overall coverage rate is a trade off b
 In classical high dimension scenarios, it is often expected that the solution is sparse. It should be no surprise then that when the true data generating mechanism is more sparse than the laplace indicated by the respective $\lambda$ that this method will provide over greater coverage.
 
 These plots also exemplify the effect of the magnitude of $\beta$ on coverage. The greatest separation is then $\lam = \lam_{max}$ and their coverage converges as $\lam \rightarrow \lam_{min}$. Coverage is of course higher for $\beta$ values smaller in magnitude. At values of $\beta$ that are classified as small in magnitude in this set of plots, their coverage is highest at $\lam_{max}$ and generally decreases as $\lam$ is reduced. On the other end, for $beta$ values largest in magnitude, we a monotonically increasing trend, with those moderate in size falling somewhere in the middle in their pattern depending on the distribution of $\beta$.
+
+\logan{Is Distribution of Beta plot overkill for what we want to depict with it?}
 
 \begin{figure}
   \includegraphics[width=\linewidth]{distribution_of_beta}
@@ -219,7 +235,7 @@ In the second row, we have data generated under a different mechanism. Here, the
 
 Its natural to close this section by considering the performance on a scenario that was the main motivator of the Zero Sample method: the Epsilon conundrum. So how does Zero Sample Perform in this scenario? It avoids the downfall we observe with applying the Traditional bootstrap. Clearly, however, it also over covers due to the fact that the large majority of $\beta$s are near zero, but, again, this is to be expected and the important take away is that Zero-Sample provides viable intervals for values of $\beta$ near zero.
 
-\subsubsection{Epsilon Conundrum (Comparison to Traditional Quantile Bootstrap)}
+\subsubsection{Epsilon Conundrum}\label{Sec:Epsilon}
 
 \begin{figure}
   \includegraphics[width=\linewidth]{zerosample2}
@@ -271,7 +287,7 @@ Regardless, we compare the relative performance of the Zero-Sample with these tw
 
 \begin{figure}
   \includegraphics[width=\linewidth]{comparison_data_scheetz}
-  \caption{\label{Fig:comparison_data_scheetz} Caption goes here}
+  \caption{\label{Fig:comparison_data_scheetz} Caption goes here}ß
 \end{figure}
 
 \section{Discussion}
