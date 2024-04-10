@@ -56,7 +56,7 @@ Given that the hybrid bootstrap is the main focus of this manuscript, it will be
 
 For a moment, hold p constant. As n increases and we let $\lambda$ get selected by CV, this method will converge to that of applying the traditional bootstrap to a classical linear model. This is the case because with increasing n, $\lambda_{CV} \rightarrow 0$. On the other hand, as n decreases $\lambda_{CV} \rightarrow \lambda_{max}$ and $\hat{\boldsymbol{\beta}}\rightarrow \boldsymbol{0}$. On this end of the extreme, bootstrap samples are then drawn from the marginal posterior. The coverage behavior is well understood for the bootstrap applied to linear regression as n increases. By only sampling from the posterior when $\hat{\beta}_j^b = 0$, we minimize unnecessary variability as n increases. The behavior on the other end of the extreme is relatively less understood compared to the asymptotics of the traditional bootstrap. However, we argue that leveraging the posterior lends itself to reasonable behavior especially when the alternative would be confidence intervals which are all identical to zero. Such intervals, one could argue, would necessarily have 0\% coverage. Conversely, as we will see, with smaller values of n, the posterior tends to lead us to wider confidence intervals. See Section~\ref{Sec:full-cond}.
 
-\subsection{Sampling from the Full Conditional}
+\subsection{Conceptual Implementation}
 \label{Sec:full-cond}
 
 In this section, we describe the details and important considerations for the sampling performed in the posterior and the hybrid bootstrap.
@@ -234,9 +234,10 @@ In the second row, we have data generated under a different mechanism. Here, the
   \caption{\label{Fig:correlation_structure} Caption goes here}
 \end{figure}
 
+\subsubsection{Epsilon Conundrum}\label{Sec:Epsilon}
+
 Its natural to close this section by considering the performance on a scenario that was the main motivator of the Zero Sample method: the Epsilon conundrum. So how does Zero Sample Perform in this scenario? It avoids the downfall we observe with applying the Traditional bootstrap. Clearly, however, it also over covers due to the fact that the large majority of $\beta$s are near zero, but, again, this is to be expected and the important take away is that Zero-Sample provides viable intervals for values of $\beta$ near zero.
 
-\subsubsection{Epsilon Conundrum}\label{Sec:Epsilon}
 
 \begin{figure}
   \includegraphics[width=\linewidth]{zerosample2}
@@ -245,32 +246,46 @@ Its natural to close this section by considering the performance on a scenario t
 
 \subsection{Comparison to Other Methods}
 
-There are few other methods for obtaining intervals for the lasso. There are even fewer that provide R packages to provide comparisons with. Two that were were able to identify were Selective Inference (from `selectiveInference`) and Bootstrap Lasso Projection (from `hdi`). It should be noted, however, that neither methods fits the criteria of remaining "true" to the model fit.
+There are few other methods for obtaining intervals for the lasso. There are even fewer that provide R packages to provide comparisons with. Two that we were able to identify were Selective Inference (from \texttt{selectiveInference}) and Bootstrap Lasso Projection (from \texttt{hdi}). It should be noted, however, that neither method fits the criteria we were looking for of remaining faithful to the model fit.
 
-Specifically, the Bootstrap Lasso Projection is also known as the de-sparsified Lasso and by default the method reselects $\lambda$ for each bootstrap sample.
+Specifically, the Bootstrap Lasso Projection (BLP) is also known as the de-sparsified Lasso and by default the method reselects $\lambda$ for each bootstrap sample. Selective Inference (SI) doesn't directly correct for the bias introduced by penalization but this method does only provide intervals for variables with non-zero coefficients. With these points in mind, we compare the relative performance of the proposed Hybrid Bootstrap with these two alternatives.
 
-Selective Inference only provides intervals for variables with non-zero coefficients and itself is another alternative which provides debiased intervals.
+\logan{Remove points that will be covered in results later}.
 
-Regardless, we compare the relative performance of the Zero-Sample with these two methods.
-
-\begin{enumerate}
-\item Selective inference
-\begin{enumerate}
-\item Does not work for $p > n$ case
-\item Only produced CI for variables in active set
-\item Cumbersome and unstable as implemented
-\item Unclear recommended selection of $\lam$
-\item Non-finite endpoints not uncommon
-\end{enumerate}
-\item{Bootstrap Lasso Projection}
-\begin{enumerate}
-\item Computationally expensive
-\item Not true to model fit
-\item Only for 1-SE solution as implemented
-\end{enumerate}
-\end{enumerate}
+Before considering simulation results, there are a couple important limitations of each method that should be noted. For BLP, it should be noted that by with its default arguments, it is an order of magnitude slower than the Hybrid Bootstrap which itself is an order of magnitude slower than SI. Additionally, as implemented, there is no easy way to specify the $\lambda$ used which defaults to the 1-SE solution from \texttt{cv.glmnet}. SI is much faster, but also tended to be much more fragile in our testing. In general, SI does not work for the $p > n$ case (it can, but only if the number of features selected is less than n) and CIs are only produced for variables in the active set. Additionally, it is cumbersome to implement and infinite bounds were more common than not when applied to data where n was on the order of p. As will be emphasized later, in similar scenarios SI also failed to converge in some iterations of the simulation performed. 
 
 \subsubsection{Similation}
+
+The simulation results presented here are identical to the set up described in Section~\ref{Sec:Coverage}. In fact, the results for Hybrid are the same as used for the earlier figures just displayed differently. 
+
+Referencing Figure~\ref{Fig:laplace_comparison}, both BLP and SI initially appear to perform strikingly well. Both have coverage very near that of nominal and lack the pattern seen with the methods proposed in this manuscript and instead provide rather consistent coverage regardless of the magnitude of $\beta$. However, \ref{Fig:laplace_other} tells a different story. First, although BLP provides average coverage rates the closest to $80\%$, there were a number of cases where the coverage dipped significantly. Potentially more concerning, with $n = 400$, the coverage noticeably drops below 80\%. Although the lasso thought of a model for high dimensional data, it is used across the entire spectrum of datasets, so it would be preferred to see convergence towards 80\% coverage.
+
+The behavior for the Hybrid Bootstrap has been covered previously, specifically that it generally over covers when $n < p$ but has coverage very near nominal as n increases above p. Additionally, although not immune to under coverage, it performed more reliably than the other two method.
+
+Before moving onto the results for SI, there are a couple numbers not in Figure~\ref{Fig:laplace_comparison} which are also important to consider and are provided in Table~\ref{Tab:selective_inference}. When n = 50, 20 of the 100 simulations errored out, with only 6 when n = 100, and none when n = 400. The last column gives the average percentage of variables that had confidence intervals of the simulation iterations that did not produce errors. It is this subset that is included in the coverage plot for SI. So, ignoring the times the method failed, even if on average the coverage look reasonable, the wide spread of coverages, including a staggering number below 50\% coverage is concerning. Although performance does improve, the fact that this behavior is not remedied even with larger n should also not be ignored.
+
+\begin{table}[ht]
+  \centering
+  \begin{tabular}{cccc}
+  \hline
+  n & \# Succeeded & \% Vars Included & Non-finite Median Width \\
+  \hline
+  50  & 80  & 18.5 & 18 \\
+  100 & 94  & 30.4 & 12 \\
+  400 & 100 & 70.1 & 3 \\
+  \hline
+  \end{tabular}
+  \caption{Selective Inference Results}
+  \label{Tab:selective_inference}
+\end{table}
+
+Staying with SI but directing our attention towards the interval widths, the concern surrounding this method only grows. Of the 80 that simulations that exceeded for n = 50, the median width of the intervals produced (from the variables included in the model) was infinite for 18 of the simulation. For n = 100, 12 of the 94 had infinite median widths. By n = 400, only 3 of the simulations had infinite median widths. However, even when the medians were finite, they were nearly always extremely wide, even for n = 400. This behavior was also observed when applying the method to real data sets which will be covered next. BLP on the other hand produce intervals which are more similar in width although BLP does tend to produce wider intervals with a bit more variability in the width.
+
+The runtime of the three methods also differs considerably with SI being the fastest and BLP being by far the slowest. Additionally with BLP, there is an odd non-monotonic behavior which we looked into briefly but could not find an explanation for. This behavior occurred in multiple reruns of the same simulation. Hybrid and SI both have a monotonically increasing relationship with sample size, although it does seem that Hybrid is more affected by the increasing sample size. In our testing, speed was not a concern for SI, was noticeable for Hybrid, and prohibitive for BLP which will be returned to in the next section.
+
+\logan{Thoughts on covering slowness of blp?}
+  
+  
 
 \begin{figure}
   \includegraphics[width=\linewidth]{laplace_comparison}
@@ -286,9 +301,16 @@ Regardless, we compare the relative performance of the Zero-Sample with these tw
 
 \subsubsection{Application: Gene expression in the mammalian eye}
 
+\logan{Which to cover}
+
 \begin{figure}
   \includegraphics[width=\linewidth]{comparison_data_scheetz}
   \caption{\label{Fig:comparison_data_scheetz} Caption goes here}ß
+\end{figure}
+
+\begin{figure}
+  \includegraphics[width=\linewidth]{comparison_data}
+  \caption{\label{Fig:comparison_data_whoari} Caption goes here}ß
 \end{figure}
 
 \section{Discussion}
@@ -296,6 +318,10 @@ Regardless, we compare the relative performance of the Zero-Sample with these tw
 \subsection{Space Requirements}
 
 As implemented, a clear limitation of this method is that it takes a numeric matrix size $B \times p$. With $B = 1000$, the sample matrix gets large enough to cause memory concerns even when $p$ is on the order of $1e5$. For many datasets, this is likely not of concern. However, given that lasso is often used for datasets where $p$ is large, it is clearly not an edge case where $p$ is of this or larger order. One could reduce the size of the sample matrix by reducing the number of draws, but this is unsatisfactory and produces little additional leeway for what seems like a unacceptable sacrifice. This is an ongoing are of interest and a valuable areas of research for any high dimensional bootstrap methods. One solution would be using incremental quantile estimation such as the method introduced by \cite{Tierney1983}. An alternative option would be deriving a method with similar properties but which relies on samples statistics that are relatively straightforward to update over sequential samples (i.e. mean and variance).
+
+\subsection{Remember the Name}
+
+Since the main method suggested here falls somewhere between the Traditional Bootstrap and the Posterior Bootstrap, we propose the full name as the Posterior Adjusted Traditional Hybrid (PATH) Bootstrap.
 
 \section*{Acknowledgments}
 
@@ -308,7 +334,9 @@ As implemented, a clear limitation of this method is that it takes a numeric mat
   \caption{\label{Fig:true_lambda} Caption goes here}
 \end{figure}
 
-\subsection{Mathematical Details}
+\subsection{Sampling from the Full Conditional Posterior}
+
+\logan{Trash?}
 
 \as{
 L(\beta_j | \r_{-j}) &= (\sigma \sqrt{2\pi})^{-n} \exp(-\frac{1}{2\sigma^2} (n\beta_j^2 - 2\x_{j}^{T}\r_{-j}\beta_j + \r_{-j}^{T}\r_{-j})) \\
@@ -328,7 +356,17 @@ C_{+} \exp(-\frac{n}{2\sigma^2} (\beta_j - (z_j - \lambda))^2), \text{ if } \bet
 \end{cases}
 }
 
-For this translation, we need two pieces of information:
+Draws can be efficiently obtained from the Full Conditional Posterior,
+
+\as{
+P(\beta_j | \r_{-j}) \propto
+\begin{cases}
+C_{-} \exp(-\frac{n}{2\sigma^2} (\beta_j - (z_j + \lambda))^2), \text{ if } \beta_j < 0, \\
+C_{+} \exp(-\frac{n}{2\sigma^2} (\beta_j - (z_j - \lambda))^2), \text{ if } \beta_j \geq 0 \\
+\end{cases}
+}
+
+through a simple mapping onto respective normal distributions.
 
 \begin{enumerate}
 \item The non-truncated probability in each of the two normals to transformed on to, denoted $Pr_{-}$ and $Pr_{+}$ respectively.

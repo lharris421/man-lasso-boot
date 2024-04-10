@@ -4,7 +4,7 @@ source("./fig/setup/setup.R")
 plots <- list()
 
 methods <- c("selectiveinference", "zerosample2", "blp")
-ns <- c(100)
+ns <- c(50, 100, 400)
 data_type <- "laplace"
 rate <- 2
 SNR <- 1
@@ -33,7 +33,7 @@ model_res <- do.call(rbind, per_var_data) %>%
 
 n_methods <- length(methods)
 
-cutoff <- 3
+cutoff <- 2
 for (j in 1:length(ns)) {
   line_data <- list()
   line_data_avg <- list()
@@ -48,6 +48,11 @@ for (j in 1:length(ns)) {
       density_data <- data.frame(x = xvals, density = 2 * dlaplace(xvals, rate = 2))
     }
 
+    grp_succ <- tmp %>%
+      filter(!is.na(estimate)) %>%
+      pull(group) %>%
+      unique()
+
     tmp %>%
       filter(!is.na(estimate)) %>%
       group_by(n) %>%
@@ -56,6 +61,7 @@ for (j in 1:length(ns)) {
       ) %>%
       left_join(
         tmp %>%
+          filter(group %in% grp_succ) %>%
           group_by(n) %>%
           summarise(
             perc_incl = mean(!is.na(estimate))

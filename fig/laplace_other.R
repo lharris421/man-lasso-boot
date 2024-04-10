@@ -37,6 +37,7 @@ per_dataset_data$n <- glue("({sapply(per_dataset_data$n, function(x) which(ns ==
 
 ## Coverage
 p1 <- per_var_data %>%
+  filter(!is.na(estimate)) %>%
   mutate(covered = lower <= truth & upper >= truth) %>%
   group_by(method, group, n) %>%
   summarise(coverage = mean(covered, na.rm = TRUE)) %>%
@@ -48,6 +49,14 @@ p1 <- per_var_data %>%
   scale_fill_manual(values = colors, name = "Sample Size") +
   ylab("Coverage") + xlab(NULL) +
   theme_bw()
+
+tmp <- per_var_data %>%
+  filter(!is.na(estimate)) %>%
+  mutate(covered = lower <= truth & upper >= truth) %>%
+  group_by(method, group, n) %>%
+  summarise(coverage = mean(covered, na.rm = TRUE))
+
+# table(tmp$method, tmp$n)
 
 ## Time
 p2 <- per_dataset_data %>%
@@ -81,7 +90,7 @@ per_var_data %>%
   ungroup() %>%
   mutate(group = glue("{method}-{n}")) %>%
   group_by(group) %>%
-  summarise(nonfinite_median = mean(is.na(width) | is.infinite(width)))
+  summarise(nonfinite_median = mean( is.infinite(width)))
 
 ## Get summaries of times failed / infinite width / number of variables selected for si
 p4 <- per_dataset_data %>%
