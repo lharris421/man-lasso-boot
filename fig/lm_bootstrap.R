@@ -18,7 +18,6 @@ args_list <- list(data = "normal",
                   method = "lm",
                   ci_method = "quantile",
                   nominal_coverage = alpha * 100,
-                  modifier = NA,
                   lambda = "cv",
                   p = 100)
 

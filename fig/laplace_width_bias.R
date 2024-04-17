@@ -70,6 +70,13 @@ bias_est <- function(estimate, lower, upper, truth) {
   )
 }
 
+# bias_est <- function(center, truth) {
+#   case_when(
+#     sign(truth) == -1 ~ center - truth,
+#     sign(truth) == 1 ~ truth - center
+#   )
+# }
+
 plots_bias <- list()
 for (j in 1:length(ns)) {
 
@@ -80,6 +87,7 @@ for (j in 1:length(ns)) {
     plot_data <- per_var_data %>%
       filter(method == methods[i] & n == ns[j]) %>%
       rowwise() %>%
+      # mutate(bias = bias_est(center, truth)) %>%
       mutate(bias = bias_est(estimate, lower, upper, truth)) %>%
       filter(!is.na(bias) & is.finite(bias)) %>%
       mutate(mag_truth = abs(truth))
