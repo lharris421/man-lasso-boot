@@ -23,7 +23,10 @@ args_list <- list(data = data_type,
                   lambda = "cv",
                   p = p)
 
-read_objects(rds_path, expand.grid(args_list))
+res_list <- read_objects(rds_path, expand.grid(args_list), save_method = "rds")
+
+res <- res_list$res
+truth_df <- res_list$truth_df
 
 n_vars <- 10
 which_cols <- order(truth_df$truth)[seq(1, 100, length.out = n_vars)]
