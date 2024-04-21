@@ -1,0 +1,12 @@
+\begin{table}[ht]
+\centering
+\begin{tabular}{l|ccc}
+  \hline & \multicolumn{3}{c}{Sample Size} \\
+Distribution & 50 & 100 & 400 \\ 
+  \hline
+Laplace & 0.898 & 0.857 & 0.804 \\ 
+   \hline
+\end{tabular}
+\caption{Coverage by Data Type and Sample Size} 
+\label{tab:coverage}
+\end{table}

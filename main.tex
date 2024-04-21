@@ -214,6 +214,9 @@ In classical high dimension scenarios, it is often expected that the solution is
 
 These plots also exemplify the effect of the magnitude of $\beta$ on coverage. The greatest separation is then $\lam = \lam_{max}$ and their coverage converges as $\lam \rightarrow \lam_{min}$. Coverage is of course higher for $\beta$ values smaller in magnitude. At values of $\beta$ that are classified as small in magnitude in this set of plots, their coverage is highest at $\lam_{max}$ and generally decreases as $\lam$ is reduced. On the other end, for $beta$ values largest in magnitude, we a monotonically increasing trend, with those moderate in size falling somewhere in the middle in their pattern depending on the distribution of $\beta$.
 
+\input{./tab/distribution_table.txt}
+
+
 \subsubsection{Epsilon Conundrum}\label{Sec:Epsilon}
 
 Its natural to close this section by considering the performance on a scenario that was the main motivator of the Zero Sample method: the Epsilon conundrum. So how does Zero Sample Perform in this scenario? It avoids the downfall we observe with applying the Traditional bootstrap. Clearly, however, it also over covers due to the fact that the large majority of $\beta$s are near zero, but, again, this is to be expected and the important take away is that Zero-Sample provides viable intervals for values of $\beta$ near zero.
