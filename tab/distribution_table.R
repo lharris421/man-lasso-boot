@@ -13,16 +13,13 @@ plots <- list()
 
 methods <- c("zerosample2")
 n_values <- c(50, 100, 400) # ns values you are interested in
-data_type <- "laplace"
-rate <- 2
+data_type <- c("laplace", "normal", "t", "uniform", "beta", "sparse 1", "sparse 2", "sparse 3")
 SNR <- 1
-corr <- "exchangeable"
-rho <- 0
 alpha <- .2
 p <- 100
 
-params_grid <- expand.grid(list(data = data_type, n = n_values, rate = rate, snr = SNR,
-                                correlation_structure = corr, correlation = rho, method = methods, lambda = "cv",
+params_grid <- expand.grid(list(data = data_type, n = n_values, snr = SNR,
+                                method = methods, lambda = "cv",
                                 ci_method = "quantile", nominal_coverage = alpha * 100, p = p))
 
 
@@ -41,7 +38,7 @@ per_var_data <- do.call(rbind, per_var_data) %>%
     method = methods_pretty[method]
   ) %>%
   group_by(data_type, n) %>%
-  summarise(Coverage = mean(covered)) %>%
+  summarise(Coverage = mean(covered) * 100) %>%
   ungroup()
 
 
@@ -54,7 +51,7 @@ wide_data <- per_var_data %>%
 latex_table <- xtable(wide_data,
                       align = "cl|ccc",  # 'l' for left-aligned distribution name, '|' then 'ccc' for centered columns
                       caption = "Coverage by Data Type and Sample Size",
-                      digits = 3,
+                      digits = 1,
                       label = "tab:coverage")
 
 # Customizing the print output to match your desired LaTeX format

@@ -1,14 +1,13 @@
 ## Setup
 source("./fig/setup/setup.R")
 
-methods <- c("zerosample2")
-             # "debiased")
+methods <- c("zerosample2", "debiased")
 ns <- c(50, 100, 400) # ns values you are interested in
 data_type <- c("laplace")
 rate <- c(2)
 SNR <- 1
 corr <- c("autoregressive")
-rhos <- rho <- c(.4, .6, .8)
+rhos <- rho <- c(0.4, 0.6, 0.8)
 alpha <- .2
 p <- 100
 
@@ -46,7 +45,7 @@ coverage_data <- combined_data %>%
 final_plot <- coverage_data %>%
   ggplot(aes(x = n, y = coverage, fill = n)) +
   geom_boxplot() +
-  facet_wrap(method~rho, scales = "free_x", labeller = label_bquote(rho == .(rhos[rho]))) +
+  facet_wrap(method~rho, scales = "free_x", labeller = label_bquote(.(methods_pretty[method]) - rho == .(rhos[rho]))) +
   labs(x = "Sample Size", y = "Coverage Probability", title = "Coverage Probability by Sample Size and Correlation") +
   theme_bw() +
   theme(legend.position = "none") +

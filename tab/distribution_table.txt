@@ -4,7 +4,14 @@
   \hline & \multicolumn{3}{c}{Sample Size} \\
 Distribution & 50 & 100 & 400 \\ 
   \hline
-Laplace & 0.898 & 0.857 & 0.804 \\ 
+Laplace & 89.8 & 85.7 & 80.4 \\ 
+  Normal & 88.5 & 83.3 & 79.7 \\ 
+  T & 91.3 & 86.6 & 81.4 \\ 
+  Uniform & 89.5 & 79.8 & 79.9 \\ 
+  Beta & 88.3 & 81.5 & 79.5 \\ 
+  Sparse 1 & 94.2 & 91.3 & 89.6 \\ 
+  Sparse 2 & 90.4 & 87.2 & 83.2 \\ 
+  Sparse 3 & 89.3 & 85.3 & 80.8 \\ 
    \hline
 \end{tabular}
 \caption{Coverage by Data Type and Sample Size} 
