@@ -3,24 +3,18 @@ source("./fig/setup/setup.R")
 
 alpha <- .2
 base_params <- list(data = "laplace",
-                    rate = 2,
                     snr = 1,
                     n = 100,
                     p = 100,
-                    correlation_structure = "exchangeable",
-                    correlation = 0,
                     method = "zerosample2",
                     ci_method = "quantile",
                     lambda = "across",
                     nominal_coverage = alpha * 100)
 
-# rehash(rds_path)
 
-read_objects(rds_path, expand.grid(base_params))
-#create_hash_table(rds_path, glue("{rds_path}/tmp.csv"))
-#update_hash_table(glue("{rds_path}/tmp.csv"), "../lasso-boot/rds")
-#generate_hash(base_params)
-
+res_list <- read_objects(rds_path, expand.grid(base_params), save_method = "rds")
+lambdas <- res_list$lambdas
+res <- res_list$res
 
 lambda_max <- 1
 lambda_min <- 0.001
@@ -40,7 +34,7 @@ model_cov <- gam(covered ~ te(lambda, truth), data = pdat, family = binomial)
 
 # Create a grid for prediction on the transformed lambda scale
 lambda_seq <- 10^seq(log(min(lambdas[[1]]), 10), log(max(lambdas[[1]]), 10), length.out = 100)
-truth_seq <- seq(0, 2, length.out = 100)
+truth_seq <- seq(0, .275, length.out = 100)
 grid <- expand.grid(lambda = lambda_seq, truth = truth_seq) %>% data.frame()
 
 # Predict coverage probability
