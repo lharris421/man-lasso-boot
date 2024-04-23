@@ -82,19 +82,19 @@ for (j in seq_along(ns)) {
     theme_bw() +
     xlab(expression(abs(beta))) +
     ylab(NULL) +
-    annotate("text", x = 0.05, y = 0.1, label = paste0("N = ", ns[j]), size = 5) +
+    # annotate("text", x = 0.05, y = 0.1, label = paste0("N = ", ns[j]), size = 5) +
     coord_cartesian(ylim = c(0, 1)) +
     scale_color_manual(name = "Method", values = colors)
 }
 
 # Apply additional theme settings to the first plot only
-plots[[1]] <- plots[[1]] +
-  theme(legend.position = c(.95, .05),
-        legend.justification = c("right", "bottom"),
-        legend.direction = "horizontal",
-        legend.box.just = "right",
-        legend.margin = margin(6, 6, 6, 6),
-        legend.background = element_rect(fill = "transparent"))
+# plots[[1]] <- plots[[1]] +
+#   theme(legend.position = c(.95, .05),
+#         legend.justification = c("right", "bottom"),
+#         legend.direction = "horizontal",
+#         legend.box.just = "right",
+#         legend.margin = margin(6, 6, 6, 6),
+#         legend.background = element_rect(fill = "transparent"))
 
 
 

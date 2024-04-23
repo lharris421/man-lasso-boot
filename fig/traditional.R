@@ -6,25 +6,22 @@ methods <- c("traditional", "zerosample2")
 n_values <- 100
 data_type <- "sparse"
 SNR <- 1
-corr <- "exchangeable"
-rho <- 0
 alpha <- .2
 p <- 100
-modifier <- NA
 ci_method <- "quantile"
 
 params_grid <- expand.grid(list(data = data_type, n = n_values, snr = SNR, lambda = "cv",
-                                correlation_structure = corr, correlation = rho, method = methods,
-                                ci_method = ci_method, nominal_coverage = alpha * 100, p = p, modifier = modifier))
+                                method = methods,
+                                ci_method = ci_method, nominal_coverage = alpha * 100, p = p))
 
 # Fetching and combining data
 res_ci <- list()
 res <- list()
 coverages <- numeric()
 for (i in 1:nrow(params_grid)) {
-  read_objects(rds_path, params_grid[i,])
-  res_ci[[i]] <- confidence_interval
-  res[[i]] <- example
+  res_list <- read_objects(rds_path, params_grid[i,], save_method = "rds")
+  res_ci[[i]] <- res_list$confidence_interval
+  res[[i]] <- res_list$example
 }
 names(res_ci) <- methods
 names(res) <- methods

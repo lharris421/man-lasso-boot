@@ -16,34 +16,56 @@ rate <- 2
 SNR <- 1
 modifier <- NA
 
-# Fetching and combining data
-plots <- list()
-for (i in 1:length(alphas)) {
-  per_var_data <- list()
-  params_grid <- expand.grid(list(data = data_type, n = ns, rate = rate, snr = SNR, lambda = "cv",
-                                  correlation_structure = corr, correlation = rho, method = method,
-                                  ci_method = "quantile", nominal_coverage = alphas[i] * 100, p = p, modifier = modifier))
-  for (j in 1:length(ns)) {
-    read_objects(rds_path, params_grid[j,])
-    per_var_data[[j]] <- per_var_n
-  }
-  per_var_data <- do.call(rbind, per_var_data) %>%
-    data.frame()
-  plots[[i]] <- single_method_plot(per_var_data, ns, alphas[i]) +
-    # annotate("text", x = 1, y = 0.5, label = paste0("alpha = ", alpha), size = 5) +
-    ggtitle(paste0("alpha = ", alphas[i])) +
-    theme(legend.position = "none")
+library(dplyr)
+library(ggplot2)
+library(mgcv)  # For gam()
+
+# Expand grid for all combinations
+params_grid <- expand.grid(data = data_type, n = ns, snr = SNR, lambda = "cv",
+                           method = method, ci_method = "quantile",
+                           nominal_coverage = alphas * 100, p = p,
+                           modifier = modifier, stringsAsFactors = FALSE)
+
+# Function to read and process each combination, integrating single_method_plot logic
+read_process_data <- function(params) {
+  res_list <- read_objects(rds_path, params, save_method = "rds")
+  print("1")
+  print(length(res_list))
+  per_var_data <- res_list$per_var_n
+  cutoff <- round(quantile(abs(per_var_data$truth), .98), 1)
+
+  tmp <- per_var_data %>%
+    mutate(
+      covered = lower <= truth & upper >= truth,
+      mag_truth = abs(truth),
+      covered = as.numeric(covered)
+    ) %>%
+    filter(n == params$n)
+  print("2")
+  print(nrow(tmp))
+
+  fit <- gam(covered ~ s(mag_truth) + s(group, bs = "re"), data = tmp, family = binomial)
+  xs <- seq(0, cutoff, by = .01)
+  ys <- predict(fit, data.frame(mag_truth = xs, group = 101), type = "response")
+
+  line_data <- data.frame(x = xs, y = ys, n = factor(params$n), alpha = params$nominal_coverage, which = "curve")
+  mean_coverage <- data.frame(y = mean(tmp$covered), x = xs, n = factor(params$n), alpha = params$nominal_coverage, which = "mean")
+  line_data <- bind_rows(line_data, mean_coverage)
+
+  return(line_data)
 }
 
-plots[[1]] <- plots[[1]] +
-  theme(legend.position = c(1, .05),
-        legend.justification = c("right", "bottom"),
-        legend.direction = "horizontal",
-        legend.box.just = "right",
-        legend.margin = margin(6, 6, 6, 6),
-        legend.background = element_rect(fill = "transparent"))
+# Apply the function across all parameter combinations and bind rows
+all_data <- do.call(rbind, lapply(1:nrow(params_grid), function(i) read_process_data(params_grid[i, ])))
 
-pdf("./fig/nominal_coverage.pdf", height = 3.5)
-g <- grid.arrange(grobs = plots, ncol = 3, nrow = 1)
-dev.off()
 
+# Plotting with facet wrap
+ggplot() +
+  geom_line(data = all_data %>% filter(which == "curve"), aes(x = x, y = y, color = n)) +
+  geom_line(data = all_data %>% filter(which == "mean"), aes(x = x, y = y, color = n), lty = "dashed") +
+  facet_wrap(.~alpha, labeller = label_bquote(alpha == .(alpha / 100))) +
+  geom_hline(data = all_data, aes(yintercept = (1 - as.numeric(alpha)/100)), color = "black") +
+  theme_bw() +
+  labs(x = expression(abs(beta)), y = "Estimated Coverage Probability") +
+  ggtitle("Coverage Probability by Alpha and Sample Size") +
+  scale_color_manual(name = "N", values = colors)
