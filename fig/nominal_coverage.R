@@ -29,8 +29,7 @@ params_grid <- expand.grid(data = data_type, n = ns, snr = SNR, lambda = "cv",
 # Function to read and process each combination, integrating single_method_plot logic
 read_process_data <- function(params) {
   res_list <- read_objects(rds_path, params, save_method = "rds")
-  print("1")
-  print(length(res_list))
+
   per_var_data <- res_list$per_var_n
   cutoff <- round(quantile(abs(per_var_data$truth), .98), 1)
 
@@ -41,8 +40,6 @@ read_process_data <- function(params) {
       covered = as.numeric(covered)
     ) %>%
     filter(n == params$n)
-  print("2")
-  print(nrow(tmp))
 
   fit <- gam(covered ~ s(mag_truth) + s(group, bs = "re"), data = tmp, family = binomial)
   xs <- seq(0, cutoff, by = .01)
@@ -60,6 +57,7 @@ all_data <- do.call(rbind, lapply(1:nrow(params_grid), function(i) read_process_
 
 
 # Plotting with facet wrap
+pdf("./fig/nominal_coverage.pdf", height = 3.5)
 ggplot() +
   geom_line(data = all_data %>% filter(which == "curve"), aes(x = x, y = y, color = n)) +
   geom_line(data = all_data %>% filter(which == "mean"), aes(x = x, y = y, color = n), lty = "dashed") +
@@ -69,3 +67,4 @@ ggplot() +
   labs(x = expression(abs(beta)), y = "Estimated Coverage Probability") +
   ggtitle("Coverage Probability by Alpha and Sample Size") +
   scale_color_manual(name = "N", values = colors)
+dev.off()

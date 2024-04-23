@@ -6,23 +6,20 @@ plots <- list()
 methods <- c("selectiveinference", "zerosample2", "blp")
 ns <- c(50, 100, 400)
 data_type <- "laplace"
-rate <- 2
 SNR <- 1
-corr <- "exchangeable"
-rho <- 0
-alpha <- .2
+alpha <- .1
 p <- 100
-modifier <- NA
 lambda <- "cv"
 
-params_grid <- expand.grid(list(data = data_type, n = ns, rate = rate, snr = SNR, lambda = "cv",
-                                correlation_structure = corr, correlation = rho, method = methods,
-                                ci_method = "quantile", nominal_coverage = alpha * 100, p = p, modifier = modifier))
+params_grid <- expand.grid(list(data = data_type, n = ns, snr = SNR, lambda = "cv",
+                                method = methods,
+                                ci_method = "quantile", nominal_coverage = alpha * 100, p = p))
 # Fetching and combining data
 per_var_data <- list()
 for (i in 1:nrow(params_grid)) {
-  read_objects(rds_path, params_grid[i,])
-  per_var_data[[i]] <- per_var_n
+  res_list <- read_objects(rds_path, params_grid[i,], save_method = "rds")
+  per_var_data[[i]] <- res_list$per_var_n %>%
+    select_at(vars(-contains("center")))
 }
 model_res <- do.call(rbind, per_var_data) %>%
   data.frame() %>%
@@ -33,7 +30,7 @@ model_res <- do.call(rbind, per_var_data) %>%
 
 n_methods <- length(methods)
 
-cutoff <- 2
+cutoff <- .275
 for (j in 1:length(ns)) {
   line_data <- list()
   line_data_avg <- list()
@@ -45,7 +42,7 @@ for (j in 1:length(ns)) {
 
     if (i == 1) {
       xvals <- seq(from = 0, to = cutoff, length.out = cutoff * 100 + 1)
-      density_data <- data.frame(x = xvals, density = 2 * dlaplace(xvals, rate = 2))
+      density_data <- data.frame(x = xvals, density = 2 * dlaplace(xvals, rate = 14.14))
     }
 
     grp_succ <- tmp %>%
