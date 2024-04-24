@@ -1,8 +1,7 @@
 ## Data arguments
 source("./fig/setup/setup.R")
 
-data_type <- "laplace"
-rt <- 2
+data_type <- "laplace-single"
 p <- 100
 ns <- 100
 nboot <- 1000
@@ -16,7 +15,6 @@ ci_method <- "quantile"
 args_list <- list(data = data_type,
                   n = ns,
                   snr = SNR,
-                  rate = rt,
                   method = methods,
                   ci_method = ci_method,
                   nominal_coverage = alpha * 100,

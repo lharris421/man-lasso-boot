@@ -8,7 +8,8 @@ rds_path <- glue::glue("{res_dir}/rds/")
 
 packages <- c(
   "dplyr", "tidyr", "ggplot2", "gridExtra", "scales", "kableExtra",
-  "grid", "glue", "lme4", "mgcv", "splines", "digest", "indexr"
+  "grid", "glue", "lme4", "mgcv", "splines", "digest", "indexr",
+  "patchwork", "xtable"
 )
 quietlyLoadPackage <- function(package) {
   suppressPackageStartupMessages(library(package, character.only = TRUE))

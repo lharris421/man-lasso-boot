@@ -20,6 +20,5 @@ cis <- do.call(dplyr::bind_rows, cis) %>% data.frame()
 
 
 pdf("./fig/comparison_data_scheetz.pdf", width = 7.5, height = 3.5)
-plot_ci_comparison(cis, nvars = 10) +
-  coord_cartesian(xlim = c(-0.6, 0.6))
+plot_ci_comparison(cis, nvars = 10)
 dev.off()

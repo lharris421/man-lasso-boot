@@ -12,13 +12,15 @@ params_grid <- expand.grid(list(data = data_type, method = methods, lambda = lam
 # Fetching and combining data
 cis <- list()
 for (i in 1:nrow(params_grid)) {
-  read_objects(rds_path, params_grid[i,])
-  cis[[i]] <- res$confidence_interval
+  res <- read_objects(rds_path, params_grid[i,], save_method = "rds")
+  cis[[i]] <- res$confidence_interval %>%
+    select(estimate, lower, upper, variable, method)
+  print(ncol(cis[[i]]))
+  print(colnames(cis[[i]]))
 }
 cis <- do.call(rbind, cis) %>% data.frame()
 
 ## Plotting
-pdf("./fig/comparison_data.pdf", width = 7.5)
-plot_ci_comparison(cis) +
-  coord_cartesian(xlim = c(-0.6, 0.6))
+pdf("./fig/comparison_data.pdf", width = 6, height = 4)
+plot_ci_comparison(cis)
 dev.off()

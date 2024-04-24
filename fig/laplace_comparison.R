@@ -7,7 +7,7 @@ methods <- c("selectiveinference", "zerosample2", "blp")
 ns <- c(50, 100, 400)
 data_type <- "laplace"
 SNR <- 1
-alpha <- .1
+alpha <- .2
 p <- 100
 lambda <- "cv"
 
