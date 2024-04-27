@@ -141,6 +141,8 @@ We compare the proposed CI methods by showing the coverage of each, both overall
 
 Figure~\ref{Fig:laplace} displays simulation results for CIs obtained via the four previously described bootstrap methods. In this simulation, 100 independent datasets were generated and each bootstrap method was applied using $B = 1000$ bootstrap iterations. Each dataset was simulated as follows. $\X$ was generated independently with $n = p = 100$ and $\bb$ was generated from a Laplace distribution. Then, $\Y$ was constructed as $\Y = \X\bb + \boldsymbol{\epsilon}$, where $\boldsymbol{\epsilon} \sim N(0, \sigma^2_y)$ with $\sigma^2_y$ set such that the $SNR = 1$. The dotted lines represents the average coverage for each method across all variables for all 100 datasets. The solid lines are estimates of coverage as a smooth function of $\beta$.
 
+\logan{axis labels for estimated interval properties?}
+
 \begin{figure}
   \includegraphics[width=\linewidth]{laplace}
   \caption{\label{Fig:laplace} Results are from the simulation described in Section~\ref{Sec:Coverage}. The fitted curves are from Binomial GAMMs (one for each method) fit with coverage being modeled as a smooth function of $|\beta|$ and with a random intercept on dataset to account for deviations in coverage specific to a given randomly generated dataset. The data used for modeling contains a row for each variable per simulated dataset. The dashed lines represent the average for each method across all 100 independently generated datasets and the solid black line indicates the nominal coverage rate. The shaded distribution in the background depicts the positive tail of the distribution the $\beta$s were drawn from, $dexp(\tau = 2)$.}
@@ -162,6 +164,8 @@ This is due to the fact that Debiased includes only a naive correction that fail
 
 \logan{Okay to work into this section? Feels a bit more natural.}
 A detail that was omitted in the previous section was that Debiased also shows a decreasing behavior, although to a much lesser degree. Now we can see why, debiased does not fully debias.
+
+\logan{Thoughts on making y limits the same for width and bias plot?}
 
 \begin{figure}
   \includegraphics[width=\linewidth]{laplace_width_bias}
@@ -200,7 +204,7 @@ Now, lets consider some cases with higher levels of correlation. In \textbf{Figu
 
 In the second row, we have data generated under a different mechanism. Here, the data size is the same, but the $\beta$ values and $cor(X)$ is different. Here, there are only 5 non-zero $\beta$ values (denoted with A). However, for each non-zero $\beta$, there are 2 noise variables generated with the specified correlation (denoted with B). For the other 85 zero $\beta$s (denoted with N), they are generated independent of the A and B variables but have exchangeable correlation among each other with $\rho = 0.2, 0.5, and 0.6$ respectively. As previously discussed, we see a significant amount of over coverage due to the high level of sparsity. Regardless, the overall trend remains the same in the the overall coverage gradually decreases with increasing levels of correlation.
 
-\logan{Remove exchangeable, add debiased? (For plot)}
+\logan{Use 0 to 1 ylim for coverage axis?}
 \begin{figure}
   \includegraphics[width=\linewidth]{correlation_structure}
   \caption{\label{Fig:correlation_structure} Caption goes here}
@@ -302,7 +306,7 @@ The runtime of the three methods also differs considerably with SI being the fas
 
 \subsubsection{Application: Gene expression in the mammalian eye}
 
-\logan{Which to cover}
+\logan{Can't make the methods identical in PEs.}
 
 \begin{figure}
   \includegraphics[width=\linewidth]{comparison_data_scheetz}
@@ -352,9 +356,8 @@ Since the main method suggested here falls somewhere between the Traditional Boo
 
 \section*{Supplement}
 
-\subsection{Supplement A: Sampling from the Full Conditional Posterior}\label{Sup:A}
 
-\logan{Trash?}
+\subsection{Supplement A: Sampling from the Full Conditional Posterior}\label{Sup:A}
 
 \as{
 L(\beta_j | \r_{-j}) &= (\sigma \sqrt{2\pi})^{-n} \exp(-\frac{1}{2\sigma^2} (n\beta_j^2 - 2\x_{j}^{T}\r_{-j}\beta_j + \r_{-j}^{T}\r_{-j})) \\

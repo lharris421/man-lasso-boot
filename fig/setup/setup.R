@@ -9,7 +9,7 @@ rds_path <- glue::glue("{res_dir}/rds/")
 packages <- c(
   "dplyr", "tidyr", "ggplot2", "gridExtra", "scales", "kableExtra",
   "grid", "glue", "lme4", "mgcv", "splines", "digest", "indexr",
-  "patchwork", "xtable"
+  "patchwork", "knitr"
 )
 quietlyLoadPackage <- function(package) {
   suppressPackageStartupMessages(library(package, character.only = TRUE))
@@ -29,8 +29,8 @@ methods_pretty <- c(
   "zerosample1" = "Zero Sample Single",
   "zerosample2" = "Hybrid",
   "selective_inference" = "Selective Inference",
-  "selectiveinference" = "Selective Inference",
-  "blp" = "Bootstrap Lasso Projection",
+  "selectiveinference" = "SI",
+  "blp" = "BLP",
   "fullconditional" = "Full Conditional",
   "truncatedzs2" = "Truncated Zero Sample",
   "zerosample2la" = "Lambda Adjusted",

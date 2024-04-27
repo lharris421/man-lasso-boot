@@ -121,7 +121,6 @@ for (i in 1:length(methods)) {
     mutate(bias_high = miss_high(lower, upper, truth)) %>%
     mutate(bias_low = miss_low(lower, upper, truth)) %>%
     mutate(bias_sign = sign_inversion(lower, upper, truth)) %>%
-    # filter(!is.na(bias) & is.finite(bias)) %>%
     mutate(mag_truth = abs(truth))
 
   print(methods[i])
@@ -131,8 +130,7 @@ for (i in 1:length(methods)) {
   ys_low <- predict(fit, data.frame(mag_truth = xs, group = 101), type ="response")
   fit <- gam(bias_sign ~ s(mag_truth) + s(group, bs = "re"), data = plot_data, family = binomial)
   ys_sign <- predict(fit, data.frame(mag_truth = xs, group = 101), type ="response")
-  # ys <- ys_low - ys_high
-  ys <- ys_sign
+
   plot_res[[i]] <- data.frame(xs = xs, bias = ys_low - ys_high, bias_low = ys_low, bias_high = ys_high, bias_sign = ys_sign, method = methods_pretty[methods[i]])
 }
 
@@ -189,19 +187,19 @@ dev.off()
 
 
 plot_width <- plot_width +
-  ggtitle("Width") +
   xlab(expression(abs(beta))) +
-  ylab("Interval Width")
+  ylab("Interval Width") +
+  coord_cartesian(ylim = c(0, 0.35))
 
 plot_bias <- plot_bias +
-  ggtitle("Median Bias") +
   xlab(expression(abs(beta))) +
-  ylab("Bias")
+  ylab("Bias") +
+  coord_cartesian(ylim = c(0, 0.35))
 
 library(cowplot)
 library(patchwork)
 combined_plot <- plot_width + plot_bias +
   plot_layout(guides = "collect", axis_titles = "collect")
-pdf("./fig/laplace_width_bias.pdf", height = 4, width = 8)
+pdf("./fig/laplace_width_bias.pdf", height = 3, width = 8)
 print(combined_plot)
 dev.off()

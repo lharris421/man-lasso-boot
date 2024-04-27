@@ -1,19 +1,22 @@
-\begin{table}[ht]
+\begin{table}
+
+\caption{Coverage by Data Type and Sample Size}
 \centering
-\begin{tabular}{l|ccc}
-  \hline & \multicolumn{3}{c}{Sample Size} \\
-Distribution & 50 & 100 & 400 \\ 
-  \hline
-Laplace & 89.8 & 85.7 & 80.4 \\ 
-  Normal & 88.5 & 83.3 & 79.7 \\ 
-  T & 91.3 & 86.6 & 81.4 \\ 
-  Uniform & 89.5 & 79.8 & 79.9 \\ 
-  Beta & 88.3 & 81.5 & 79.5 \\ 
-  Sparse 1 & 94.2 & 91.3 & 89.6 \\ 
-  Sparse 2 & 90.4 & 87.2 & 83.2 \\ 
-  Sparse 3 & 89.3 & 85.3 & 80.8 \\ 
-   \hline
+\begin{tabular}[t]{cccc}
+\toprule
+\multicolumn{1}{c}{ } & \multicolumn{3}{c}{Sample Size} \\
+\cmidrule(l{3pt}r{3pt}){2-4}
+Distribution & 50 & 100 & 400\\
+\hline
+\midrule
+Laplace & 89.8 & 85.7 & 80.4\\
+Normal & 88.5 & 83.3 & 79.7\\
+T & 91.3 & 86.6 & 81.4\\
+Uniform & 89.5 & 79.8 & 79.9\\
+Beta & 88.3 & 81.5 & 79.6\\
+Sparse 1 & 94.2 & 91.3 & 89.6\\
+Sparse 2 & 90.4 & 87.2 & 83.2\\
+Sparse 3 & 89.3 & 85.3 & 80.8\\
+\bottomrule
 \end{tabular}
-\caption{Coverage by Data Type and Sample Size} 
-\label{tab:coverage}
 \end{table}

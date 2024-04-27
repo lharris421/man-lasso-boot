@@ -47,21 +47,18 @@ wide_data <- per_var_data %>%
   rename(Distribution = data_type) %>%
   mutate(Distribution = stringr::str_to_title(Distribution))
 
-# Convert the reshaped data frame to a LaTeX table
-latex_table <- xtable(wide_data,
-                      align = "cl|ccc",  # 'l' for left-aligned distribution name, '|' then 'ccc' for centered columns
-                      caption = "Coverage by Data Type and Sample Size",
-                      digits = 1,
-                      label = "tab:coverage")
+# Assuming wide_data is your data frame
+latex_table <- kable(wide_data,
+                     format = "latex",
+                     align = "cccc",  # Alignments for the columns
+                     booktabs = TRUE,
+                     caption = "Coverage by Data Type and Sample Size",
+                     digits = 1,
+                     linesep = "") %>%
+  add_header_above(c(" " = 1, "Sample Size" = 3)) %>%
+  row_spec(0, extra_latex_after = "\\hline")
 
 # Customizing the print output to match your desired LaTeX format
-print(latex_table,
-      include.rownames = FALSE,
-      sanitize.text.function = function(x){x},  # Avoid converting underscores and other special characters
-      hline.after = c(0, nrow(wide_data)),  # Horizontal lines after the header and the last row
-      add.to.row = list(pos = list(-1),
-                        command = c("\\hline & \\multicolumn{3}{c}{Sample Size} \\\\\n")),  # Multi-column header
-      comment = FALSE,
-      file = "./tab/distribution_table.txt")  # Output to file
+cat(latex_table, file = "./tab/distribution_table.txt")  # Output to file
 
 

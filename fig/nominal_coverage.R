@@ -65,6 +65,6 @@ ggplot() +
   geom_hline(data = all_data, aes(yintercept = (1 - as.numeric(alpha)/100)), color = "black") +
   theme_bw() +
   labs(x = expression(abs(beta)), y = "Estimated Coverage Probability") +
-  ggtitle("Coverage Probability by Alpha and Sample Size") +
-  scale_color_manual(name = "N", values = colors)
+  scale_color_manual(name = "N", values = colors) +
+  coord_cartesian(ylim = c(0, 1))
 dev.off()

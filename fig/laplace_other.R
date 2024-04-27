@@ -46,8 +46,9 @@ p1 <- per_var_data %>%
   ggplot(aes(x = methods_pretty[method], y = coverage, group = group, fill = n)) +
   geom_boxplot() +
   geom_hline(yintercept = 1 - alpha) +
-  scale_fill_manual(values = colors, name = "Sample Size") +
-  ylab("Coverage") + xlab(NULL) +
+  scale_fill_manual(values = colors, name = "Sample Size", labels = c("50", "100", "400")) +
+  ylab("Coverage") +
+  xlab("Method") +
   theme_bw()
 
 tmp <- per_var_data %>%
@@ -56,15 +57,14 @@ tmp <- per_var_data %>%
   group_by(method, group, n) %>%
   summarise(coverage = mean(covered, na.rm = TRUE))
 
-# table(tmp$method, tmp$n)
-
 ## Time
 p2 <- per_dataset_data %>%
   mutate(group = glue("{method}-{n}")) %>%
   ggplot(aes(x = methods_pretty[method], y = time, group = group, fill = n)) +
   geom_boxplot() +
-  scale_fill_manual(values = colors, name = "Sample Size") +
-  ylab("Time") + xlab(NULL) +
+  scale_fill_manual(values = colors, name = "Sample Size", labels = c("50", "100", "400")) +
+  ylab("Time") +
+  xlab("Method") +
   theme_bw() +
   scale_y_continuous(labels = function(x) x, trans = "log10")
 
@@ -76,9 +76,9 @@ p3 <- per_var_data %>%
   mutate(group = glue("{method}-{n}")) %>%
   ggplot(aes(x = methods_pretty[method], y = width, group = group, fill = n)) +
   geom_boxplot() +
-  scale_fill_manual(values = colors, name = "Sample Size") +
+  scale_fill_manual(values = colors, name = "Sample Size", labels = c("50", "100", "400")) +
   ylab(expression(`Median Width`)) +
-  xlab(NULL) +
+  xlab("Method") +
   theme_bw() +
   scale_y_continuous(labels = function(x) x, trans = "log10")
 
@@ -92,33 +92,7 @@ per_var_data %>%
   group_by(group) %>%
   summarise(nonfinite_median = mean( is.infinite(width)))
 
-## Get summaries of times failed / infinite width / number of variables selected for si
-p4 <- per_dataset_data %>%
-  mutate(group = glue("{method}-{n}")) %>%
-  ggplot(aes(x = methods_pretty[method], y = lambda, group = group, fill = n)) +
-  geom_boxplot() +
-  scale_fill_manual(values = colors, name = "Sample Size") +
-  ylab(expression(lambda)) + xlab(NULL) +
-  theme_bw()
 
-glist <- list(p1, p2, p3)
-glist <- lapply(glist, function(x) {
-  x +
-    theme(legend.position = "none",
-          axis.text.x = element_text(angle = 15))
-})
-
-glist[[2]] <- glist[[2]] +
-  theme(legend.position = c(0.2, 0.2))
-
-bottom_label <- textGrob("Method", gp = gpar(fontsize = 12))
-
-suppressMessages({
-  pdf("./fig/laplace_other.pdf", height = 8)
-  g <- grid.arrange(grobs = glist, ncol = 2, nrow = 2, bottom = bottom_label)
-  dev.off()
-  if (save_rds) {
-    gobj <- grid.arrange(grobs = glist, ncol = 2, nrow = 2, bottom = bottom_label)
-    save(gobj, file = glue("{res_dir}/web/rds/laplace_other.rds"))
-  }
-})
+pdf("./fig/laplace_other.pdf", height = 5, width = 7)
+(p1 / p3 / p2) + plot_layout(guides = "collect", axes = "collect")
+dev.off()

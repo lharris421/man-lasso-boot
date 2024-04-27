@@ -21,6 +21,6 @@ for (i in 1:nrow(params_grid)) {
 cis <- do.call(rbind, cis) %>% data.frame()
 
 ## Plotting
-pdf("./fig/comparison_data.pdf", width = 6, height = 4)
+pdf("./fig/comparison_data.pdf", width = 8, height = 5)
 plot_ci_comparison(cis)
 dev.off()

@@ -33,6 +33,9 @@ for (i in 1:length(methods)) {
     mean()
 }
 names(coverages) <- methods
+true_vals <- res_ci[[methods[i]]][[100]]$truth
+kept_vars <- names(sort(abs(res[[1]]$estimates), decreasing = TRUE))[1:30]
+true_vals <- true_vals[kept_vars]
 
 ## Traditional Bootstrap
 plots <- list()
@@ -41,7 +44,8 @@ for (i in 1:length(methods)) {
   cov <- coverages[methods[i]]
   plots[[i]] <- plot(res[[i]], n = 30, ci_method = ci_method, original_data = dat) +
     ggtitle(glue("{methods_pretty[methods[i]]} - Coverage: {round(cov * 100, 1)} %")) +
-    ylab(NULL) +
+    ylab("Variable") +
+    geom_point(data = data.frame(y = names(true_vals), x = true_vals), aes(x = x, y = y), color = "red") +
     theme(
       axis.ticks.y = element_blank(),
       axis.text.y = element_blank()
@@ -51,10 +55,10 @@ for (i in 1:length(methods)) {
 
 left_label <- textGrob("Variable", gp = gpar(fontsize = 10), rot = 90)
 
-pdf("./fig/zerosample2.pdf", height = 4, width = 6)
+pdf("./fig/zerosample2.pdf", height = 4, width = 7)
 plots[[2]]
 dev.off()
-pdf("./fig/traditional.pdf", height = 4, width = 6)
+pdf("./fig/traditional.pdf", height = 4, width = 7)
 plots[[1]]
 dev.off()
 

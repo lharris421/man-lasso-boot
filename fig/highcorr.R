@@ -86,7 +86,8 @@ for (i in 1:nrow(params_grid)) {
     ylab(NULL) +
     xlab(NULL) +
     scale_color_manual(values = colors) +
-    annotate("text", x = 1.2, y = 3.4, label = methods_pretty[as.character(params_grid$method[i])], size = 5)
+    # annotate("text", x = 1.2, y = 3.4, label = methods_pretty[as.character(params_grid$method[i])], size = 5)
+    ggtitle(methods_pretty[as.character(params_grid$method[i])])
 
  if (params_grid$method[i] == "zerosample2") {
    current_cis %>%
@@ -111,10 +112,11 @@ for (i in 1:nrow(params_grid)) {
 
 }
 
+
 left_label <- textGrob("Variable", gp = gpar(fontsize = 12), rot = 90)
 bottom_label <- textGrob("Interval Endpoint", gp = gpar(fontsize = 12))
 
 pdf("./fig/highcorr.pdf", height = length(params_grid$method) * 3)
-grid.arrange(grobs = plots, ncol = 2, left = left_label, bottom = bottom_label)
+(plots[[1]] + ylab("Variable") + plots[[2]]) / (plots[[3]] + xlab(expression(beta)) + ylab("Variable") + plots[[4]] + xlab(expression(beta)) + patchwork::plot_layout(axes = "collect"))
 dev.off()
 

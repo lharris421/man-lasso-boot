@@ -45,14 +45,15 @@ coverage_data <- combined_data %>%
 final_plot <- coverage_data %>%
   ggplot(aes(x = n, y = coverage, fill = n)) +
   geom_boxplot() +
-  facet_wrap(method~rho, scales = "free_x", labeller = label_bquote(.(methods_pretty[method]) - rho == .(rhos[rho]))) +
-  labs(x = "Sample Size", y = "Coverage Probability", title = "Coverage Probability by Sample Size and Correlation") +
+  facet_wrap(method~rho, as.table = FALSE, labeller = label_bquote(.(methods_pretty[method]) - rho == .(rhos[rho]))) +
+  labs(x = "Sample Size", y = "Coverage Rate") +
   theme_bw() +
   theme(legend.position = "none") +
-  geom_hline(yintercept = 1 - alpha)
+  geom_hline(yintercept = 1 - alpha) +
+  coord_cartesian(ylim = c(0, 1))
 
 # Print the plot
 
-pdf("./fig/correlation_structure.pdf", width = 6, height = 4)
+pdf("./fig/correlation_structure.pdf", width = 7, height = 4)
 final_plot
 dev.off()

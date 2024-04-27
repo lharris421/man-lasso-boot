@@ -13,12 +13,12 @@ params_grid <- expand.grid(list(data = data_type, method = methods, lambda = lam
 # Fetching and combining data
 cis <- list()
 for (i in 1:nrow(params_grid)) {
-  read_objects(rds_path, params_grid[i,])
+  res <- read_objects(rds_path, params_grid[i,], save_method = "rds")
   cis[[i]] <- res$confidence_interval
 }
 cis <- do.call(dplyr::bind_rows, cis) %>% data.frame()
 
 
-pdf("./fig/comparison_data_scheetz.pdf", width = 7.5, height = 3.5)
+pdf("./fig/comparison_data_scheetz.pdf", width = 7, height = 3)
 plot_ci_comparison(cis, nvars = 10)
 dev.off()
