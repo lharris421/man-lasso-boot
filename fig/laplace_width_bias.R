@@ -177,11 +177,11 @@ combined_plot <- (((plot_bias_l + plot_bias_h) +
   plot_layout(axis_titles = "collect")) /
   plot_bias_hl) +
   plot_layout(guides = "collect")
-pdf("./fig/laplace_bias_nfb.pdf", height = 5, width = 8)
+pdf("./fig/laplace_bias_nfb.pdf", height = 4, width = 8)
 print(combined_plot)
 dev.off()
 
-pdf("./fig/laplace_bias_sign.pdf", height = 4, width = 6)
+pdf("./fig/laplace_bias_sign.pdf", height = 4, width = 8)
 print(plot_bias_s)
 dev.off()
 
