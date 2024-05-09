@@ -27,6 +27,7 @@ for (i in 1:nrow(params_grid)) {
 }
 per_var_data <- do.call(rbind, per_var_data) %>%
   data.frame()
+methods[1] <- "sample"
 
 
 cutoff <- 0.275

@@ -3,12 +3,13 @@ source("./fig/setup/setup.R")
 
 ## Load Data
 data_type <- "whoari"
-methods <- c("zerosample2", "blp", "selectiveinference")
+methods <- c("zerosample2", "blpmin", "selectiveinference")
 alpha <- .2
 lambda <- "cv"
 
 params_grid <- expand.grid(list(data = data_type, method = methods, lambda = lambda,
                                 ci_method = "quantile", nominal_coverage = alpha * 100))
+
 # Fetching and combining data
 cis <- list()
 for (i in 1:nrow(params_grid)) {
@@ -20,7 +21,13 @@ for (i in 1:nrow(params_grid)) {
 }
 cis <- do.call(rbind, cis) %>% data.frame()
 
+cis %>%
+  mutate(is_not_zero = lower > 0 | upper < 0) %>%
+  group_by(method) %>%
+  summarise(sum(is_not_zero))
+
+
 ## Plotting
 pdf("./fig/comparison_data.pdf", width = 8, height = 5)
-plot_ci_comparison(cis)
+plot_ci_comparison(cis, nvars = 66)
 dev.off()

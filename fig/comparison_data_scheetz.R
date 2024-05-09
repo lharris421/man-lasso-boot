@@ -3,7 +3,7 @@ source("./fig/setup/setup.R")
 
 ## Load Data
 data_type <- "Scheetz2006"
-methods <- c("zerosample2", "blp", "selectiveinference")
+methods <- c("zerosample2", "blpmin", "selectiveinference")
 alpha <- .2
 lambda <- "cv"
 
@@ -19,6 +19,26 @@ for (i in 1:nrow(params_grid)) {
 cis <- do.call(dplyr::bind_rows, cis) %>% data.frame()
 
 
+
+cis %>%
+  mutate(lower_inf = is.infinite(lower), upper_inf = is.infinite(upper), both_inf = is.infinite(lower) & is.infinite(upper)) %>%
+  group_by(method) %>%
+  summarise(sum(lower_inf), sum(upper_inf), sum(both_inf), n())
+
+cis %>%
+  filter(variable %in% c("1375717_at", "1389759_at", "1378152_at"))
+
+cis %>%
+  mutate(sign_same = sign(lower) == sign(estimate) | sign(upper) == sign(estimate)) %>%
+  group_by(method) %>%
+  summarise(sum(sign_same))
+
+cis %>%
+  mutate(is_not_zero = lower > 0 | upper < 0) %>%
+  filter(method != "selective_inference" & is_not_zero)
+  # group_by(method) %>%
+  # summarise(sum(is_not_zero))
+
 pdf("./fig/comparison_data_scheetz.pdf", width = 7, height = 3)
-plot_ci_comparison(cis, nvars = 10)
+plot_ci_comparison(cis, nvars = 20)
 dev.off()

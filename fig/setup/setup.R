@@ -36,7 +36,8 @@ methods_pretty <- c(
   "zerosample2la" = "Lambda Adjusted",
   "debiased_normalized" = "Norm Debias",
   "debiased_corrected" = "Corrected Debias",
-  "full_debias" = "Full Debias"
+  "full_debias" = "Full Debias",
+  "samplealt" = "Temp"
 )
 
 # Options

@@ -41,24 +41,38 @@ per_var_data <- do.call(rbind, per_var_data) %>%
   summarise(Coverage = mean(covered) * 100) %>%
   ungroup()
 
+dummy_dat <- data.frame(x = rnorm(100), y = rnorm(100))
+dummy <- ggplot(dummy_dat, aes(x = x, y = y)) +
+  geom_point()
+
 
 wide_data <- per_var_data %>%
   pivot_wider(names_from = n, values_from = Coverage) %>%
   rename(Distribution = data_type) %>%
-  mutate(Distribution = stringr::str_to_title(Distribution))
+  mutate(Distribution = stringr::str_to_title(Distribution),
+         ` ` = "") %>%
+  select(` `, Distribution, `50`, `100`, `400`)
+
+ps <- list(
+  rlaplace(1000, rate = 1), rnorm(1000), rt(1000, df = 3), runif(1000, -1, 1),
+  rbeta(1000, .1, .1) -.5,
+  c(rep(c(rep(0.5, 30), rep(1, 10), rep(2, 10)), 2) * c(rep(1, 50), rep(-1, 50)), rep(0, 900)),
+  c(rnorm(300), rep(0, 700)),
+  c(rnorm(500), rep(0, 500))
+)
+
+ps <- lapply(ps, function(x) x / max(abs(x)))
 
 # Assuming wide_data is your data frame
-latex_table <- kable(wide_data,
-                     format = "latex",
-                     align = "cccc",  # Alignments for the columns
+latex_table <- kbl(wide_data,
+                     format = "html",
+                     align = "ccccc",  # Alignments for the columns
                      booktabs = TRUE,
-                     caption = "Coverage by Data Type and Sample Size",
                      digits = 1,
                      linesep = "") %>%
-  add_header_above(c(" " = 1, "Sample Size" = 3)) %>%
-  row_spec(0, extra_latex_after = "\\hline")
+  kable_classic(full_width = F) %>%
+  add_header_above(c("  " = 2, "Sample Size" = 3)) %>%
+  row_spec(0, extra_latex_after = "\\hline") %>%
+  column_spec(1, image = spec_hist(ps, breaks = 20))
 
-# Customizing the print output to match your desired LaTeX format
-cat(latex_table, file = "./tab/distribution_table.txt")  # Output to file
-
-
+save_kable(latex_table, file = "./fig/distribution_table.pdf")

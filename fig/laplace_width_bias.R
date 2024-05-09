@@ -137,53 +137,48 @@ for (i in 1:length(methods)) {
 plot_bias_hl <- do.call(rbind, plot_res) %>%
   ggplot(aes(x = xs, y = bias, color = method)) +
   geom_line() +
-  ggtitle("Towards Zero - Far From Zero Balance") +
   theme_bw() +
   xlab(expression(abs(beta))) +
-  ylab("P(Event)") +
+  ylab("P(Towards) - P(Away)") +
   scale_color_manual(name = "Method", values = colors)
 
 plot_bias_h <- do.call(rbind, plot_res) %>%
   ggplot(aes(x = xs, y = bias_high, color = method)) +
   geom_line() +
-  ggtitle("Far From Zero") +
   theme_bw() +
   xlab(NULL) +
-  ylab("P(Event)") +
+  ylab("P(Miss Away)") +
   scale_color_manual(name = "Method", values = colors) +
   theme(legend.position = "none")
 
 plot_bias_l <- do.call(rbind, plot_res) %>%
   ggplot(aes(x = xs, y = bias_low, color = method)) +
   geom_line() +
-  ggtitle("Towards Zero") +
   theme_bw() +
   xlab(NULL) +
-  ylab("P(Event)") +
+  ylab("P(Miss Towards)") +
   scale_color_manual(name = "Method", values = colors) +
   theme(legend.position = "none")
 
 plot_bias_s <- do.call(rbind, plot_res) %>%
   ggplot(aes(x = xs, y = bias_sign, color = method)) +
   geom_line() +
-  ggtitle("Sign Inversion") +
   theme_bw() +
   xlab(expression(abs(beta))) +
-  ylab("P(Inversion)") +
+  ylab("P(Type 3 Error)") +
   scale_color_manual(name = "Method", values = colors)
 
 # Create a layout matrix
-combined_plot <- (((plot_bias_l + plot_bias_h) +
-  plot_layout(axis_titles = "collect")) /
-  plot_bias_hl) +
-  plot_layout(guides = "collect")
+combined_plot <- (plot_bias_l + plot_bias_h) /
+  (plot_bias_hl + plot_bias_s) +
+  plot_layout(guides = "collect", axis_titles = "collect")
 pdf("./fig/laplace_bias_nfb.pdf", height = 4, width = 8)
 print(combined_plot)
 dev.off()
 
-pdf("./fig/laplace_bias_sign.pdf", height = 4, width = 8)
-print(plot_bias_s)
-dev.off()
+# pdf("./fig/laplace_bias_sign.pdf", height = 4, width = 8)
+# print(plot_bias_s)
+# dev.off()
 
 
 plot_width <- plot_width +
@@ -193,7 +188,7 @@ plot_width <- plot_width +
 
 plot_bias <- plot_bias +
   xlab(expression(abs(beta))) +
-  ylab("Bias") +
+  ylab("Central Interval Bias") +
   coord_cartesian(ylim = c(0, 0.35))
 
 library(cowplot)
