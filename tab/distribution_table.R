@@ -62,17 +62,17 @@ ps <- list(
 )
 
 ps <- lapply(ps, function(x) x / max(abs(x)))
+names(ps) <- paste0('distribution_table_', letters[1:length(ps)])
 
 # Assuming wide_data is your data frame
-latex_table <- kbl(wide_data,
-                     format = "html",
-                     align = "ccccc",  # Alignments for the columns
-                     booktabs = TRUE,
-                     digits = 1,
-                     linesep = "") %>%
-  kable_classic(full_width = F) %>%
+kbl(wide_data,
+    format = "latex",
+    align = "ccccc",  # Alignments for the columns
+    booktabs = TRUE,
+    digits = 1,
+    linesep = "",
+    table.envir = NULL) %>%
   add_header_above(c("  " = 2, "Sample Size" = 3)) %>%
-  row_spec(0, extra_latex_after = "\\hline") %>%
-  column_spec(1, image = spec_hist(ps, breaks = 20))
-
-save_kable(latex_table, file = "./fig/distribution_table.pdf")
+  column_spec(1, image = spec_hist(ps, breaks = 20, dir='./fig', file_type='pdf')) %>%
+  stringr::str_replace_all('file:.*?/fig/', '') %>%
+  write('tab/distribution_table.tex')
