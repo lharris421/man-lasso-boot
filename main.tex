@@ -131,7 +131,28 @@ All together this leads to the following steps to obtain CIs through the various
 
 We make the assertion that the ideal scenario for these methods is when the true distribution of $\bb$ follows a laplace (double exponential) distribution. This may raise the question of what rate should be used. In fact, this question could be generalized for any of the distributions which $\bb$ is drawn from in the simulations that follow. However, the data generating mechanism we use renders the choice of scale arbitrary. In what follows, we set SNR = 1 and $\sigma^2 = 1$ which imposes the restriction that $\bb^T\bb$ also equals 1. As a result, regardless of the scale parameter used, after normalization, the draws for $\bb$ will be identical (assuming the same seed is used). 
 
-\logan{ After considering more distributions, I'm not sure if the laplace being ideal is a necessary assertion to make. It almost seems like the uniform distribution is the ideal distribution and that overcoverage generally results as more density/mass is moved to zero. And, unless we pull Figure~\ref{Fig:true_lambda} out of an appendix, we really didn't end up using that under a laplace we know the true value of $\lambda$.}
+\logan{IGNORE: After considering more distributions, I'm not sure if the laplace being ideal is a necessary assertion to make. It almost seems like the uniform distribution is the ideal distribution and that overcoverage generally results as more density/mass is moved to zero. And, unless we pull Figure~\ref{Fig:true_lambda} out of an appendix, we really didn't end up using that under a laplace we know the true value of $\lambda$.}
+
+\subsection{Thm}
+
+Theorem: Assume $L(\boldsymbol{y}|\bt)$ is correctly specified according to the true data generating mechanism and $\pi(\boldsymbol{\theta})$ matches the true distribution of $\bt$, denoted here as $p(\bt)$, then credible sets obtained from $P(\bt|\boldsymbol{y})$ will have proper coverage. Note, the usage of $p$ here refers to the TRUE distribution.\\
+
+Proof: By definition, a $100(1-\alpha\%)$ credible region for $\boldsymbol{\theta}$ is any set $\boldsymbol{A}$ s.t. $P(\bt \in \boldsymbol{A} | \boldsymbol{y}) \geq 1 - \alpha$. For a given $\bt_0$, the coverage probability can be defined as $\int I(\bt_0 \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \bt_0)d\boldsymbol{y}$. However, we care not about what coverage is for a specific $\bt_0$ and rather what coverage is averaged over $p(\bt)$. That is $\int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \bt)d\boldsymbol{y}p(\bt)d\bt$:
+
+\as{
+  \begin{aligned}
+  \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \bt)d\boldsymbol{y}p(\bt)d\bt &= \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \bt)p(\bt)d\boldsymbol{y}d\bt \\
+  &=  \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) L(\boldsymbol{y}|\bt)\pi(\boldsymbol{\theta})d\boldsymbol{y}d\bt, \text{Assumed} \\
+  &=  \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) P(\bt|\boldsymbol{y})p(\boldsymbol{y})d\boldsymbol{y}d\bt \\
+  &=  \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) P(\bt|\boldsymbol{y})d\bt p(\boldsymbol{y})d\boldsymbol{y} \\
+  &=  \int \left[\int_{\boldsymbol{A}} I(\bt \in \boldsymbol{A} | \boldsymbol{y}) P(\bt|\boldsymbol{y})d\bt + \int_{\boldsymbol{A}^c} I(\bt \in \boldsymbol{A} | \boldsymbol{y}) P(\bt|\boldsymbol{y})d\bt \right] p(\boldsymbol{y})d\boldsymbol{y} \\
+  &=  \int \int_{\boldsymbol{A}} P(\bt|\boldsymbol{y})d\bt p(\boldsymbol{y})d\boldsymbol{y} \\
+  &\geq 1-\alpha  \int p(\boldsymbol{y})d\boldsymbol{y}, \text{By definition} \\
+  &= 1-\alpha
+  \end{aligned}
+}
+
+
 
 \subsection{Interval Behavior}
 
