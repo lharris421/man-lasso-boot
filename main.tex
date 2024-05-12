@@ -135,7 +135,7 @@ We make the assertion that the ideal scenario for these methods is when the true
 
 \subsection{Thm}
 
-Theorem: Assume $L(\boldsymbol{y}|\bt)$ is correctly specified according to the true data generating mechanism and $\pi(\boldsymbol{\theta})$ matches the true distribution of $\bt$, denoted here as $p(\bt)$, then credible sets obtained from $P(\bt|\boldsymbol{y})$ will have proper coverage. Note, the usage of $p$ here refers to the TRUE distribution.\\
+Theorem: Assume $L(\boldsymbol{y}|\bt)$ is correctly specified according to the true data generating mechanism and $\pi(\boldsymbol{\theta})$, the prior, matches the true distribution of $\bt$, denoted here as $p(\bt)$, then credible sets obtained from $P(\bt|\boldsymbol{y})$ will have proper coverage. Note, the usage of $p$ here refers to the TRUE distribution.\\
 
 Proof: By definition, a $100(1-\alpha\%)$ credible region for $\boldsymbol{\theta}$ is any set $\boldsymbol{A}$ s.t. $P(\bt \in \boldsymbol{A} | \boldsymbol{y}) \geq 1 - \alpha$. For a given $\bt_0$, the coverage probability can be defined as $\int I(\bt_0 \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \bt_0)d\boldsymbol{y}$. However, we care not about what coverage is for a specific $\bt_0$ and rather what coverage is averaged over $p(\bt)$. That is $\int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \bt)d\boldsymbol{y}p(\bt)d\bt$:
 
