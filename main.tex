@@ -135,14 +135,14 @@ We make the assertion that the ideal scenario for these methods is when the true
 
 \subsection{Thm}
 
-Theorem: Assume $L(\boldsymbol{y}|\bt)$ is correctly specified according to the true data generating mechanism and $\pi(\boldsymbol{\theta})$, the prior, matches the true distribution of $\bt$, denoted here as $p(\bt)$, then credible sets obtained from $P(\bt|\boldsymbol{y})$ will have proper coverage. Note, the usage of $p$ here refers to the TRUE distribution.\\
+Theorem: Assume $L(\bt|\boldsymbol{y})$ is correctly specified according to the true data generating mechanism, $p(\boldsymbol{y} | \bt)$, and that $\pi(\boldsymbol{\theta})$, the prior, matches the true distribution of $\bt$, denoted here as $p(\bt)$, then credible sets obtained from $P(\bt|\boldsymbol{y})$ will have proper coverage. \\
 
-Proof: By definition, a $100(1-\alpha\%)$ credible region for $\boldsymbol{\theta}$ is any set $\boldsymbol{A}$ s.t. $P(\bt \in \boldsymbol{A} | \boldsymbol{y}) \geq 1 - \alpha$. For a given $\bt_0$, the coverage probability can be defined as $\int I(\bt_0 \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \bt_0)d\boldsymbol{y}$. However, we care not about what coverage is for a specific $\bt_0$ and rather what coverage is averaged over $p(\bt)$. That is $\int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \bt)d\boldsymbol{y}p(\bt)d\bt$:
+Proof: By definition, a $100(1-\alpha\%)$ credible region for $\boldsymbol{\theta}$ is any set $\boldsymbol{A}$ s.t. $P(\bt \in \boldsymbol{A} | \boldsymbol{y}) \geq 1 - \alpha$. For a given $\bt_0$, the coverage probability can be defined as $\int I(\bt_0 \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \bt_0)d\boldsymbol{y}$. Averaged over $p(\bt)$, the average coverage probability can be defined as:
 
 \as{
   \begin{aligned}
   \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \bt)d\boldsymbol{y}p(\bt)d\bt &= \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \bt)p(\bt)d\boldsymbol{y}d\bt \\
-  &=  \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) L(\boldsymbol{y}|\bt)\pi(\boldsymbol{\theta})d\boldsymbol{y}d\bt, \text{Assumed} \\
+  &=  \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) L(\bt|\boldsymbol{y})\pi(\boldsymbol{\theta})d\boldsymbol{y}d\bt, \text{Assumed} \\
   &=  \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) P(\bt|\boldsymbol{y})p(\boldsymbol{y})d\boldsymbol{y}d\bt \\
   &=  \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) P(\bt|\boldsymbol{y})d\bt p(\boldsymbol{y})d\boldsymbol{y} \\
   &=  \int \left[\int_{\boldsymbol{A}} I(\bt \in \boldsymbol{A} | \boldsymbol{y}) P(\bt|\boldsymbol{y})d\bt + \int_{\boldsymbol{A}^c} I(\bt \in \boldsymbol{A} | \boldsymbol{y}) P(\bt|\boldsymbol{y})d\bt \right] p(\boldsymbol{y})d\boldsymbol{y} \\
@@ -207,7 +207,9 @@ This section explores a number of scenarios to help understand the behavior of t
 
 \subsubsection{Correlation}
 
-Now, lets consider some cases with higher levels of correlation. In Figure~\ref{Fig:correlation_structure}, the first row contains the coverages across 100 simulated datasets with n = p = 100 with $\beta \sim laplace(rate = 2)$ but with autoregressive correlation added. Note that for a moderate amount of correlation ($\rho = 0.4$), there is little impact of the coverage of the intervals (see Figure~\ref{Fig:laplace} for $\rho = 0$).  As we increase the correlation, however, we begin to see under coverage for larger values of n. That said, even with a significant amount of autoregressive correlation, we still observe a median coverage just under 70\%.
+Now, we consider the behavior of both Debiased and Hybrid where the covariates are generated under increasing levels of autoregressive correlation. Other than the addition of correlation, the set up of the simulation for the results displayed in Figure~\ref{Fig:correlation_structure} is the same as for the first simulation described. The boxplots provide the coverages across the 100 simulated datasets. The results for Hybrid and Debiased are in the top and bottom row respectively with the amount of correlation starting at $\rho = 0.4$ in the first column and increasing to $0.6$ in the second column and $0.8$ in the third. 
+
+As previously alluded to, even at the lower end of correlations introduced, Debiased noticeably undercovers even when $n = 4p = 100$. This is only exacerbated with increasing correlation. This, along with previously observed behavior, points to a lack of robustness for the Debiased bootstrap method. Hybrid, however, fares better in the presence of correlation. It takes the highest amount of autoregressive correlation ($\rho = 0.8$) to produce coverage that is noticeably below coverage. For a moderate amount of correlation ($\rho = 0.4$), there is little impact on the coverage of the intervals (see Figure~\ref{Fig:laplace_comparison} for $\rho = 0$ as a comparison). 
 
 \begin{figure}[hbtp]
   \includegraphics[width=\linewidth]{correlation_structure}
@@ -289,11 +291,16 @@ Specifically, the Bootstrap Lasso Projection (BLP) is also known as the de-spars
 
 \logan{Remove points that will be covered in results later}.
 
-Before considering simulation results, there are a couple important limitations of each method that should be noted. For BLP, it should be noted that by with its default arguments, it is an order of magnitude slower than the Hybrid Bootstrap which itself is an order of magnitude slower than SI. Additionally, as implemented, there is no easy way to specify the $\lambda$ used which defaults to the 1-SE solution from \texttt{cv.glmnet}. SI is much faster, but also tended to be much more fragile in our testing. In general, SI does not work for the $p > n$ case (it can, but only if the number of features selected is less than n) and CIs are only produced for variables in the active set. Additionally, it is cumbersome to implement and infinite bounds were more common than not when applied to data where n was on the order of p. As will be emphasized later, in similar scenarios SI also failed to converge in some iterations of the simulation performed. 
+Before considering simulation results, there are a couple important details that should be noted. As implemented in \texttt{hdi}, there is no way to specify the $\lambda$ used for BLP, which defaults to the 1-SE solution from \texttt{cv.glmnet}. \logan{Continue to describe the issue where and what is done for simulation and real data analysis.}
+
+
+An important note about SelInf is that it does not work for the $p > n$ case (it can, but only if the number of features selected is less than n) and CIs are only produced for variables in the active set. Additionally, it is cumbersome to apply \logan{(expand)}. 
 
 \subsubsection{Similation}
 
-The simulation results presented here are identical to the set up described in Section~\ref{Sec:Coverage}. In fact, the results for Hybrid are the same as used for the earlier figures just displayed differently. 
+\logan{Make sure to note how much slower BLP is by default. BLP is an order of magnitude slower than Hybrid which is an order of magnitude slower than SelInf. SI is much faster, but also tended to be much more fragile in our testing. Infinite bounds for Sel Inf. As will be emphasized later, in similar scenarios SI also failed to converge in some iterations of the simulation performed}
+
+The simulation results presented here are identical to the set up described in Section~\ref{Sec:Coverage}. In fact, the results for Hybrid are the same as used for the earlier figures, just displayed differently. 
 
 Referencing Figure~\ref{Fig:laplace_comparison}, both BLP and SI initially appear to perform strikingly well. Both have coverage very near that of nominal and lack the pattern seen with the methods proposed in this manuscript and instead provide rather consistent coverage regardless of the magnitude of $\beta$. However, \ref{Fig:laplace_other} tells a different story. First, although BLP provides average coverage rates the closest to $80\%$, there were a number of cases where the coverage dipped significantly. Potentially more concerning, with $n = 400$, the coverage noticeably drops below 80\%. Although the lasso thought of a model for high dimensional data, it is used across the entire spectrum of datasets, so it would be preferred to see convergence towards 80\% coverage.
 
