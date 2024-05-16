@@ -129,29 +129,25 @@ All together this leads to the following steps to obtain CIs through the various
 
 \section{Results}
 
-We make the assertion that the ideal scenario for these methods is when the true distribution of $\bb$ follows a laplace (double exponential) distribution. This may raise the question of what rate should be used. In fact, this question could be generalized for any of the distributions which $\bb$ is drawn from in the simulations that follow. However, the data generating mechanism we use renders the choice of scale arbitrary. In what follows, we set SNR = 1 and $\sigma^2 = 1$ which imposes the restriction that $\bb^T\bb$ also equals 1. As a result, regardless of the scale parameter used, after normalization, the draws for $\bb$ will be identical (assuming the same seed is used). 
-
-\logan{IGNORE: After considering more distributions, I'm not sure if the laplace being ideal is a necessary assertion to make. It almost seems like the uniform distribution is the ideal distribution and that overcoverage generally results as more density/mass is moved to zero. And, unless we pull Figure~\ref{Fig:true_lambda} out of an appendix, we really didn't end up using that under a laplace we know the true value of $\lambda$.}
+We make the assertion that the ideal scenario for the proposed methods is when the true distribution of $\bb$ follows a laplace (double exponential) distribution. This assertion is based on Theorem~\logan{5.1}, \logan{update after wording set for thm}. This may raise the question of what rate should be used. In fact, this question could be generalized for any of the distributions which $\bb$ is drawn from in the simulations that follow. However, the data generating mechanism we use renders the choice of scale arbitrary. In what follows, we set SNR = 1 and $\sigma^2 = 1$ which imposes the restriction that $\bb^T\bb$ also equals 1. As a result, regardless of the scale parameter used, after standardization, the draws for $\bb$ will be identical (assuming the same seed is used). 
 
 \subsection{Thm}
 
-Theorem: Assume $L(\bt|\boldsymbol{y})$ is correctly specified according to the true data generating mechanism, $p(\boldsymbol{y} | \bt)$, and that $\pi(\boldsymbol{\theta})$, the prior, matches the true distribution of $\bt$, denoted here as $p(\bt)$, then credible sets obtained from $P(\bt|\boldsymbol{y})$ will have proper coverage. \\
+Theorem: If the likelihood is correctly specified according to the true data generating mechanism, $p(\boldsymbol{y} | \bt)$, then credible sets obtained from $P(\bt|\boldsymbol{y})$ will have proper coverage when averaged over the prior distribution $p(\bt)$. \logan{Still unsure how to make the statement that the prior matches the true distribution without sounding too Bayesian.} \\
 
-Proof: By definition, a $100(1-\alpha\%)$ credible region for $\boldsymbol{\theta}$ is any set $\boldsymbol{A}$ s.t. $P(\bt \in \boldsymbol{A} | \boldsymbol{y}) \geq 1 - \alpha$. For a given $\bt_0$, the coverage probability can be defined as $\int I(\bt_0 \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \bt_0)d\boldsymbol{y}$. Averaged over $p(\bt)$, the average coverage probability can be defined as:
+Proof: By definition, a $100(1-\alpha\%)$ credible region for $\boldsymbol{\theta}$ is any set $\boldsymbol{A}$ s.t. $p(\bt \in \boldsymbol{A} | \boldsymbol{y}) \geq 1 - \alpha$. For a given $\bt_0$, the coverage probability can be defined as $\int I(\bt_0 \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \bt_0)d\boldsymbol{y}$. Averaged over $p(\bt)$, the average coverage probability can be defined as:
 
 \as{
   \begin{aligned}
   \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \bt)d\boldsymbol{y}p(\bt)d\bt &= \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \bt)p(\bt)d\boldsymbol{y}d\bt \\
-  &=  \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) L(\bt|\boldsymbol{y})\pi(\boldsymbol{\theta})d\boldsymbol{y}d\bt, \text{Assumed} \\
-  &=  \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) P(\bt|\boldsymbol{y})p(\boldsymbol{y})d\boldsymbol{y}d\bt \\
-  &=  \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) P(\bt|\boldsymbol{y})d\bt p(\boldsymbol{y})d\boldsymbol{y} \\
-  &=  \int \left[\int_{\boldsymbol{A}} I(\bt \in \boldsymbol{A} | \boldsymbol{y}) P(\bt|\boldsymbol{y})d\bt + \int_{\boldsymbol{A}^c} I(\bt \in \boldsymbol{A} | \boldsymbol{y}) P(\bt|\boldsymbol{y})d\bt \right] p(\boldsymbol{y})d\boldsymbol{y} \\
-  &=  \int \int_{\boldsymbol{A}} P(\bt|\boldsymbol{y})d\bt p(\boldsymbol{y})d\boldsymbol{y} \\
-  &\geq (1-\alpha)  \int p(\boldsymbol{y})d\boldsymbol{y}, \text{By definition} \\
+  &=  \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) p(\bt|\boldsymbol{y})p(\boldsymbol{y})d\boldsymbol{y}d\bt^* \\
+  &=  \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) p(\bt|\boldsymbol{y})d\bt p(\boldsymbol{y})d\boldsymbol{y} \\
+  &=  \int \int_{\boldsymbol{A}} p(\bt|\boldsymbol{y})d\bt p(\boldsymbol{y})d\boldsymbol{y} \\
+  &\geq (1-\alpha)  \int p(\boldsymbol{y})d\boldsymbol{y} \\
   &= 1-\alpha
   \end{aligned}
 }
-
+* Make note about step only working under correctly specified conditions
 
 
 \subsection{Interval Behavior}
@@ -287,11 +283,11 @@ There are few other methods for obtaining intervals for the lasso. There are eve
 
 Specifically, the Bootstrap Lasso Projection (BLP) is also known as the de-sparsified Lasso and by default the method reselects $\lambda$ for each bootstrap sample. Selective Inference (SI) doesn't directly correct for the bias introduced by penalization but this method does only provide intervals for variables with non-zero coefficients. With these points in mind, we compare the relative performance of the proposed Hybrid Bootstrap with these two alternatives.
 
-Before considering simulation results, there are a couple important details that should be noted. As implemented in \texttt{hdi}, there is no way to specify the $\lambda$ used for BLP, which defaults to the 1-SE solution from \texttt{cv.glmnet}. For the simulation study, we use this ``out of the box'' setup, however, it was unsatisfactory for the comparison in the subsequent data analyses. For the data analyses, we forked the \texttt{hdi} repository and adjusted it to allow for the specification of $\lambda$. Specifically for the use here, to allow for the use of the $\lambda$ which minimizes CVE. We did attempt to use this version in the real data analysis, but this highlighted a limitation for BLP which made such usage \logan{impossible}. Specifically, BLP only works when the number of non-zero coefficients is less than n, something that is more likely to occur for the 1-SE solution. As the simulation is set up, this proved prohibitive. It is important then to note that for BLP, the results obtained for the real data analysis are only obtainable if one takes the steps to modify the code and are not directly attainable through the \texttt{hdi} package.
+\logan{Need to move some of these comments with updated structure.}
+
+Before considering simulation results, there are a couple important details that should be noted. As implemented in \texttt{hdi}, there is no way to specify the $\lambda$ used for BLP, which defaults to the 1-SE solution from \texttt{cv.glmnet}. For the simulation study, we use this ``out of the box'' setup, however, it was unsatisfactory for the comparison in the subsequent data analyses. For the data analyses, we forked the \texttt{hdi} repository and adjusted it to allow for the specification of $\lambda$. Specifically for the use here, to allow for the use of the $\lambda$ which minimizes CVE. We did attempt to use this version in the simulation study, but this highlighted a limitation for BLP which made such usage infeasible under the desired setup. Specifically, BLP only works when the number of non-zero coefficients is less than n, something that is more likely to occur for the 1-SE solution. As the simulation is set up, this proved prohibitive. It is important then to note that for BLP, the results obtained for the real data analysis are only obtainable if one takes the steps to modify the code and are not directly attainable through the \texttt{hdi} package.
 
 An important note about SelInf is that it similarly does not work unless the number of variables selected is less than or equal to n. Additionally, CIs are only produced for variables in the active set.
-
-\logan{Should I avoid remarking on the implimentation and focus instead on the methods as much as possible? Specifically, SelInf is somewhat annoying to impliment which I could see opening up a great deal of room for error... but this is more due to choices made during implimnetation.}
 
 \subsubsection{Similation}
 
@@ -319,7 +315,7 @@ Before moving onto the results for SelInf, there are a couple numbers not in Fig
   \label{Tab:selective_inference}
 \end{table}
 
-Staying with SI but directing our attention towards the interval widths, the concern surrounding this method only grows. Of the 80 that simulations that suceeded for n = 50, the median width of the intervals produced (from the variables included in the model, i.e. column 3) was infinite for 18 of the simulated datasets. For n = 100, 12 of the 94 had infinite median widths. By n = 400, only 3 of the simulations had infinite median widths. However, even when the medians were finite, they were nearly always extremely wide, even for n = 400. This behavior was also observed when applying the method to real data sets which will be covered in \logan{Section...}. BLP and Hybrid on the other hand produce intervals which are more similar in width although BLP does tend to produce wider intervals and with a bit more variability in the width.
+Staying with SI but directing our attention towards the interval widths, the concern surrounding this method only grows. Of the 80 that simulations that suceeded for n = 50, the median width of the intervals produced (from the variables included in the model, i.e. column 3) was infinite for 18 of the simulated datasets. For n = 100, 12 of the 94 had infinite median widths. By n = 400, only 3 of the simulations had infinite median widths. However, even when the medians were finite, they were nearly always extremely wide, even for n = 400. This behavior was also observed when applying the method to real data sets which will be covered in Section~\ref{Sec:RDA}. BLP and Hybrid on the other hand produce intervals which are more similar in width although BLP does tend to produce wider intervals and with a bit more variability in the width.
 
 The runtime of the three methods also differs considerably with SI being the fastest and BLP being by far the slowest with about an order of magnitude difference separating the methods respectively. Additionally with BLP, there is an odd non-monotonic behavior which we looked into briefly but could not find an explanation for. This behavior occurred in all reruns of the same simulation. Hybrid and SI both have a monotonically increasing relationship with sample size, although Hybrid is more affected by the increasing sample size. In our testing, speed was not a concern for SI, was noticeable for Hybrid, and prohibitive for BLP which will be returned to in Section~\ref{Sec:Scheetz2006}. BLP is particularly slow with its default arguments because of the reselection of $\lambda$ (using CV) for each iteration of the bootstrap.
 
@@ -334,10 +330,13 @@ The runtime of the three methods also differs considerably with SI being the fas
   \caption{\label{Fig:laplace_other} Caption goes here}
 \end{figure}
 
+\section{Real Data Analysis}\label{Sec:RDA}
 
-\subsubsection{Application to the World Health Organization study on acute respiratory illnesses (whoari)}
+We conclude the results section by considering the intervals produced by the Hybrid bootstrap applied to two datasets: \texttt{whoari} (World Health Organization study on acute respiratory illnesses) and \texttt{Scheetz2006} (Gene expression in the mammalian eye). Additionally we compare the intervals produced by the Hybrid bootstrap to those of BLP and SI.
 
-\logan{How to organize the real data analysis. Don't want sections 4 levels deep but also wanted to break up the analyses more clearly...}
+It should be noted that these two datasets represent two extremes in terms of dimensionality. \texttt{whoari} contains 816 observations and 66 features. However, at the other end, \texttt{Scheetz2006} is certainly a high dimensional dataset, containing just 120 observations but with 18975 features.
+
+\subsection{World Health Organization study on acute respiratory illnesses (whoari)}
 
 The \texttt{whoari} dataset comes from the study ``Development of a clinical prediction model for an ordinal outcome: the World Health Organization multicentre study of clinical signs and etiological agents of pneumonia, sepis and meningitis in young infants'' written by \cite{Harrell1998}. The study considered a few acute illness in young infants across several countries, and the dataset used here is a subset of 816 infants who presented with pneumonia in the country Ethiopia. As alluded to in the title, collection of this data was done with the intention of building a prediction model to assess the severity of an infant presenting with a serious infection, which represents the main cause of mobility and mortality in infants under 3 months in these developing countries. Diagnosis of severity is a difficult task, and developing rules for grading the severity of disease are important for prompt delivery of treatment for those who need it while also avoiding unnecessarily and costly treatments where possible considering the limited resources in these developing countries. \dots
 
@@ -356,12 +355,7 @@ It should be emphasized that SelInf selects (and provides intervals for) 37 of t
   \caption{\label{Fig:comparison_data_whoari} Caption goes here}
 \end{figure}
 
-\subsubsection{Application to Gene expression in the mammalian eye (Scheetz2006)}\label{Sec:Scheetz2006}
-
-We conclude the results section by considering the intervals produced by the Hybrid bootstrap applied to two datasets: \texttt{whoari} (World Health Organization study on acute respiratory illnesses) and \texttt{Scheetz2006} (Gene expression in the mammalian eye). Additionally we compare the intervals produced by the Hybrid bootstrap to those of BLP and SI.
-
-It should be noted that these two datasets represent two extremes in terms of dimensionality. \texttt{whoari} contains 816 observations and 66 features. However, at the other end, \texttt{Scheetz2006} is certainly a high dimensional dataset, containing just 120 observations but with 18975 features.
-
+\subsection{Gene expression in the mammalian eye (Scheetz2006)}\label{Sec:Scheetz2006}
 
 In the case where p is large relative to n, SelInf's difficulties are amplified as seen in the simulation. However, applied to \texttt{Sheetz2006}, where $p > 100n$, the issues are unignorable. SelInf provides intervals for 66 of the 18975 features however, every single one of them has a lower or upper bound that is infinite. Additionally, for the bounds that are finite, they are all also extremely large compared to their respective point estimates and in comparison to the intervals produced by Hybrid and BLP. None of the intervals contains zero, either. Potentially even more odd is that of the 66 intervals, 62 of them were completely of the opposite sign as the corresponding estimate. 
 
