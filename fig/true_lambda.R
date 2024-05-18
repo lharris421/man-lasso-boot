@@ -1,22 +1,17 @@
 ## Setup
 source("./fig/setup/setup.R")
 
-dlaplace <- function(x, rate = 1) {
-  dexp(abs(x), rate) / 2
-}
-
 plots <- list()
 
 method <- "zerosample2"
 data_type <- "laplace"
-corr <- "exchangeable"
-rho <- 0
+corr <- NA
+rho <- NA
 
 per_var_data <- list()
 alpha <- .2
 p <- 100
 ns <- p * nprod
-rate <- 2
 SNR <- 1
 modifier <- c("tl", "tls")
 
@@ -24,13 +19,13 @@ modifier <- c("tl", "tls")
 plots <- list()
 for (i in 1:length(modifier)) {
   per_var_data <- list()
-  params_grid <- expand.grid(list(data = data_type, n = ns, rate = rate, snr = SNR, lambda = "cv",
+  params_grid <- expand.grid(list(data = data_type, n = ns, snr = SNR, lambda = "cv",
                                   correlation_structure = corr, correlation = rho, method = method,
                                   ci_method = "quantile", nominal_coverage = alpha * 100, p = p, modifier = modifier[i]))
 
   for (j in 1:length(ns)) {
-    read_objects(rds_path, params_grid[j,])
-    per_var_data[[j]] <- per_var_n
+    res_list <- read_objects(rds_path, params_grid[j,], save_method = "rds")
+    per_var_data[[j]] <- res_list$per_var_n
   }
   per_var_data <- do.call(rbind, per_var_data) %>%
     data.frame()

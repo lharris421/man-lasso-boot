@@ -28,6 +28,15 @@ pdat <- res[[1]] %>%
                 lambda = lambda_seq[lambda_ind],
                 truth = abs(truth))
 
+lambda_cov <- pdat %>%
+  group_by(lambda) %>%
+  summarise(off_coverage = abs(mean(covered) - .8)) %>%
+  ungroup() %>%
+  arrange(off_coverage) %>%
+  head(1) %>%
+  pull(lambda)
+
+
 
 # Fit a binomial model with the transformed lambda
 model_cov <- gam(covered ~ te(lambda, truth), data = pdat, family = binomial)
@@ -48,6 +57,7 @@ plt_cov <- ggplot(grid, aes(x = lambda, y = truth, fill = adjusted_coverage)) +
   labs(y = "Truth", fill = "Rel. Cov.", x = expression(lambda)) +
   scale_x_log10(trans = c("log10", "reverse"), breaks = breaks_log(base=10), labels = label_log(10, digits = 1)) +
   geom_vline(xintercept = mean(lambdas[[1]]), alpha = .5, col = "red") +
+  geom_vline(xintercept = lambda_cov, alpha = .5, col = "blue")
   theme_minimal() +
   theme(legend.title = element_text(size = 7),
         legend.text = element_text(size = 5),

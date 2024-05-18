@@ -89,8 +89,10 @@ plot_bias <- do.call(rbind, plot_res) %>%
 miss_low <- function(lower, upper, truth) {
   case_when(
     lower <= truth & upper >= truth ~ 0,
-    sign(truth) == 1 & sign(upper) %in% c(0, 1) & upper < truth  ~ 1,
-    sign(truth) == -1 & sign(lower) %in% c(-1, 0) & lower > truth ~ 1,
+    sign(truth) == 0 ~ 0,
+    sign(truth) == 1 & sign(upper) == 1 & upper < truth  ~ 1,
+    sign(truth) == -1 & sign(lower) == -1 & lower > truth ~ 1,
+    sign(truth) != 0 & sign(lower) == 0 & sign(upper) == 0 ~ 1,
     TRUE ~ 0
   )
 }
@@ -105,8 +107,8 @@ miss_high <- function(lower, upper, truth) {
 sign_inversion <- function(lower, upper, truth) {
   case_when(
     lower <= truth & upper >= truth ~ 0,
-    sign(truth) == 1 & sign(upper) == -1 ~ 1,
-    sign(truth) == -1 & sign(lower) == 1 ~ 1,
+    (sign(truth) == 1 & sign(upper) == -1) | (sign(truth) == 1 & sign(upper) == 0 & sign(lower) == -1) ~ 1,
+    (sign(truth) == -1 & sign(lower) == 1) | (sign(truth) == -1 & sign(lower) == 0 & sign(upper) == 1) ~ 1,
     TRUE ~ 0
   )
 }
