@@ -73,6 +73,7 @@ for (i in 1:nrow(params_grid)) {
       pivot_longer(lower:upper, names_to = "bound", values_to = "value")
   }
 
+  pdat$variable <- factor(pdat$variable, levels = c("N1", "B1", "A1"))
 
  plots[[1 + 2*(i-1)]] <- pdat %>%
     ggplot() +
@@ -103,7 +104,7 @@ for (i in 1:nrow(params_grid)) {
    colnames(ridge_example) <- tolower(colnames(ridge_example))
    tmp_plot <- plot_ridge(ridge_example, n = 20)
  } else {
-   tmp_plot <- plot(current_example, ci_method = ci_method, n = 20)
+   tmp_plot <- plot(current_example, n = 20, original_order = TRUE)
  }
  plots[[2 + 2*(i-1)]] <- tmp_plot +
    coord_cartesian(xlim = c(-1, 2)) +

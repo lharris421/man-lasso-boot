@@ -70,6 +70,22 @@ for (j in seq_along(ns)) {
     xs <- seq(0, cutoff, by = 0.01)
     line_data[[i]] <- predict_covered(tmp, xs, methods[i])
     line_data_avg[[i]] <- data.frame(avg = mean(tmp$covered), method = methods_pretty[methods[i]])
+
+    tmp %>%
+      mutate(non_zero = abs(truth) > 1.009245,
+             not_zero = lower > 0 | upper < 0) %>%
+      filter(not_zero) %>%
+      pull(non_zero) %>%
+      table() %>%
+      print()
+
+    tmp %>%
+      mutate(is_zero = abs(truth) < 1.009245,
+             zero = lower < 0 & upper > 0) %>%
+      filter(zero) %>%
+      pull(is_zero) %>%
+      table() %>%
+      print()
   }
 
   line_data_avg <- do.call(rbind, line_data_avg)

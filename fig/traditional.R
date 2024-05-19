@@ -40,9 +40,9 @@ true_vals <- true_vals[kept_vars]
 ## Traditional Bootstrap
 plots <- list()
 for (i in 1:length(methods)) {
-  ci <- ci.boot.ncvreg(res[[i]], ci_method = ci_method, original_data = dat)
+  ci <- ci.boot.ncvreg(res[[i]])
   cov <- coverages[methods[i]]
-  plots[[i]] <- plot(res[[i]], n = 30, ci_method = ci_method, original_data = dat) +
+  plots[[i]] <- plot(res[[i]], n = 30) +
     ggtitle(glue("{methods_pretty[methods[i]]} - Coverage: {round(cov * 100, 1)} %")) +
     ylab("Variable") +
     geom_point(data = data.frame(y = names(true_vals), x = true_vals), aes(x = x, y = y), color = "red", shape = "|") +

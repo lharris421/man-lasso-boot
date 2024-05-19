@@ -12,7 +12,7 @@ source("./fig/setup/setup.R")
 plots <- list()
 
 methods <- c("zerosample2")
-n_values <- c(50, 100, 400) # ns values you are interested in
+n_values <- c(50, 100, 400, 1000) # ns values you are interested in
 data_type <- c("laplace", "normal", "t", "uniform", "beta", "sparse 1", "sparse 2", "sparse 3")
 SNR <- 1
 alpha <- .2
@@ -41,17 +41,12 @@ per_var_data <- do.call(rbind, per_var_data) %>%
   summarise(Coverage = mean(covered) * 100) %>%
   ungroup()
 
-dummy_dat <- data.frame(x = rnorm(100), y = rnorm(100))
-dummy <- ggplot(dummy_dat, aes(x = x, y = y)) +
-  geom_point()
-
-
 wide_data <- per_var_data %>%
   pivot_wider(names_from = n, values_from = Coverage) %>%
   rename(Distribution = data_type) %>%
   mutate(Distribution = stringr::str_to_title(Distribution),
          ` ` = "") %>%
-  select(` `, Distribution, `50`, `100`, `400`)
+  select(` `, Distribution, `50`, `100`, `400`, `1000`)
 
 ps <- list(
   rlaplace(1000, rate = 1), rnorm(1000), rt(1000, df = 3), runif(1000, -1, 1),
@@ -67,12 +62,12 @@ names(ps) <- paste0('distribution_table_', letters[1:length(ps)])
 # Assuming wide_data is your data frame
 kbl(wide_data,
     format = "latex",
-    align = "ccccc",  # Alignments for the columns
+    align = "cccccc",  # Alignments for the columns
     booktabs = TRUE,
     digits = 1,
     linesep = "",
     table.envir = NULL) %>%
-  add_header_above(c("  " = 2, "Sample Size" = 3)) %>%
+  add_header_above(c("  " = 2, "Sample Size" = 4)) %>%
   column_spec(1, image = spec_hist(ps, breaks = 20, dir='./fig', file_type='pdf')) %>%
   stringr::str_replace_all('file:.*?/fig/', '') %>%
   write('tab/distribution_table.tex')

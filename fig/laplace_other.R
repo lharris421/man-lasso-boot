@@ -90,7 +90,17 @@ per_var_data %>%
   ungroup() %>%
   mutate(group = glue("{method}-{n}")) %>%
   group_by(group) %>%
-  summarise(nonfinite_median = mean( is.infinite(width)))
+  summarise(nonfinite_median = mean(is.infinite(width)))
+
+per_var_data %>%
+  filter(method == "selectiveinference") %>%
+  mutate(width = upper - lower) %>%
+  group_by(method, group, n) %>%
+  summarise(width = any(is.infinite(width), na.rm = TRUE)) %>%
+  ungroup() %>%
+  mutate(group = glue("{method}-{n}")) %>%
+  group_by(group) %>%
+  summarise(nonfinite_median = sum(width))
 
 
 pdf("./fig/laplace_other.pdf", height = 5, width = 7)

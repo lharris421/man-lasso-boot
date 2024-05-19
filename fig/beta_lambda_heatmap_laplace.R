@@ -14,6 +14,7 @@ base_params <- list(data = "laplace",
 
 res_list <- read_objects(rds_path, expand.grid(base_params), save_method = "rds")
 lambdas <- res_list$lambdas
+true_lambdas <- res_list$true_lambdas
 res <- res_list$res
 
 lambda_max <- 1
@@ -57,7 +58,8 @@ plt_cov <- ggplot(grid, aes(x = lambda, y = truth, fill = adjusted_coverage)) +
   labs(y = "Truth", fill = "Rel. Cov.", x = expression(lambda)) +
   scale_x_log10(trans = c("log10", "reverse"), breaks = breaks_log(base=10), labels = label_log(10, digits = 1)) +
   geom_vline(xintercept = mean(lambdas[[1]]), alpha = .5, col = "red") +
-  geom_vline(xintercept = lambda_cov, alpha = .5, col = "blue")
+  geom_vline(xintercept = lambda_cov, alpha = .5, col = "blue") +
+  geom_vline(xintercept = mean(true_lambdas[[1]]), alpha = .5, col = "black") +
   theme_minimal() +
   theme(legend.title = element_text(size = 7),
         legend.text = element_text(size = 5),
