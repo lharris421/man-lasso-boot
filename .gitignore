@@ -14,3 +14,4 @@ latex/
 *.fdb_latexmk
 *.fls
 *.txt
+tab/distribution_table.tex
