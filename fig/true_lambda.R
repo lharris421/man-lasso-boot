@@ -5,44 +5,66 @@ plots <- list()
 
 method <- "zerosample2"
 data_type <- "laplace"
-corr <- NA
-rho <- NA
+corr <- "exchangeable"
+rho <- 0
 
 per_var_data <- list()
-alpha <- .2
+alphas <- c(0.2)
 p <- 100
 ns <- p * nprod
+rate <- 2
 SNR <- 1
 modifier <- c("tl", "tls")
 
-# Fetching and combining data
-plots <- list()
-for (i in 1:length(modifier)) {
-  per_var_data <- list()
-  params_grid <- expand.grid(list(data = data_type, n = ns, snr = SNR, lambda = "cv",
-                                  correlation_structure = corr, correlation = rho, method = method,
-                                  ci_method = "quantile", nominal_coverage = alpha * 100, p = p, modifier = modifier[i]))
+library(dplyr)
+library(ggplot2)
+library(mgcv)  # For gam()
 
-  for (j in 1:length(ns)) {
-    res_list <- read_objects(rds_path, params_grid[j,], save_method = "rds")
-    per_var_data[[j]] <- res_list$per_var_n
-  }
-  per_var_data <- do.call(rbind, per_var_data) %>%
-    data.frame()
-  plots[[i]] <- single_method_plot(per_var_data, ns, alpha) +
-    ggtitle(paste0("Modifier = ", params_grid$modifier)) +
-    theme(legend.position = "none")
+# Expand grid for all combinations
+params_grid <- expand.grid(data = data_type, n = ns, snr = SNR, lambda = "cv",
+                           method = method, ci_method = "quantile",
+                           nominal_coverage = alphas * 100, p = p,
+                           modifier = modifier, stringsAsFactors = FALSE)
+
+# Function to read and process each combination, integrating single_method_plot logic
+read_process_data <- function(params) {
+  res_list <- read_objects(rds_path, params, save_method = "rds")
+
+  per_var_data <- res_list$per_var_n
+  cutoff <- round(quantile(abs(per_var_data$truth), .98), 1)
+
+  tmp <- per_var_data %>%
+    mutate(
+      covered = lower <= truth & upper >= truth,
+      mag_truth = abs(truth),
+      covered = as.numeric(covered)
+    ) %>%
+    filter(n == params$n)
+
+  fit <- gam(covered ~ s(mag_truth) + s(group, bs = "re"), data = tmp, family = binomial)
+  xs <- seq(0, cutoff, by = .01)
+  ys <- predict(fit, data.frame(mag_truth = xs, group = 101), type = "response")
+
+  line_data <- data.frame(x = xs, y = ys, n = factor(params$n), alpha = params$nominal_coverage, modifier = params$modifier, which = "curve")
+  mean_coverage <- data.frame(y = mean(tmp$covered), x = xs, n = factor(params$n), alpha = params$nominal_coverage, modifier = params$modifier, which = "mean")
+  line_data <- bind_rows(line_data, mean_coverage)
+
+  return(line_data)
 }
 
-plots[[1]] <- plots[[1]] +
-  theme(legend.position = c(1, .05),
-        legend.justification = c("right", "bottom"),
-        legend.direction = "horizontal",
-        legend.box.just = "right",
-        legend.margin = margin(6, 6, 6, 6),
-        legend.background = element_rect(fill = "transparent"))
+# Apply the function across all parameter combinations and bind rows
+all_data <- do.call(rbind, lapply(1:nrow(params_grid), function(i) read_process_data(params_grid[i, ])))
 
+
+# Plotting with facet wrap
 pdf("./fig/true_lambda.pdf", height = 3.5)
-g <- grid.arrange(grobs = plots, ncol = 2, nrow = 1)
+ggplot() +
+  geom_line(data = all_data %>% filter(which == "curve"), aes(x = x, y = y, color = n)) +
+  geom_line(data = all_data %>% filter(which == "mean"), aes(x = x, y = y, color = n), lty = "dashed") +
+  facet_wrap(.~modifier) +
+  geom_hline(data = all_data, aes(yintercept = (1 - as.numeric(alpha)/100)), color = "black") +
+  theme_bw() +
+  labs(x = expression(abs(beta)), y = "Estimated Coverage Probability") +
+  scale_color_manual(name = "N", values = colors) +
+  coord_cartesian(ylim = c(0, 1))
 dev.off()
-
