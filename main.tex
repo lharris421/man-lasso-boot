@@ -1,5 +1,11 @@
 \section{Introduction}
 
+\pb{I suggest the organization: \\
+  Lasso is great (p1 is fine) \\
+  Inference is hard (p2 should mention some stuff like knockoff filter, gaussian mirror) \\
+  What about bootstrapping? \\
+  Main idea of our paper}
+
 Since its unveiling by \cite{Tibshirani1996}, the Lasso (Least Absolute Shrinkage and Selection Operator) has been a popular model of choice, even in cases which would not necessarily be classified as high-dimensional. Its ability to both do variable selection and estimation lends itself to a particular ease of use. Additionally, in scenarios where both predictive accuracy and interpretability are desired, the Lasso generally excels. This is particularly useful for models with a large number of covariates and the underlying model is believed to be sparse but where the exact subset of significant predictors is unknown. In such scenarios, the Lasso helps to identify the most relevant variables leading to a more parsimonious and hence interpretable model. \cite{HTF2009} provides an overview of the Lasso's performance in various settings, demonstrating its optimality in various examples in which the situations and results desired are similar to those previously mentioned. With that said, inference for the lasso has proven to be a difficult task, especially when one desires to obtain proper confidence intervals.
 
 The challenges of constructing confidence intervals for the lasso has lead to various alternative approaches in the literature. For example, the concept of post-selection inference as discussed in \cite{LeeEtAl2016} aims to account for the uncertainty in model selection by conditioning on the selected model. Alternatively, \cite{ZhangZhang2014} focuses on a desparsified approach to correct the bias of the lasso and facilitate more traditional forms of inference. Some focus has been placed on using the bootstrap to produce confidence intervals, however, the conventional opinion since \cite{Chatterjee2010} is that the traditional use of bootstrapping to produce confidence intervals for penalized regression is suboptimal. The suboptimality arises directly due to the inherent bias and sparsity of estimates produced by the lasso penalty.
@@ -8,7 +14,16 @@ Thus, we take a different perspective and raise a new question to conventional w
 
 Section~\ref{Sec:Difficulties} ...
 
-\section{Difficulties of Producing Confidence Intervals for the lasso}\label{Sec:Difficulties}
+\section{Difficulties of Producing Confidence Intervals for the lasso}
+\label{Sec:Difficulties}
+
+\pb{This is way jumping the gun. The point of this section is: why doesn't the bootstrap CI work (in the traditional sense)? Any discussion of ``faithful to the model fit'' has to come much later; it makes no sense to talk about it yet.\\
+  \\
+  I don't like ``bias tradeoff'' as a name for this issue. I feel like the issue is more with respect to: What coverage are we interested? Each interval has to have exactly 95\% coverage no matter what $\beta$ is? Or the \emph{collection} of intervals has to have 95\% coverage over a \emph{distribution of likely values of} $\beta$. Bias is kind of related to this, I guess, but the \emph{inherent} issue is not bias but the question of looking at a single interval in isolation or looking at a collection of intervals together.\\
+  \\
+  I think the theorem should go here -- it clearly illustrates what we're talking about.\\
+  \\
+  Also, I think we should cover epsilon conundrum first: it's a very straightforward problem, easily explained, and fixable. Let's tackle this first and the thorny philosophical issues second.}
 
 We see the difficulty of constructing HDCIs arising from two problems when proposing to use bootstrapping for penalized regression. We will refer to these obstacles as,
 
@@ -22,15 +37,17 @@ The Bias Tradeoff refers to the inherent bias introduced by penalization in orde
 The second problem, the Epsilon Conundrum, is also related to the shrinkage but arises as an arguably more disturbing manifestation: confidence intervals with one or both endpoints exactly equal to zero. Some penalized regression methods, particularly the lasso, result in a sparse solution. If using a traditional quantile based bootstrap confidence interval, this will lead to an interval of [0,0] if a given variable is rarely or never included in the active set. As the dimensionality of the problem grows, this becomes an increasing occurrence leading to a large majority of intervals possessing a length of zero. When the true value of the coefficient is 0, the interval at least contains the truth. However, this issue is particularly troublesome when one considers what happens when the true value is not precisely zero, as is likely the case in most reasonable scenarios. By just shifting the true value by $\eps$, an immediate drop in coverage would occur, hence the name: the Epsilon Conundrum. Figure~\ref{Fig:traditional}, shows that this is exactly what occurs when the Traditional bootstrap is applied to the lasso. In this example, 100 datasets were generated, each with 94 coefficients randomly set to be about $\pm$ 3e-10 with the other 6 being relatively large in comparison. The plot provides 20 CIs as examples, corresponding point estimates, and the true values (red). Across all 100 datasets, the average coverage was 26.5\% which is far below the nominal coverage rate which was set to be 80\%. This problem is addressed in our novel approach to producing bootstrap based confidence intervals for the lasso.
 
 \begin{figure}[hbtp]
-  \includegraphics[width=\linewidth]{traditional}
-  \caption{\label{Fig:traditional} 100 datasets were generated under independence with 94 of the coefficients having true values randomly assigned to be approximately $\pm$ 3e-10. The other 6 coefficients were larger in comparison ($\approx \pm 0.62, 0.31, 0.15$). The true values are unrounded and are set s.t. SNR = 1 under the restriction that $\sigma^2$ = 1. The plot provides an example of 20 of the intervals produced by applying a traditional bootstrapping procedure to the lasso for a single dataset, randomly selected among the 100 generated. The points indicate point estimates from the lasso for the corresponding intervals and the red lines indicate the true values. The average coverage across all 100 datasets was 26.5\%. Nominal coverage was set to be 80\%.}
+\begin{center}
+  \includegraphics[width=0.6\linewidth]{traditional}
+  \caption{\label{Fig:traditional} 100 datasets were generated under independence with 94 of the coefficients having true values randomly assigned to be approximately $\pm$ 3e-10. The other 6 coefficients were larger in comparison ($\approx \pm 0.62, 0.31, 0.15$). The true values are unrounded and are set s.t. SNR = 1 under the restriction that $\sigma^2$ = 1. The plot provides an example of 20 of the intervals produced by applying a traditional bootstrapping procedure to the lasso for a single dataset, randomly selected among the 100 generated. The points indicate point estimates from the lasso for the corresponding intervals and the red lines indicate the true values. The average coverage across all 100 datasets was 26.5\%. Nominal coverage was set to be 80\%.\\
+    \\
+    \pb{Symbols to indicate true beta need to be bigger}}
+\end{center}
 \end{figure}
 
 \section{Lasso Bootstrap Confidence Intervals}
 
-\subsection{An Overview of Proposed Methods}
-
-In what follows, we examine four alternative methods for obtaining bootstrap draws.
+In this section, we examine four alternative methods for obtaining bootstrap draws.
 
 The first is the traditional bootstrap which simply involves taking the point estimate for each $\beta_j$ for each respective bootstrap sample. As mentioned previously, and as we will see, this has clear pitfalls which the subsequent three alternatives attempt to address.
 
@@ -38,7 +55,7 @@ The second is the posterior bootstrap. This leverages the Bayesian formulation o
 
 The posterior bootstrap tends to be too aggressive in the additional variability introduced. As such, the third alternative borrows behavior from both the traditional and the posterior bootstrap and is appropriately called the hybrid bootstrap in this manuscript. The hybrid bootstrap only samples from the full conditional if the point estimate for a given $\beta_j$ is equal to zero for that bootstrap sample. This addresses the main pitfall of the Traditional bootstrap while minimizing the additional variability introduced. This alternative will be the main focus of the manuscript.
 
-The fourth and final method is a naive approach at producing debiased intervals and as such is referred to as the debiased bootstrap in this manuscript. Instead of taking the point estimate as the traditional method would, this method uses the correlation between the partial residuals obtained from the lasso with $\boldsymbol{x}_j$ and uses this as the bootstrap draw. As such, one might expect this to address both issues mentioned above. As we will see, it does in fact, however, its performance in general is suboptimal when $p < n$.
+The fourth and final method is an approach for producing debiased intervals, which we refer to as the debiased bootstrap. Instead of taking the point estimate as the traditional method would, this method uses the correlation between the partial residuals obtained from the lasso with $\boldsymbol{x}_j$ and uses this as the bootstrap draw. As such, one might expect this to address both issues mentioned above. As we will see, it does in fact, however, its performance in general is suboptimal when $p < n$.
 
 \subsection{Conceptual Implementation}
 \label{Sec:full-cond}
