@@ -45,7 +45,7 @@ for (i in 1:length(methods)) {
   plots[[i]] <- plot(res[[i]], n = 30) +
     ggtitle(glue("{methods_pretty[methods[i]]} - Coverage: {round(cov * 100, 1)} %")) +
     ylab("Variable") +
-    geom_point(data = data.frame(y = names(true_vals), x = true_vals), aes(x = x, y = y), color = "red", shape = "|") +
+    geom_point(data = data.frame(y = names(true_vals), x = true_vals), aes(x = x, y = y), color = "red", shape = 1, size = 2) +
     theme(
       axis.ticks.y = element_blank(),
       axis.text.y = element_blank()

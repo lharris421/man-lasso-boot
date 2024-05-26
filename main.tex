@@ -2,19 +2,22 @@
 
 \pb{I suggest the organization: \\
   Lasso is great (p1 is fine) \\
-  Inference is hard (p2 should mention some stuff like knockoff filter, gaussian mirror) \\
+  Inference is hard (p2 should mention some stuff like knockoff filter, gaussian mirror) \logan{Focus on selection uncertainty} \\
+  \logan{Inference about individual variables has proven to be challenging?} \\
   What about bootstrapping? \\
   Main idea of our paper}
 
-Since its unveiling by \cite{Tibshirani1996}, the Lasso (Least Absolute Shrinkage and Selection Operator) has been a popular model of choice, even in cases which would not necessarily be classified as high-dimensional. Its ability to both do variable selection and estimation lends itself to a particular ease of use. Additionally, in scenarios where both predictive accuracy and interpretability are desired, the Lasso generally excels. This is particularly useful for models with a large number of covariates and the underlying model is believed to be sparse but where the exact subset of significant predictors is unknown. In such scenarios, the Lasso helps to identify the most relevant variables leading to a more parsimonious and hence interpretable model. \cite{HTF2009} provides an overview of the Lasso's performance in various settings, demonstrating its optimality in various examples in which the situations and results desired are similar to those previously mentioned. With that said, inference for the lasso has proven to be a difficult task, especially when one desires to obtain proper confidence intervals.
+Since its introduction by \cite{Tibshirani1996}, the Lasso (Least Absolute Shrinkage and Selection Operator) has been a popular model of choice, even in cases which would not necessarily be classified as high-dimensional. The formulation of the lasso objective function involves the addition of the $L_1$ penalty, $\lambda||\bb||_1$, to squared error loss, which usually results in sparse estimates for the regression coefficients, depending on the choice of the regularization parameter $\lambda$. Its ability to both do variable selection and estimation lends itself to a particular ease of use. Additionally, in scenarios where both predictive accuracy and interpretability are desired, the Lasso generally excels. This is particularly useful for models with a large number of covariates where the underlying model is believed to be sparse but where the exact subset of significant predictors is unknown. In such scenarios, the Lasso helps to identify the most relevant variables leading to a more parsimonious and hence interpretable model. \cite{HTF2009} provides an overview of the Lasso's performance in various settings, demonstrating its optimality in various examples in which the situations and results desired are similar to those previously mentioned. 
 
-The challenges of constructing confidence intervals for the lasso has lead to various alternative approaches in the literature. For example, the concept of post-selection inference as discussed in \cite{LeeEtAl2016} aims to account for the uncertainty in model selection by conditioning on the selected model. Alternatively, \cite{ZhangZhang2014} focuses on a desparsified approach to correct the bias of the lasso and facilitate more traditional forms of inference. Some focus has been placed on using the bootstrap to produce confidence intervals, however, the conventional opinion since \cite{Chatterjee2010} is that the traditional use of bootstrapping to produce confidence intervals for penalized regression is suboptimal. The suboptimality arises directly due to the inherent bias and sparsity of estimates produced by the lasso penalty.
+With that said, inference for the lasso has proven to be a difficult task. Although the $L_1$ penalty introduces sparsity in the estimates (i.e. selection), it is also responsible for inducing bias and complicating the sampling distribution of the estimators, which poses the primary obstacle to obtaining valid inference. Given this complexity, it should be no surprise that a number of angles have been taken, producing varying flavors of inference. Focusing on a less granular level are methods such as those that control the false discovery rate (FDR). Examples of such approaches include Covariance test proposed by \cite{Lockhart2014} and the Knockoff Filter with both a fixed \cite{Candes2015} and random (model-X) knockoffs, proposed by \cite{Candes2015} and \cite{Candes2018} respectively. \cite{Breheny2019} adjusts the idea of FDR and proposes a marginal approach. Another interesting approach is the Gaussian Mirror introduced by \cite{Xing2021} in which pairs of "mirror" variables are constructed for each covariate and used to construct a test statistic which can effectively be used to control FDR.
 
-Thus, we take a different perspective and raise a new question to conventional wisdom: does the bootstrap not work or do we need to rethink the properties of confidence intervals in high dimensional settings? We find that it's a combination of both. There does need to be a methodological fix, but also we need to rethink high dimensional confidence intervals (HDCIs).
+There has also been recent development on performing inference for individual features, often with the goal of producing confidence intervals. Here, the effect of bias is especially noticeable. Some methods, like the Low Dimension Projection Estimator (LDPE)proposed by \cite{ZhangZhang2014} focus on debiasing the original point estimates from a lasso fit to facilitate more traditional forms of inference. An approach which does not focus on debiasing, but instead aims to account for the uncertainty in model selection by conditioning on the selected model was introduced by \cite{LeeEtAl2016} and appropriately named post-selection or selective inference. However, it should be noted that due to the fully conditional nature of selective inference that is conservative in high dimensions and only provides inference for covariates in the active set.
 
-Section~\ref{Sec:Difficulties} ...
+In scenarios such as this where the sampling distributions of estimators are complex, the bootstrap is often useful. \cite{Dezeure2016} extends the work of \cite{ZhangZhang2014} by proposing to bootstrap the de-biased lasso. Of course, this application of the bootstrap is not applied directly the the lasso itself, but instead, the de-biased (de-sparsified) lasso, providing intervals that are debiased. The fact that the bootstrap is not applied to the lasso directly is for good reason as \cite{Chatterjee2010} showed that even if we had $\sqrt{n}$-consistency for the lasso (i.e. a small enough $\lambda$) that the bootstrap does not work, at least in the traditional sense. That said, the bootstrap distributions are generally similar to the posterior distribution if the penalty is translated into a corresponding prior and a Bayesian model is fit.
 
-\section{Difficulties of Producing Confidence Intervals for the lasso}
+Thus, we take a different perspective and raise a new question to traditional wisdom: does the bootstrap not work or does it just require a shift in perspective on the properties of confidence intervals in high dimensional settings? We find that it's a combination of both. There does need to be a methodological fix, but also we need to rethink high dimensional confidence intervals (HDCIs). Accordingly, in this paper, we propose a slight modification to both the process of obtaining bootstrap draws and what is considered to be proper coverage for HDCIs, both of which borrow from Bayesian approaches. Section 2 examines the two underlying concepts in more detail and Section 3 introduces a few alternative methodological fixes. Then, Section 4 examines performance of the proposed methods across a number of simulations and includes a comparison to two previously mentioned HDCI alternatives, selective inference and the bootstrapped de-sparsified lasso. The results early in Section 4 narrow down focus to one of the proposed methods, the Hybrid bootstrap. Lastly, in Section 5, we show the application of the Hybrid bootstrap to two data sets, one for acute respiratory illness and the other for gene expression data in mammalian eyes.
+
+\section{Issues with Bootstrapping the lasso}
 \label{Sec:Difficulties}
 
 \pb{This is way jumping the gun. The point of this section is: why doesn't the bootstrap CI work (in the traditional sense)? Any discussion of ``faithful to the model fit'' has to come much later; it makes no sense to talk about it yet.\\
@@ -25,25 +28,49 @@ Section~\ref{Sec:Difficulties} ...
   \\
   Also, I think we should cover epsilon conundrum first: it's a very straightforward problem, easily explained, and fixable. Let's tackle this first and the thorny philosophical issues second.}
 
-We see the difficulty of constructing HDCIs arising from two problems when proposing to use bootstrapping for penalized regression. We will refer to these obstacles as,
+We see the shortcomings of constructing HDCIs arising from two issues when proposing to use bootstrapping for the lasso. We will refer to these issues as,
 
 \begin{enumerate}
-\item the Bias Tradeoff, and
-\item the Epsilon Conundrum.
+\item the Epsilon Conundrum (EC), and
+\item Interval Coverage Consistency (ICC).
 \end{enumerate}
 
-The Bias Tradeoff refers to the inherent bias introduced by penalization in order to be able to fit over-saturated models. To help define the stance taken in this manuscript, it will be helpful to specify the behavior of the intervals we are interested in. Specifically, we are interested in intervals that remain faithful to the model fit. This inherently excludes most intervals that attempt to debias. Additionally, this restriction imposes a behavior on the intervals. Since bias being introduced into the model has varying effects on coefficients of increasing magitude, this implies that interval behavior will vary with the magnitude of $\beta$. Specifically, by limiting focus to intervals that are true to the model fit, we have little control over the center of the intervals, since, as the magnitude of $\beta$ increases, so generally does the bias. As we will see, the width of the proposed intervals also generally increases, but at a lower rate than the bias. As a direct result, we would expect a ``faithful'' confidence interval producing method to provide different coverage rates as a function of the magnitude of $\beta$. Accordingly, we argue that coverage in the traditional sense is too ridged of a paradigm to apply to penalized regression inference. Instead, we offer a different perspective and argue that the impact that penalization induced bias has is an inherent feature of penalized regression rather than a flaw. So, instead of focusing on achieving the nominal coverage rate for all $\beta$s, we propose a different focus: overall coverage. The goal then being finding a method that is well calibrated to provide overall coverage near that of nominal. Since high dimensional problems often necessitate such an alternate approach, we offer guidance on how to interpret the confidence intervals for the lasso as presented in this paper. \logan{Probably want to revisit this more in the discussion, as in the results mainly just focus on ``average'' but don't provide guidance on interpretation.} \logan{May want to just remove this: Additionally, we compare the proposed method to two other inferential methods which take a different perspective on dealing with bias.}
-
-The second problem, the Epsilon Conundrum, is also related to the shrinkage but arises as an arguably more disturbing manifestation: confidence intervals with one or both endpoints exactly equal to zero. Some penalized regression methods, particularly the lasso, result in a sparse solution. If using a traditional quantile based bootstrap confidence interval, this will lead to an interval of [0,0] if a given variable is rarely or never included in the active set. As the dimensionality of the problem grows, this becomes an increasing occurrence leading to a large majority of intervals possessing a length of zero. When the true value of the coefficient is 0, the interval at least contains the truth. However, this issue is particularly troublesome when one considers what happens when the true value is not precisely zero, as is likely the case in most reasonable scenarios. By just shifting the true value by $\eps$, an immediate drop in coverage would occur, hence the name: the Epsilon Conundrum. Figure~\ref{Fig:traditional}, shows that this is exactly what occurs when the Traditional bootstrap is applied to the lasso. In this example, 100 datasets were generated, each with 94 coefficients randomly set to be about $\pm$ 3e-10 with the other 6 being relatively large in comparison. The plot provides 20 CIs as examples, corresponding point estimates, and the true values (red). Across all 100 datasets, the average coverage was 26.5\% which is far below the nominal coverage rate which was set to be 80\%. This problem is addressed in our novel approach to producing bootstrap based confidence intervals for the lasso.
+The Epsilon Conundrum is a side effect of the desired behavior introduced by the $L_1$ penalty: sparsity. When bootstrapping the lasso model without additional adjustments, the EC rears its head in a disturbing manifestation. In a traditional setup some of the resulting confidence intervals will likely have one or both endpoints exactly equal to zero. Specifically, if a quantile based confidence interval is used, an interval of [0,0] will result if a given variable is included in the active set for less than $B(1 - \alpha)$ bootstrap representations. As the dimensionality of the problem grows, this becomes an increasing occurrence leading to a large majority of intervals possessing a length of zero (assuming $\lambda$ is not set to be some small value). When the true value of the coefficient is 0, the interval at least contains the truth. However, this issue is particularly troublesome when one considers what happens when the true value is not precisely zero, as is likely the case in most reasonable scenarios. By just shifting the true value by $\eps$, an immediate drop in coverage would occur, hence the name: the Epsilon Conundrum. Figure~\ref{Fig:traditional}, shows that this is exactly what happens when a traditional bootstrapping is applied to the lasso. In this example, 100 datasets were generated, each with 94 coefficients randomly set to be about $\pm$ 3e-10 with the other 6 being relatively large in comparison. The plot provides 20 CIs as examples, corresponding point estimates, and the true values (red). Across all 100 datasets, the average coverage was 26.5\% which is far below the nominal coverage rate which was set to be 80\%. There are likely several conceivable way to address this issue. The novel approach we propose to producing bootstrap based confidence intervals for the lasso provides one solution.
 
 \begin{figure}[hbtp]
-\begin{center}
-  \includegraphics[width=0.6\linewidth]{traditional}
-  \caption{\label{Fig:traditional} 100 datasets were generated under independence with 94 of the coefficients having true values randomly assigned to be approximately $\pm$ 3e-10. The other 6 coefficients were larger in comparison ($\approx \pm 0.62, 0.31, 0.15$). The true values are unrounded and are set s.t. SNR = 1 under the restriction that $\sigma^2$ = 1. The plot provides an example of 20 of the intervals produced by applying a traditional bootstrapping procedure to the lasso for a single dataset, randomly selected among the 100 generated. The points indicate point estimates from the lasso for the corresponding intervals and the red lines indicate the true values. The average coverage across all 100 datasets was 26.5\%. Nominal coverage was set to be 80\%.\\
-    \\
-    \pb{Symbols to indicate true beta need to be bigger}}
-\end{center}
-\end{figure}
+  \begin{center}
+    \includegraphics[width=0.6\linewidth]{traditional}
+    \caption{\label{Fig:traditional} 100 datasets were generated under independence with 94 of the coefficients having true values randomly assigned to be approximately $\pm$ 3e-10. The other 6 coefficients were larger in comparison ($\approx \pm 0.62, 0.31, 0.15$). The true values are unrounded and are set s.t. SNR = 1 under the restriction that $\sigma^2$ = 1. The plot provides an example of 20 of the intervals produced by applying a traditional bootstrapping procedure to the lasso for a single dataset, randomly selected among the 100 generated. The points indicate point estimates from the lasso for the corresponding intervals and the red circles indicate the true values. The average coverage across all 100 datasets was 26.5\%. Nominal coverage was set to be 80\%.}
+  \end{center}
+  \end{figure}
+
+Interval Coverage Consistency, on the other hand is less of an issue to be directly solved and more of a philosophical issue. In short, ICC is concerned with is coverage consistent with the nominal coverage rate for each interval or for the collection of intervals. In the classical frequentest sense, each interval must have exactly nominal coverage, regardless of the true value of $\beta$. That is for any value of $\beta$, $\int I(\beta \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \beta)d\boldsymbol{y}$ = 1 - $\alpha$. In this sense, the coverage behavior of interest is more or less isolated for each individual interval. However, in the context of regression, we rarely consider a single covariate, but instead have many covariates likely with a range of true coefficients. This brings up an alternative, more permissive, way to consider coverage. The alternative would be to consider the average coverage for the collection of intervals over a distribution of the likely values of $\beta$. This is the idea covered in the following theorem.
+\newtheorem*{coverage}{Bayesian Coverage Consistency Theorem \label{Thm:BCC}}
+
+\begin{coverage}
+If the likelihood is correctly specified according to the true data generating mechanism, $p(\boldsymbol{y} | \bt)$, then credible sets obtained from $p(\bt|\boldsymbol{y})$ will have proper coverage when averaged over the a distribution of likely values of $\beta$ if the prior distribution $p(\bt)$ is correctly specified according to the distribution of $\beta$ values.
+\end{coverage}
+
+\begin{proof}
+Assume the likelihood and prior are correctly specified according the their respective distributions. By definition, a $100(1-\alpha\%)$ credible region for $\boldsymbol{\theta}$ is any set $\boldsymbol{A}$ s.t. $p(\bt \in \boldsymbol{A} | \boldsymbol{y}) \geq 1 - \alpha$. For a given $\bt_0$, the coverage probability can be defined as $\int I(\bt_0 \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \bt_0)d\boldsymbol{y}$. Then, Averaged over $p(\bt)$, the average coverage probability can be defined as
+
+\as{
+  \begin{aligned}
+  \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \bt)d\boldsymbol{y}p(\bt)d\bt &= \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \bt)p(\bt)d\boldsymbol{y}d\bt \\
+  &=  \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) p(\bt|\boldsymbol{y})p(\boldsymbol{y})d\boldsymbol{y}d\bt^* \\
+  &=  \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) p(\bt|\boldsymbol{y})d\bt p(\boldsymbol{y})d\boldsymbol{y} \\
+  &=  \int \int_{\boldsymbol{A}} p(\bt|\boldsymbol{y})d\bt p(\boldsymbol{y})d\boldsymbol{y} \\
+  &\geq (1-\alpha)  \int p(\boldsymbol{y})d\boldsymbol{y} \\
+  &= 1-\alpha
+  \end{aligned}
+}
+
+*This step is only valid if the assumptions are met.
+\end{proof}
+The idea being then that to maintain proper coverage, individual intervals can deviate from the nominal coverage rate but averaged over the distribution of likely values for $\beta$ the coverage must be greater than or equal to the nominal coverage rate. That is, the coverage rates for some values of $\beta$ may be higher than nominal coverage rates while others are lower, but this is fine as long as they are appropriately balanced. We argue that this is a more reasonable perspective on coverage rates for confidence intervals arising from penalized regression models applied to high dimensional datasets. In such scenarios, p is usually large and the estimators are almost necessarily biased. p being large allows for more reliable average coverage while the effect of bias is a a driving force behind the need for a more inclusive definition of coverage.
+
+Along with solving the issue of the Epsilon Conundrum the Hybrid interval proposed in this manuscript has a Bayesian feel to it in the sense that it obeys this overall definition of coverage. Alternatively, an attempt could be made to debias the intervals in attempt to meet the traditional frequentest definition of coverage. This proposition of a new definition of coverage is not to say that attempts at debiasing are unwarranted, indeed, meeting the traditional definition of coverage also means that this relaxed definition is also satisfied. However, intervals that do not attempt to meet the rigid definition for coverage using methods such as debiasing are arguably more faithful to the model fit, an idea we will revisit later. 
+
 
 \section{Lasso Bootstrap Confidence Intervals}
 
@@ -142,33 +169,13 @@ The results start off by considering interval behavior before moving onto a numb
 
 Unless otherwise noted, the nominal coverage rate used in this manuscript is 80\%.
 
-\subsection{Thm}
-
-
-Theorem: If the likelihood is correctly specified according to the true data generating mechanism, $p(\boldsymbol{y} | \bt)$, then credible sets obtained from $p(\bt|\boldsymbol{y})$ will have proper coverage when averaged over the prior distribution $p(\bt)$... \logan{Still unsure how to make the statement that the prior matches the true distribution without sounding too Bayesian.}
-
-Proof: By definition, a $100(1-\alpha\%)$ credible region for $\boldsymbol{\theta}$ is any set $\boldsymbol{A}$ s.t. $p(\bt \in \boldsymbol{A} | \boldsymbol{y}) \geq 1 - \alpha$. For a given $\bt_0$, the coverage probability can be defined as $\int I(\bt_0 \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \bt_0)d\boldsymbol{y}$. Averaged over $p(\bt)$, the average coverage probability can be defined as:
-
-\as{
-  \begin{aligned}
-  \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \bt)d\boldsymbol{y}p(\bt)d\bt &= \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \bt)p(\bt)d\boldsymbol{y}d\bt \\
-  &=  \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) p(\bt|\boldsymbol{y})p(\boldsymbol{y})d\boldsymbol{y}d\bt^* \\
-  &=  \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) p(\bt|\boldsymbol{y})d\bt p(\boldsymbol{y})d\boldsymbol{y} \\
-  &=  \int \int_{\boldsymbol{A}} p(\bt|\boldsymbol{y})d\bt p(\boldsymbol{y})d\boldsymbol{y} \\
-  &\geq (1-\alpha)  \int p(\boldsymbol{y})d\boldsymbol{y} \\
-  &= 1-\alpha
-  \end{aligned}
-}
-
-*This step is only valid if the assumptions are met.
-
 \subsection{Interval Behavior}
 
 We compare the proposed CI methods by showing the coverage of each, both overall and as the magnitude of $\beta$ changes, then present results on the width and bias of the intervals as a way of gaining insight into why the methods result in over or under coverage at various magnitudes of $\beta$.
 
 \subsubsection{Coverage}\label{Sec:Coverage}
 
-Before describing the simulation set up, we make the assertion that the ideal scenario for the proposed methods (Hybrid and Posterior) is when the true distribution of $\bb$ follows a laplace (double exponential) distribution. As such, the first simulation under consideration uses $\bb$s generated independently under a Laplace distribution. Note, the assertion that this data generating mechanism is ideal is based on Theorem~\logan{5.1}, \logan{update after wording set for thm}. This may raise the question of what rate is ideal. In fact, this question could be generalized for any of the distributions which $\bb$ is drawn from in the simulations that follow. However, the data generating mechanism used renders the choice of scale arbitrary. In what follows, we set SNR = 1 and $\sigma^2 = 1$ which imposes the restriction that $\bb^T\bb$ also equals 1. As a result, regardless of the scale parameter used, after standardization, the draws for $\bb$ will be identical (assuming the same seed is used).
+Before describing the simulation set up, we make the assertion that the ideal scenario for the proposed methods (Hybrid and Posterior) is when the true distribution of $\bb$ follows a laplace (double exponential) distribution. As such, the first simulation under consideration uses $\bb$s generated independently under a Laplace distribution. Note, the assertion that this data generating mechanism is ideal is based on \textbf{Bayesian Coverage Consistency Theorem}. This may raise the question of what rate is ideal. In fact, this question could be generalized for any of the distributions which $\bb$ is drawn from in the simulations that follow. However, the data generating mechanism used renders the choice of scale arbitrary. In what follows, we set SNR = 1 and $\sigma^2 = 1$ which imposes the restriction that $\bb^T\bb$ also equals 1. As a result, regardless of the scale parameter used, after standardization, the draws for $\bb$ will be identical (assuming the same seed is used).
 
 Figure~\ref{Fig:laplace} displays simulation results for CIs obtained via the four previously described bootstrap methods. In this simulation, 100 independent datasets were generated and each bootstrap method was applied using $B = 1000$ bootstrap iterations. Each dataset was simulated as follows. $\X$ was generated independently with $n = p = 100$ and $\bb$ was generated from a Laplace distribution and standardized so that SNR = 1. Then, $\Y$ was constructed as $\Y = \X\bb + \boldsymbol{\epsilon}$, where $\boldsymbol{\epsilon} \overset{i.i.d}{\sim} N(0, 1)$. In Figure~\ref{Fig:laplace}, the dotted lines represents the average coverage for each method across all variables for all 100 datasets. The solid lines are estimates of coverage as a smooth function of $|\beta|$. The black line indicates the nominal coverage rate, which is set to be 80\%.
 
@@ -338,13 +345,13 @@ The third plot of Figure~\ref{Fig:laplace_other} provides boxplots of the run ti
 
 \logan{I did start to track down the error for BLP and it seems to be due to a NaN showing up where they weren't expecting and it not being handled properly. However, I think it would take a considerable amount of time to find the root of the error and potentially fix it... which I could do but not sure if it is worth the effort.}
 
-\subsection{Real Data Analysis}\label{Sec:RDA}
+\section{Real Data Analysis}\label{Sec:RDA}
 
 We conclude the results section by considering the intervals produced by the Hybrid bootstrap applied to two datasets: \texttt{whoari} (World Health Organization study on acute respiratory illnesses) and \texttt{Scheetz2006} (Gene expression in the mammalian eye). These two datasets sit on opposite ends of the spectrum in terms of dimensionality. \texttt{whoari} contains 816 observations and 66 features while \texttt{Scheetz2006} contains just 120 observations but with 18975 features, clearly making it a high dimensional dataset.
 
 In this section, we also compare the intervals produced by the Hybrid bootstrap to those of BLP and SelInf. In this comparison, we wanted the results for the real data analysis to correspond directly back to a single set of point estimates for all three methods in order to put a clear emphasis on how the intervals relate to the corresponding estimates from the lasso fit using a selected value of $\lambda$. The $\lambda$ of interest is the value which minimizes CVE, selected here using \texttt{cv.glmnet}. This is not an issue for Hybrid or SelInf, which both allow $\lambda$ to be specified, but does require adjustments for BLP\footnote{The unmodified versions for BLP are provided in a supplement}. Since \texttt{hdi} was not set up with the flexibility to allow for the specification of $\lambda$, we forked the \texttt{hdi} repo and made the necessary modifications. Recall, without making the adjustment the option is fixed to be the 1-SE solution from \texttt{cv.glmnet} (although this is not indicated in \texttt{hdi}'s documentation). The second adjustment relative to the ``out of the box'' set up is supported in the arguments for BLP. This adjustment is to set \texttt{boot.shortcut = TRUE}. From hdi's documentation, if \texttt{boot.shortcut = TRUE}, ``the lasso is not re-tuned for each bootstrap iteration, but it uses the tuning parameter computed on the original data instead.'' With the first modification, then, BLP has the same behavior as Hybrid and SelInf. Lastly, it should not be ignored that BLP does provide its own estimates. However, the connection to the the original lasso fit is obscured, so for the purpose of this comparison, we use the the same point estimates across the three methods.
 
-\subsubsection{World Health Organization study on acute respiratory illnesses (whoari)}\label{Sec:whoari}
+\subsection{World Health Organization study on acute respiratory illnesses (whoari)}\label{Sec:whoari}
 
 \begin{figure}[hbtp]
   \includegraphics[width=\linewidth]{comparison_data}
@@ -355,7 +362,7 @@ The \texttt{whoari} dataset comes from the study ``Development of a clinical pre
 
 Figure~\ref{Fig:comparison_data_whoari} provides the confidence intervals from each of the three methods along with corresponding point estimates. Recall, the point estimates are the same across all three methods and come from the lasso fit on the original data with $\lambda$ selected using \texttt{cv.glmnet}. It is important to emphasize that the range of the x-axis is different for each of the plots corresponding to the three methods. The Hybrid produces the narrowest intervals and SelInf produces by far the widest. Despite the difference in widths, Hybrid and BLP share similar patterns, however, the conclusions that might be drawn could conceivably be quite varied. This may most easily be observed by considering a common point of interest: whether or not an interval includes zero. BLP produces 3 intervals that do not contain zero, SelInf produces 13 that do not contain zero, and Hybrid produces 21 that do not contain zero. SelInf producing 13 intervals not containing zero is only part of the picture, since it is also important to note SelInf selects (and provides intervals for) 37 of the 66 variables and only produces one interval here with an infinite bound (for \texttt{abb}). That said, there are a number of intervals that are unreasonably wide and we believe it would be difficult to provide a convincing interpretation for the intervals produced by SelInf. The comparison between Hybrid and HDI is more interesting since, visually, they appear similar. The patterns observed here are similar to those in the preceding simulation study. As previously mentioned, the intervals from Hybrid are narrower on average. Additionally, while Hybrid's intervals, relative to the point estimates, tend to be skewed towards zero or symmetric, BLP's intervals are often skewed away from zero, likely as a result of debiasing. It appears then, that BLP's higher coverage at larger values of $\beta$, as seen in the simulation study, is likely due to a combination of increased width and the skewness induced by debiasing.  
 
-\subsubsection{Gene expression in the mammalian eye (Scheetz2006)}\label{Sec:Scheetz2006}
+\subsection{Gene expression in the mammalian eye (Scheetz2006)}\label{Sec:Scheetz2006}
 
 \begin{figure}[hbtp]
   \includegraphics[width=\linewidth]{comparison_data_scheetz}
@@ -375,6 +382,8 @@ That said, we emphasize again that a user is not able to obtain these results fr
 \section{Discussion}
 
 Estimation of $\sigma^2$. Debiasing.
+
+Guidance on interpreting intervals?
 
 \subsection{Space Requirements}
 
