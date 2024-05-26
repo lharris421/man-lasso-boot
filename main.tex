@@ -84,7 +84,7 @@ The posterior bootstrap tends to be too aggressive in the additional variability
 
 The fourth and final method is an approach for producing debiased intervals, which we refer to as the debiased bootstrap. Instead of taking the point estimate as the traditional method would, this method uses the correlation between the partial residuals obtained from the lasso with $\boldsymbol{x}_j$ and uses this as the bootstrap draw. As such, one might expect this to address both issues mentioned above. As we will see, it does in fact, however, its performance in general is suboptimal when $p < n$.
 
-\subsection{Conceptual Implementation}
+\subsection{Implementation}
 \label{Sec:full-cond}
 
 In this section, we describe the details and important considerations performing the proposed methods, with particular emphasis on the sampling for the Posterior and hybrid bootstrap methods.
@@ -156,12 +156,6 @@ Let $B$ represent the total number of bootstrap datasets generated and let $\bol
 \item Row bind all B $\q$ vectors to obtain a $B \times p$ matrix of bootstrap draws
 \item For each $\beta_j$, compute the quantiles for $p_L = (.5 - \l/2)$ and $p_U = (.5 + \l/2)$ from the $j^{th}$ column of the draws to produce a final confidence interval estimate for significance level $\l$.
 \end{enumerate}
-
-\subsection{Intuition behind the hybrid bootstrap}
-
-Given that the hybrid bootstrap is the main focus of this manuscript, it will be worth while to briefly consider the intuition driving this proposed sampling method. Recall, potentially the most striking issue with the traditional bootstrap is that it can produce intervals which are singleton at 0. This occurs when $\hat{\beta}_j^b = 0$ for at least $B * (1 - \alpha)$ draws. To address this issue, then, adjustment is only needed when $\hat{\beta}_j^{b} = 0$. 
-
-Now, we consider the behavior of the Hybrid interval from a logical perspective. For a moment, hold p constant. As n increases and we let $\lambda$ get selected by CV, this method will converge to that of applying the traditional bootstrap to a classical linear regression model. This is the case because with increasing n, $\lambda_{CV} \rightarrow 0$. On the other hand, as n decreases $\lambda_{CV} \rightarrow \lambda_{max}$ and $\hat{\boldsymbol{\beta}}\rightarrow \boldsymbol{0}$. On this end of the extreme, bootstrap samples are then drawn from the marginal posterior. The coverage behavior is well understood for the bootstrap applied to linear regression as n increases. Thus, by only sampling from the posterior when $\hat{\beta}_j^b = 0$, we minimize the addition of unnecessary variability as n increases. The behavior on the other end of the extreme is relatively less understood compared to the asymptotics of the traditional bootstrap. However, we argue that leveraging the posterior lends itself to reasonable behavior especially when the alternative would be confidence intervals which are all identical to zero. Such intervals, one could argue, would necessarily have 0\% coverage. Conversely, as we will see, with smaller values of n, the Hybrid tends to lead us to wider confidence intervals which over rather than under cover relative to nominal.
 
 \section{Results}
 
@@ -410,6 +404,12 @@ That said, we emphasize again that a user is not able to obtain these results fr
 Estimation of $\sigma^2$. Debiasing.
 
 Guidance on interpreting intervals?
+
+\subsection{Intuition behind the hybrid bootstrap}
+
+Given that the hybrid bootstrap is the main focus of this manuscript, it will be worth while to briefly consider the intuition driving this proposed sampling method. Recall, potentially the most striking issue with the traditional bootstrap is that it can produce intervals which are singleton at 0. This occurs when $\hat{\beta}_j^b = 0$ for at least $B * (1 - \alpha)$ draws. To address this issue, then, adjustment is only needed when $\hat{\beta}_j^{b} = 0$. 
+
+Now, we consider the behavior of the Hybrid interval from a logical perspective. For a moment, hold p constant. As n increases and we let $\lambda$ get selected by CV, this method will converge to that of applying the traditional bootstrap to a classical linear regression model. This is the case because with increasing n, $\lambda_{CV} \rightarrow 0$. On the other hand, as n decreases $\lambda_{CV} \rightarrow \lambda_{max}$ and $\hat{\boldsymbol{\beta}}\rightarrow \boldsymbol{0}$. On this end of the extreme, bootstrap samples are then drawn from the marginal posterior. The coverage behavior is well understood for the bootstrap applied to linear regression as n increases. Thus, by only sampling from the posterior when $\hat{\beta}_j^b = 0$, we minimize the addition of unnecessary variability as n increases. The behavior on the other end of the extreme is relatively less understood compared to the asymptotics of the traditional bootstrap. However, we argue that leveraging the posterior lends itself to reasonable behavior especially when the alternative would be confidence intervals which are all identical to zero. Such intervals, one could argue, would necessarily have 0\% coverage. Conversely, as we will see, with smaller values of n, the Hybrid tends to lead us to wider confidence intervals which over rather than under cover relative to nominal.
 
 \subsection{Space Requirements}
 
