@@ -74,18 +74,22 @@ Along with solving the issue of the Epsilon Conundrum, the Hybrid interval propo
 
 \section{Lasso Bootstrap Confidence Intervals}
 
-In this section, we examine four alternative methods for obtaining bootstrap draws.
+\pb{less judgment upfront; just define the methods}
 
-The first is the traditional bootstrap which simply involves taking the point estimate for each $\beta_j$ for each respective bootstrap sample. As mentioned previously, and as we will see, this has clear pitfalls which the subsequent three alternatives attempt to address.
+In this section, we examine four alternative methods for obtaining bootstrap draws:
+\begin{itemize}
+\item \textbf{Traditional bootstrap:} Simply take the lasso point estimate for each $\beta_j$ for each respective bootstrap sample. As described earlier, this has several pitfalls that the alternatives attempt to address.
+\item \textbf{Posterior bootstrap:} This leverages the Bayesian formulation of the lasso. For each bootstrap sample, a random draw from the full conditional posterior is obtained instead of taking the point estimate (equivalent to the mode) of the posterior.
+\item \textbf{Hybrid bootstrap:} The posterior bootstrap tends to be too aggressive in the additional variability introduced. As such, the third alternative borrows behavior from both the traditional and the posterior bootstrap and is appropriately called the hybrid bootstrap in this manuscript. The hybrid bootstrap only samples from the full conditional if the point estimate for a given $\beta_j$ is equal to zero for that bootstrap sample. This addresses the main pitfall of the Traditional bootstrap while minimizing the additional variability introduced.
+\item \textbf{Debiased bootsrap:} Instead of taking the point estimate as the traditional method would, this method uses the correlation between the partial residuals obtained from the lasso with $\boldsymbol{x}_j$ and uses this as the bootstrap draw. As such, one might expect this to address both issues mentioned above. As we will see, it does in fact, however, its performance in general is suboptimal when $p < n$.
+\end{itemize}
 
-The second is the posterior bootstrap. This leverages the Bayesian formulation of the lasso. For each bootstrap sample, a random draw from the full conditional posterior is obtained instead of taking the point estimate (equivalent to the mode) of the posterior.
+For each method, the main idea is given above. The remainder of this section presents their specific application to lasso-penalized linear regression. Section \ref{Sec:full-cond} derives the full conditional distributions needed for posterior sampling. Explicit calculations for all four methods are then given in Section~\ref{Sec:implementation}.
 
-The posterior bootstrap tends to be too aggressive in the additional variability introduced. As such, the third alternative borrows behavior from both the traditional and the posterior bootstrap and is appropriately called the hybrid bootstrap in this manuscript. The hybrid bootstrap only samples from the full conditional if the point estimate for a given $\beta_j$ is equal to zero for that bootstrap sample. This addresses the main pitfall of the Traditional bootstrap while minimizing the additional variability introduced. This alternative will be the main focus of the manuscript.
-
-The fourth and final method is an approach for producing debiased intervals, which we refer to as the debiased bootstrap. Instead of taking the point estimate as the traditional method would, this method uses the correlation between the partial residuals obtained from the lasso with $\boldsymbol{x}_j$ and uses this as the bootstrap draw. As such, one might expect this to address both issues mentioned above. As we will see, it does in fact, however, its performance in general is suboptimal when $p < n$.
-
-\subsection{Implementation}
+\subsection{Full conditional distributions for the lasso}
 \label{Sec:full-cond}
+
+\pb{I think we should split off the algorithm/implementation into its own section}
 
 In this section, we describe the details and important considerations performing the proposed methods, with particular emphasis on the sampling for the Posterior and hybrid bootstrap methods.
 
@@ -116,6 +120,11 @@ Where, $C_{-} = \exp(\frac{z_j \lambda n}{\sigma^2})$ and $C_{+} = \exp(-\frac{z
 What makes this formulation attractive is that a mapping allows tail probabilities from the posterior to be translated to probabilities onto corresponding known normal distributions (i.e. $\N(z_j \pm \lambda, \frac{\sigma^2}{n})$). The allows for numerically stable and efficient sampling to be obtained from the full conditional posteriors. Details of how sampling is performed is outside of the scope of this manuscript and are provided in Supplement~\ref{Sup:A}. For the remainder of the manuscript, we simply refer to this process as ``sampling from the full conditional.''
 
 Again, recall that this solution corresponds to a particular value of $\lam$ and $\hat{\sigma}^2$. Our recommendation is to use CV to select $\lam$ and produce an estimate for $\sigma^2$ and produce bootstrap confidence intervals corresponding to these values. Specifically to use the value of $\lambda$ which minimizes CVE. This value is preferred to the 1-SE $\lambda$ as the 1-SE $\lambda$ inherently introduces more bias. Performance under this recommendation will be focused on in the Results section. However, it should be noted that producing an estimate for $\sigma^2$ in this manner implicitly depends on $\lam$, so new estimates for $\sigma^2$ should be obtained for each value of $\lam$. When referring to $\hat{\sigma}^2$ it will always be as a function of $\lam$ which we drop for notational convenience.
+
+\subsection{Implementation}
+\label{Sec:implementation}
+
+\pb{need to rework transition / intro}
 
 All together this leads to the following steps to obtain CIs through the various alternative bootstrap methods proposed:
 
@@ -153,9 +162,13 @@ Let $B$ represent the total number of bootstrap datasets generated and let $\bol
 	\end{algorithmic}
 \item Save $\q$
 \end{enumerate}
-\item Row bind all B $\q$ vectors to obtain a $B \times p$ matrix of bootstrap draws
+\item Row bind all B $\q$ vectors to obtain a $B \times p$ matrix of bootstrap draws \pb{avoid R-specific language like ``row bind''}
 \item For each $\beta_j$, compute the quantiles for $p_L = (.5 - \l/2)$ and $p_U = (.5 + \l/2)$ from the $j^{th}$ column of the draws to produce a final confidence interval estimate for significance level $\l$.
 \end{enumerate}
+
+\pb{short summary remarks?}
+
+\pb{We should briefly mention that we're using pairs bootstrap and quantile intervals as this is a common way of applying the bootstrap. Plenty of attention has been paid to various bootstrap implementations (cite bootstrap book); our focus here is on the differences between the traditional bootstrap and its posterior/hybrid/debiased variants.}
 
 \section{Results}
 

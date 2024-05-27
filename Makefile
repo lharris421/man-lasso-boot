@@ -2,7 +2,7 @@ FIG_FILES := $(patsubst %.R,%.pdf,$(wildcard ./fig/*.R))
 TAB_FILES := $(patsubst %.R,%.tex,$(wildcard ./tab/*.R))
 
 lasso-boot.pdf: lasso-boot.tex main.tex $(FIG_FILES) $(TAB_FILES)
-	cleantex -beq lasso-boot.tex
+	cleantex -btq lasso-boot.tex
 
 ## Run R files for figures
 %.pdf: %.R
