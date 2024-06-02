@@ -44,15 +44,16 @@ The Epsilon Conundrum is a side effect of the desired behavior introduced by the
   \end{center}
   \end{figure}
 
-Interval Coverage Consistency, on the other hand is less of an issue to be directly solved and more of a philosophical question. In short, ICC is concerned with if coverage is consistent with the nominal coverage rate for each interval or for the collection of intervals. In the classical frequentest sense, each interval must have exactly nominal coverage, regardless of the true value of $\beta$. That is for any value of $\beta$, $\int I(\beta \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \beta)d\boldsymbol{y}$ = 1 - $\alpha$. In this sense, the coverage behavior of interest is more or less isolated for each individual interval. However, in the context of regression, we rarely consider a single covariate, but instead have many covariates with likely a range of true coefficient values. This brings up an alternative, more permissive, way to consider coverage. The alternative would be to consider the average coverage for the collection of intervals over a distribution of the likely values of $\beta$. This is the idea covered in the following theorem. \logan{I guess there is really no way not to have this thm be bayesian? But not sure if you were thinking there was a way to also make it sound more applicable to frequentists?}
+Interval Coverage Consistency, on the other hand is less of an issue to be directly solved and more of a philosophical question. In short, ICC is concerned with if coverage is consistent with the nominal coverage rate for each interval or for the collection of intervals. In the classical frequentest sense, each interval must have exactly nominal coverage, regardless of the true value of $\beta$. That is for any value of $\beta$, $\int I(\beta \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \beta)d\boldsymbol{y}$ = 1 - $\alpha$. In this sense, the coverage behavior of interest is more or less isolated for each individual interval. However, in the context of regression, we rarely consider a single covariate, but instead have many covariates with likely a range of true coefficient values. This brings up an alternative, more permissive, way to consider coverage. The alternative would be to consider the average coverage for the collection of intervals over a distribution of the likely values of $\beta$. This is the idea covered in the following theorem.
+
 \newtheorem*{coverage}{Bayesian Coverage Consistency Theorem\label{Thm:BCC}}
 
 \begin{coverage}
-If the likelihood is correctly specified according to the true data generating mechanism, $p(\boldsymbol{y} | \bt)$, then credible sets obtained from $p(\bt|\boldsymbol{y})$ will have proper coverage when averaged over the distribution of likely values of $\beta$ if the prior distribution $p(\bt)$ is correctly specified according to the distribution of $\beta$ values.
+If the likelihood is correctly specified according to the true data generating mechanism, $p(\boldsymbol{y} | \bt)$, then credible sets obtained from $p(\bt|\boldsymbol{y})$ will have proper coverage when averaged over the distribution of likely values of $\beta$ if the prior distribution, $p(\bt)$, is correctly specified according to the distribution of $\beta$ values.
 \end{coverage}
 
 \begin{proof}
-Assume the likelihood and prior are correctly specified according the their respective distributions. By definition, a $100(1-\alpha)\%$ credible region for $\boldsymbol{\theta}$ is any set $\boldsymbol{A}$ s.t. $p(\bt \in \boldsymbol{A} | \boldsymbol{y}) \geq 1 - \alpha$. For a given $\bt_0$, the coverage probability can be defined as $\int I(\bt_0 \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \bt_0)d\boldsymbol{y}$. Then, Averaged over $p(\bt)$, the average coverage probability can be defined as
+Assume the likelihood and prior are correctly specified according the their respective distributions. By definition, a $100(1-\alpha)\%$ credible region for $\boldsymbol{\theta}$ is any set $\boldsymbol{A}$ s.t. $p(\bt \in \boldsymbol{A} | \boldsymbol{y}) \geq 1 - \alpha$. For a given $\bt_0$, the coverage probability can be defined as $\int I(\bt_0 \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \bt_0)d\boldsymbol{y}$. Then, averaged over $p(\bt)$, the average coverage probability can be defined as
 
 \as{
   \begin{aligned}
@@ -76,28 +77,28 @@ Along with solving the issue of the Epsilon Conundrum, the Hybrid interval propo
 
 \pb{less judgment upfront; just define the methods}
 
-In this section, we examine four alternative methods for obtaining bootstrap draws:
+In this section, we present four alternative methods for obtaining bootstrap draws:
 \begin{itemize}
-\item \textbf{Traditional bootstrap:} Simply take the lasso point estimate for each $\beta_j$ for each respective bootstrap sample. As described earlier, this has several pitfalls that the alternatives attempt to address.
-\item \textbf{Posterior bootstrap:} This leverages the Bayesian formulation of the lasso. For each bootstrap sample, a random draw from the full conditional posterior is obtained instead of taking the point estimate (equivalent to the mode) of the posterior.
-\item \textbf{Hybrid bootstrap:} The posterior bootstrap tends to be too aggressive in the additional variability introduced. As such, the third alternative borrows behavior from both the traditional and the posterior bootstrap and is appropriately called the hybrid bootstrap in this manuscript. The hybrid bootstrap only samples from the full conditional if the point estimate for a given $\beta_j$ is equal to zero for that bootstrap sample. This addresses the main pitfall of the Traditional bootstrap while minimizing the additional variability introduced.
-\item \textbf{Debiased bootsrap:} Instead of taking the point estimate as the traditional method would, this method uses the correlation between the partial residuals obtained from the lasso with $\boldsymbol{x}_j$ and uses this as the bootstrap draw. As such, one might expect this to address both issues mentioned above. As we will see, it does in fact, however, its performance in general is suboptimal when $p < n$.
+\item \textbf{Traditional bootstrap:} Simply takes the point estimate for each $\beta_j$ for each respective bootstrap sample.
+\item \textbf{Posterior bootstrap:} Leverages the Bayesian formulation of the model. For each bootstrap sample, a random draw from the full conditional posterior is obtained instead of taking the point estimate, which for the lasso is equivalent to the mode of the posterior.
+\item \textbf{Hybrid bootstrap:} Takes a middle ground between the posterior bootstrap and the traditional bootstrap. The hybrid bootstrap only samples from the full conditional if the point estimate for a given $\beta_j$ is equal to zero for that bootstrap sample. Otherwise, takes the point estimate like the traditional bootstrap.
+\item \textbf{Debiased bootstrap:} Uses the correlation between $\boldsymbol{x}^b_j$ and the partial residuals obtained from the model for each bootstrap sample as the bootstrap draw.
 \end{itemize}
 
-For each method, the main idea is given above. The remainder of this section presents their specific application to lasso-penalized linear regression. Section \ref{Sec:full-cond} derives the full conditional distributions needed for posterior sampling. Explicit calculations for all four methods are then given in Section~\ref{Sec:implementation}.
+For each method, the main idea is given above. The remainder of this section presents their specific application to lasso-penalized linear regression. Section \ref{Sec:full-cond} derives the full conditional distributions needed for the sampling in the posterior and hybrid methods. Explicit calculations for all four methods are then given in Section~\ref{Sec:implementation}.
 
 \subsection{Full conditional distributions for the lasso}
 \label{Sec:full-cond}
 
 \pb{I think we should split off the algorithm/implementation into its own section}
 
-In this section, we describe the details and important considerations performing the proposed methods, with particular emphasis on the sampling for the Posterior and hybrid bootstrap methods.
+In this section, we provide a high level derivation of the full conditional posterior distributions for lasso-penalized regression. Full details, including how to perform sampling, are provided in Supplement~\ref{Sup:A}. 
 
-As with other penalized regression models, the lasso can be formulated as a Bayesian regression model by setting an appropriate prior. This was addressed initially by \cite{Tibshirani1996} and covered more extensively by \cite{Park2008}. For the lasso, the prior is a Laplace distribution, also referred to as the double-exponential distribution:
+As with other penalized regression models, the lasso can be formulated as a Bayesian regression model by setting an appropriate prior. This was addressed initially by \cite{Tibshirani1996} and covered more extensively by \cite{Park2008}. For the lasso, the corresponding prior is a Laplace distribution, also referred to as the double-exponential distribution:
 
 \as{\p(\bb) = \prod_{j = 1}^{p} \frac{\gamma}{2}\exp(-\gamma \abs{\beta_j}), \gamma > 0}
 
-With this prior, the lasso estimate $\bbh(\lam)$ is the posterior mode of $\bb$ when $\lam = \gamma \frac{\sigma^2}{n}$. We purpose leveraging this relationship for building confidence intervals.
+With this prior, the lasso estimate $\bbh(\lam)$ is the posterior mode for $\bb$ when $\lam = \gamma \frac{\sigma^2}{n}$.
 
 Unfortunately, a Normal likelihood and Laplace prior are not conjugate and, in general, the absolute value in the exponent of the Laplace makes many common manipulations for the posterior more difficult. Luckily, however, the full conditional posterior can be shown to be a mixture of a right and left truncated normal where the truncation occurs at zero for right and left tails respectively. To obtain a full conditional posterior, we use the partial residuals, $\r_{-j}$, in the likelihood. This is natural when considering the common CD algorithms used to arrive at lasso estimates. In this manuscript, we will assume that $\X$ has been standardized s.t. $\x_j^T\x_j = n$.
 
@@ -117,18 +118,18 @@ C_{+} \exp(-\frac{n}{2\sigma^2} (\beta_j - (z_j - \lambda))^2), \text{ if } \bet
 
 Where, $C_{-} = \exp(\frac{z_j \lambda n}{\sigma^2})$ and $C_{+} = \exp(-\frac{z_j \lambda n}{\sigma^2})$.
 
-What makes this formulation attractive is that a mapping allows tail probabilities from the posterior to be translated to probabilities onto corresponding known normal distributions (i.e. $\N(z_j \pm \lambda, \frac{\sigma^2}{n})$). The allows for numerically stable and efficient sampling to be obtained from the full conditional posteriors. Details of how sampling is performed is outside of the scope of this manuscript and are provided in Supplement~\ref{Sup:A}. For the remainder of the manuscript, we simply refer to this process as ``sampling from the full conditional.''
+What makes this formulation attractive is that a mapping allows tail probabilities from the posterior to be translated to probabilities onto corresponding known normal distributions (i.e. $\N(z_j \pm \lambda, \frac{\sigma^2}{n})$). The allows for numerically stable and efficient sampling to be obtained from the full conditional posteriors.
 
-Again, recall that this solution corresponds to a particular value of $\lam$ and $\hat{\sigma}^2$. Our recommendation is to use CV to select $\lam$ and produce an estimate for $\sigma^2$ and produce bootstrap confidence intervals corresponding to these values. Specifically to use the value of $\lambda$ which minimizes CVE. This value is preferred to the 1-SE $\lambda$ as the 1-SE $\lambda$ inherently introduces more bias. Performance under this recommendation will be focused on in the Results section. However, it should be noted that producing an estimate for $\sigma^2$ in this manner implicitly depends on $\lam$, so new estimates for $\sigma^2$ should be obtained for each value of $\lam$. When referring to $\hat{\sigma}^2$ it will always be as a function of $\lam$ which we drop for notational convenience.
+Again, recall that this solution corresponds to a particular value of $\lam$ and $\hat{\sigma}^2$. Our recommendation is to use CV to select $\lam$ and produce an estimate for $\sigma^2$ and to produce bootstrap confidence intervals corresponding to these values. It should be noted that producing an estimate for $\sigma^2$ in this manner implicitly depends on $\lam$, so new estimates for $\sigma^2$ should be obtained for each value of $\lam$. As such, when referring to $\hat{\sigma}^2$ it will always be as a function of $\lam$ which we drop for notational convenience.  Specifically when using CV to select $\lambda$ and estimate $\sigma^2$, we recommend using the value of $\lambda$ which minimizes CVE. We prefer this value to the 1-SE $\lambda$ as the 1-SE $\lambda$ inherently introduces more bias. As such, performance under the minimum CVE $\lambda$ will be focused on in the results.
 
 \subsection{Implementation}
 \label{Sec:implementation}
 
 \pb{need to rework transition / intro}
 
-All together this leads to the following steps to obtain CIs through the various alternative bootstrap methods proposed:
+With the full conditional posterior now defined, we can provide the algorithm for implementing the four methods.
 
-Let $B$ represent the total number of bootstrap datasets generated and let $\boldsymbol{X}^b$ and $\boldsymbol{y}^b$ refer to the $b^{th}$ bootstrap sample. Similarly, $\hat{\beta}^b_j$ will refer to the estimate for $\beta_j$ from the lasso fit to $\boldsymbol{X}^b$ and $\boldsymbol{y}^b$.
+Let $B$ represent the total number of bootstrap datasets generated and let $\boldsymbol{X}^b$ and $\boldsymbol{y}^b$ refer to the $b^{th}$ bootstrap sample. Similarly, let $\hat{\beta}^b_j$ refer to the estimate for $\beta_j$ from the lasso fit to $\boldsymbol{X}^b$ and $\boldsymbol{y}^b$. Then, the methods can be implemented as follows:
 
 \begin{enumerate}
 \item Perform CV using the original data to select $\lam$ and estimate $\hat{\sigma}^2$
@@ -162,13 +163,17 @@ Let $B$ represent the total number of bootstrap datasets generated and let $\bol
 	\end{algorithmic}
 \item Save $\q$
 \end{enumerate}
-\item Row bind all B $\q$ vectors to obtain a $B \times p$ matrix of bootstrap draws \pb{avoid R-specific language like ``row bind''}
-\item For each $\beta_j$, compute the quantiles for $p_L = (.5 - \l/2)$ and $p_U = (.5 + \l/2)$ from the $j^{th}$ column of the draws to produce a final confidence interval estimate for significance level $\l$.
+\item Combine all B $\q$ vectors to obtain a $B \times p$ matrix of bootstrap draws \pb{avoid R-specific language like ``row bind''}
+\item For each $\beta_j$, compute the quantiles for $p_L = (.5 - \l/2)$ and $p_U = (.5 + \l/2)$ from the $j^{th}$ column of the draws to produce a final confidence interval estimate with significance level $\l$.
 \end{enumerate}
 
 \pb{short summary remarks?}
 
+The steps defined above break out each of the four methods into individual cases for clarity, however, in practice, there is a large degree of overlap. All four methods start with a lasso fit on each bootstrapped dataset which provides the draws for the traditional bootstrap. To obtain the full conditional posteriors which are needed for every variable for the posterior method, $z^b_j$ must first be computed which is the draw for debiased. If the draws are obtained for both traditional and posterior, then it is possible to subsequently compute what the draws would be for the hybrid bootstrap. Again, however, in practice this would not necessarily be the most efficient implementation unless one was interested in obtaining intervals from all four methods, but it does provide an illustration as to how the methods are related.
+
 \pb{We should briefly mention that we're using pairs bootstrap and quantile intervals as this is a common way of applying the bootstrap. Plenty of attention has been paid to various bootstrap implementations (cite bootstrap book); our focus here is on the differences between the traditional bootstrap and its posterior/hybrid/debiased variants.}
+
+There are various ways to perform the bootstrap and subsequently obtain confidence intervals. A large body of research exists on various bootstrap implementations, and \cite{Efron1994} in \textit{An Introduction to the Bootstrap} provides an accessible overview on the core body of knowledge. In this manuscript we use the pairs bootstrap and quantile intervals as this is one of the common ways of obtaining bootstrap confidence intervals and requires few assumptions. That said, our focus in this manuscript is on the differences between the traditional bootstrap and the proposed variants.
 
 \section{Results}
 
@@ -402,6 +407,7 @@ Figure~\ref{Fig:comparison_data_whoari} provides the confidence intervals from e
   \end{center}
 \end{figure}
 
+
 The \texttt{Scheetz2006} data was obtained from the study ``Regulation of gene expression in the mammalian eye and its relevance to eye disease'', written by \cite{Scheetz2006}. This study involved measuring the RNA levels from the eyes of 120 rats. Of 31000 different probes used, 18976 were detected at a sufficient level to be considered ``expressed''. For this analysis we treat one of the genes, Trim32, as the outcome since it is known to be linked to the genetic disorder Bardet-Biedl Syndrome (BBS). The remaining 18975 genes are used as covariates with the goal of determining other genes which may have expression correlated with Trim32 and thus may also contribute to BBS. 
 
 In the simulation study, we saw that when p is large relative to n, SelInf's difficulties are amplified. Applied to \texttt{Sheetz2006}, where $p > 100n$, the issues are unignorable. SelInf provides intervals for 66 of the 18975 features however, every single one of them has a lower or upper bound that is infinite. Additionally, for the bounds that are finite, they are all also extremely large compared to their respective point estimates and in comparison to the intervals produced by Hybrid and BLP. Additionally, none of the intervals contain zero. Potentially even more odd is that of the 66 intervals, 62 of them were completely of the opposite sign as the corresponding estimate. 
@@ -440,7 +446,7 @@ Since the main method suggested here falls somewhere between the Traditional Boo
 
 \logan{Discuss notation}
 
-Recall, the lasso can be formulated as a Bayesian regression model with the prior $\p(\bb) = \prod_{j = 1}^{p} \frac{\gamma}{2}\exp(-\gamma \abs{\beta_j})$ for $\gamma > 0$ and with $\lam = \gamma \frac{\sigma^2}{n}$. We also saw the likelihood (written here in terms of the partial residuals) is proportional to $\exp(-\frac{n}{2\sigma^2} (\beta_j^2 - 2z_j\beta_j))$ where $z_{j} = \frac{1}{n} \x_{j}^{T}\r_{-j}$.  With this the form of the full conditional posterior can be worked out as follows:
+Recall, the lasso can be formulated as a Bayesian regression model with the prior $\p(\bb) = \prod_{j = 1}^{p} \frac{\gamma}{2}\exp(-\gamma \abs{\beta_j})$ for $\gamma > 0$ and with $\lam = \gamma \frac{\sigma^2}{n}$. The likelihood (written here in terms of the partial residuals) can be show to be proportional to $\exp(-\frac{n}{2\sigma^2} (\beta_j^2 - 2z_j\beta_j))$ where $z_{j} = \frac{1}{n} \x_{j}^{T}\r_{-j}$. \logan{May want to show these steps?}  With this the form of the full conditional posterior can be worked out as follows:
 \as{
 \Rightarrow P(\beta_j | \r_{-j}) &\propto \exp(-\frac{n}{2\sigma^2} (\beta_j^2 - 2z_{j}\beta_j)) \frac{n \lambda}{2 \sigma^2} \exp(-\frac{n \lambda} {\sigma^2} \abs{\beta_j}) \\
 &\propto \exp(-\frac{n}{2\sigma^2} (\beta_j^2 - 2 z_j\beta_j +  2 \lambda \abs{\beta_j})) \\
