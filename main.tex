@@ -82,7 +82,7 @@ In this section, we present four alternative methods for obtaining bootstrap dra
 \item \textbf{Traditional bootstrap:} Simply takes the point estimate for each $\beta_j$ for each respective bootstrap sample.
 \item \textbf{Posterior bootstrap:} Leverages the Bayesian formulation of the model. For each bootstrap sample, a random draw from the full conditional posterior is obtained instead of taking the point estimate, which for the lasso is equivalent to the mode of the posterior.
 \item \textbf{Hybrid bootstrap:} Takes a middle ground between the posterior bootstrap and the traditional bootstrap. The hybrid bootstrap only samples from the full conditional if the point estimate for a given $\beta_j$ is equal to zero for that bootstrap sample. Otherwise, takes the point estimate like the traditional bootstrap.
-\item \textbf{Debiased bootstrap:} Uses the correlation between $\boldsymbol{x}^b_j$ and the partial residuals obtained from the model for each bootstrap sample as the bootstrap draw.
+\item \textbf{Debiased bootstrap:} Uses the correlation between $\boldsymbol{x}^b_j$ and the partial residuals obtained from the model for each bootstrap sample as the bootstrap draw for variable j.
 \end{itemize}
 
 For each method, the main idea is given above. The remainder of this section presents their specific application to lasso-penalized linear regression. Section \ref{Sec:full-cond} derives the full conditional distributions needed for the sampling in the posterior and hybrid methods. Explicit calculations for all four methods are then given in Section~\ref{Sec:implementation}.
@@ -118,7 +118,7 @@ C_{+} \exp(-\frac{n}{2\sigma^2} (\beta_j - (z_j - \lambda))^2), \text{ if } \bet
 
 Where, $C_{-} = \exp(\frac{z_j \lambda n}{\sigma^2})$ and $C_{+} = \exp(-\frac{z_j \lambda n}{\sigma^2})$.
 
-What makes this formulation attractive is that a mapping allows tail probabilities from the posterior to be translated to probabilities onto corresponding known normal distributions (i.e. $\N(z_j \pm \lambda, \frac{\sigma^2}{n})$). The allows for numerically stable and efficient sampling to be obtained from the full conditional posteriors.
+What makes this formulation attractive is that a mapping allows tail probabilities from the posterior to be translated to probabilities onto corresponding known normal distributions (i.e. $\N(z_j \pm \lambda, \frac{\sigma^2}{n})$). This allows for numerically stable and efficient sampling to be obtained from the full conditional posteriors.
 
 Again, recall that this solution corresponds to a particular value of $\lam$ and $\hat{\sigma}^2$. Our recommendation is to use CV to select $\lam$ and produce an estimate for $\sigma^2$ and to produce bootstrap confidence intervals corresponding to these values. It should be noted that producing an estimate for $\sigma^2$ in this manner implicitly depends on $\lam$, so new estimates for $\sigma^2$ should be obtained for each value of $\lam$. As such, when referring to $\hat{\sigma}^2$ it will always be as a function of $\lam$ which we drop for notational convenience.  Specifically when using CV to select $\lambda$ and estimate $\sigma^2$, we recommend using the value of $\lambda$ which minimizes CVE. We prefer this value to the 1-SE $\lambda$ as the 1-SE $\lambda$ inherently introduces more bias. As such, performance under the minimum CVE $\lambda$ will be focused on in the results.
 
@@ -164,12 +164,12 @@ Let $B$ represent the total number of bootstrap datasets generated and let $\bol
 \item Save $\q$
 \end{enumerate}
 \item Combine all B $\q$ vectors to obtain a $B \times p$ matrix of bootstrap draws \pb{avoid R-specific language like ``row bind''}
-\item For each $\beta_j$, compute the quantiles for $p_L = (.5 - \l/2)$ and $p_U = (.5 + \l/2)$ from the $j^{th}$ column of the draws to produce a final confidence interval estimate with significance level $\l$.
+\item For each $\beta_j$, compute the quantiles for $p_L = \alpha/2$ and $p_U = 1 - \alpha/2$ from the $j^{th}$ column of the draws to produce a final confidence interval estimate with significance level $\alpha$.
 \end{enumerate}
 
 \pb{short summary remarks?}
 
-The steps defined above break out each of the four methods into individual cases for clarity, however, in practice, there is a large degree of overlap. All four methods start with a lasso fit on each bootstrapped dataset which provides the draws for the traditional bootstrap. To obtain the full conditional posteriors which are needed for every variable for the posterior method, $z^b_j$ must first be computed which is the draw for debiased. If the draws are obtained for both traditional and posterior, then it is possible to subsequently compute what the draws would be for the hybrid bootstrap. Again, however, in practice this would not necessarily be the most efficient implementation unless one was interested in obtaining intervals from all four methods, but it does provide an illustration as to how the methods are related.
+The steps defined above break out each of the four methods into individual cases for clarity, however, in practice, there is a large degree of overlap. All four methods start with a lasso fit on each bootstrapped dataset which provides the draws for the traditional bootstrap. To obtain the full conditional posteriors which are needed for every variable for the posterior method, $z^b_j$ must first be computed which is the draw for debiased. If the draws are obtained for both traditional and posterior, then it is possible to subsequently compute what the draws would be for the hybrid bootstrap. Again, however, in practice this would not necessarily be the most efficient implementation unless one was interested in obtaining intervals from all four methods, but it does provide an illustration as to how the methods are related. \logan{Think about if there is more to add.}
 
 \pb{We should briefly mention that we're using pairs bootstrap and quantile intervals as this is a common way of applying the bootstrap. Plenty of attention has been paid to various bootstrap implementations (cite bootstrap book); our focus here is on the differences between the traditional bootstrap and its posterior/hybrid/debiased variants.}
 
