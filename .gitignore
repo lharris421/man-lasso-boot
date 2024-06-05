@@ -1,6 +1,7 @@
 *.pdf
 *.out
 *.aux
+*.bbl
 *.log
 *.lot
 *.lof
