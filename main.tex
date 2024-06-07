@@ -183,7 +183,7 @@ We compare the proposed CI methods by showing the coverage of each, both overall
 \subsubsection{Coverage}
 \label{Sec:Coverage}
 
-As suggested by Theorem~\ref{Thm:bcc}, there is reason to expect that the proposed methods (if they behave like Bayesian intervals) have proper average coverage when the penalty (prior) matches the true distribution of the coefficients. For a lasso model, this occurs when each $\beta_j$ independently follows a Laplace (double exponential) distribution. For the simulations in this section, we scaled the coefficients after drawing them so that $\bb^T\bb = 1$. With $\sigma^2=1$ and independent features, this results in a signal-to-noise ratio (SNR) of 1 and implies a Laplace rate of $\lam=?$, since $\Ex(\beta_j^2|\lam=?) = 1$.
+As suggested by Theorem~\ref{Thm:bcc}, there is reason to expect that the proposed methods (if they behave like Bayesian intervals) have proper average coverage when the penalty (prior) matches the true distribution of the coefficients. For a lasso model, this occurs when each $\beta_j$ independently follows a Laplace (double exponential) distribution. For the simulations in this section, we scaled the coefficients after drawing them so that $\bb^T\bb = 1$. With $\sigma^2=1$ and independent features, this results in a signal-to-noise ratio (SNR) of 1 and implies a Laplace rate of $\lam=\sqrt{2/p}$, since $\sum_{j=1}^p\Ex(\beta_j^2|\lam=\sqrt{2/p}) = 1$.
 
 We generated 100 independent data sets; for each data set, $B = 1000$ bootstrap iterations were drawn for each of the four methods described in Section~\ref{Sec:methods}. Each dataset was simulated as follows. $\X$ was generated independently \pb{from what distribution?} with $n = p = 100$. Then, $\y$ was generated as $\y = \X\bb + \bvep$, where $\veps_i \iid N(0, 1)$. The results are shown in Figure~\ref{Fig:laplace}, where the dotted lines represent the average coverage for each method across all coefficients, while the solid lines are smoothed estimates of coverage as a function of $|\beta|$. The black line indicates the nominal coverage rate, which is set to be 80\%.
 
@@ -198,12 +198,16 @@ We generated 100 independent data sets; for each data set, $B = 1000$ bootstrap 
 
 Figure~\ref{Fig:laplace} shows that, as is generally the case when applied to the lasso, the traditional bootstrap coverage is far below the nominal 80\%. At the other extreme, the average coverage of the posterior bootstrap was above 80\%. Meanwhile, the hybrid and debiased bootstrap methods had coverage fairly close to the nominal 80\%.
 
+\pb{combine and shorten these two paragraphs}
+
 To understand the coverage behaviors further, it helps to consider what happens when $\abs{\beta}$ is small and when it is large. The traditional bootstrap has low coverage both near and far-from zero. Debiased also under covers both near and far-from zero but to a much lesser extent and, of the methods considered here, generally sticks closest to nominal coverage regardless of the magnitude of $\beta$. Conversely, Posterior and Hybrid both display a significant degree of over coverage for values of $\beta$ near zero. However, like the other two methods, Posterior and Hybrid also both under cover far-from-zero, but to varying degrees. 
 
 Put more explicitly, what is novel for Posterior and Hybrid is the decreasing trend with high coverage rates high for values of $\beta$ near zero and lower for values of $\beta$ larger in magnitude. In classical settings, we would expect coverage to be constant despite the value of $\beta$, which is not the case here. This decreasing pattern is typical for these methods and is to be expected from intervals arising from procedures that are faithful to the lasso model fit. As emphasized in Section~\ref{Sec:Difficulties}, introducing bias through penalization is an inherent feature of the lasso. This bias can largely explain the pattern observed. In fact, as we will see, the effect of penalization on the width and bias of the intervals can explain the coverage patterns seen for all four methods, which is where we now turn our attention to.
 
 \subsubsection{Width and Bias}
 \label{Sec:width}
+
+\pb{we have too many figures. can we combine the two figures in this section to a 2x3 fig? or perhaps get rid of the ``interval bias'' and ``towards - away'' figures?}
 
 \begin{figure}[hbtp]
   \begin{center}
