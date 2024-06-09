@@ -123,6 +123,7 @@ for (i in 1:length(methods)) {
     mutate(bias_high = miss_high(lower, upper, truth)) %>%
     mutate(bias_low = miss_low(lower, upper, truth)) %>%
     mutate(bias_sign = sign_inversion(lower, upper, truth)) %>%
+    mutate(bias_lowsign = miss_low(lower, upper, truth) + sign_inversion(lower, upper, truth)) %>%
     mutate(mag_truth = abs(truth))
 
   print(methods[i])
@@ -132,35 +133,49 @@ for (i in 1:length(methods)) {
   ys_low <- predict(fit, data.frame(mag_truth = xs, group = 101), type ="response")
   fit <- gam(bias_sign ~ s(mag_truth) + s(group, bs = "re"), data = plot_data, family = binomial)
   ys_sign <- predict(fit, data.frame(mag_truth = xs, group = 101), type ="response")
+  fit <- gam(bias_lowsign ~ s(mag_truth) + s(group, bs = "re"), data = plot_data, family = binomial)
+  ys_lowsign <- predict(fit, data.frame(mag_truth = xs, group = 101), type ="response")
 
-  plot_res[[i]] <- data.frame(xs = xs, bias = ys_low - ys_high, bias_low = ys_low, bias_high = ys_high, bias_sign = ys_sign, method = methods_pretty[methods[i]])
+  plot_res[[i]] <- data.frame(xs = xs, bias = ys_low - ys_high, bias_low = ys_low, bias_high = ys_high, bias_sign = ys_sign, bias_lowsign = ys_lowsign, method = methods_pretty[methods[i]])
 }
 
-plot_bias_hl <- do.call(rbind, plot_res) %>%
-  ggplot(aes(x = xs, y = bias, color = method)) +
-  geom_line() +
-  theme_bw() +
-  xlab(expression(abs(beta))) +
-  ylab("P(Towards) - P(Away)") +
-  scale_color_manual(name = "Method", values = colors)
+# plot_bias_hl <- do.call(rbind, plot_res) %>%
+#   ggplot(aes(x = xs, y = bias, color = method)) +
+#   geom_line() +
+#   theme_bw() +
+#   xlab(expression(abs(beta))) +
+#   ylab("P(Towards) - P(Away)") +
+#   scale_color_manual(name = "Method", values = colors)
 
 plot_bias_h <- do.call(rbind, plot_res) %>%
   ggplot(aes(x = xs, y = bias_high, color = method)) +
   geom_line() +
   theme_bw() +
   xlab(NULL) +
-  ylab("P(Miss Away)") +
+  ylab("P(Away)") +
   scale_color_manual(name = "Method", values = colors) +
-  theme(legend.position = "none")
+  theme(legend.position = "none") +
+  geom_hline(yintercept = 0.1)
 
 plot_bias_l <- do.call(rbind, plot_res) %>%
   ggplot(aes(x = xs, y = bias_low, color = method)) +
   geom_line() +
   theme_bw() +
   xlab(NULL) +
-  ylab("P(Miss Towards)") +
+  ylab("P(Towards)") +
   scale_color_manual(name = "Method", values = colors) +
-  theme(legend.position = "none")
+  theme(legend.position = "none") +
+  geom_hline(yintercept = 0.1)
+
+plot_bias_ls <- do.call(rbind, plot_res) %>%
+  ggplot(aes(x = xs, y = bias_lowsign, color = method)) +
+  geom_line() +
+  theme_bw() +
+  xlab(NULL) +
+  ylab("P(Towards | Type 3)") +
+  scale_color_manual(name = "Method", values = colors) +
+  theme(legend.position = "none") +
+  geom_hline(yintercept = 0.1)
 
 plot_bias_s <- do.call(rbind, plot_res) %>%
   ggplot(aes(x = xs, y = bias_sign, color = method)) +
@@ -171,32 +186,25 @@ plot_bias_s <- do.call(rbind, plot_res) %>%
   scale_color_manual(name = "Method", values = colors)
 
 # Create a layout matrix
-combined_plot <- (plot_bias_l + plot_bias_h) /
-  (plot_bias_hl + plot_bias_s) +
-  plot_layout(guides = "collect", axis_titles = "collect")
-pdf("./fig/laplace_bias_nfb.pdf", height = 4, width = 8)
-print(combined_plot)
-dev.off()
-
-# pdf("./fig/laplace_bias_sign.pdf", height = 4, width = 8)
-# print(plot_bias_s)
+# combined_plot <- (plot_bias_l + plot_bias_h) /
+#   (plot_bias_hl + plot_bias_s) +
+#   plot_layout(guides = "collect", axis_titles = "collect")
+# pdf("./fig/laplace_bias_nfb.pdf", height = 4, width = 8)
+# print(combined_plot)
 # dev.off()
-
 
 plot_width <- plot_width +
   xlab(expression(abs(beta))) +
   ylab("Interval Width") +
   coord_cartesian(ylim = c(0, 0.35))
 
-plot_bias <- plot_bias +
-  xlab(expression(abs(beta))) +
-  ylab("Central Interval Bias") +
-  coord_cartesian(ylim = c(0, 0.35))
+# plot_bias <- plot_bias +
+#   xlab(expression(abs(beta))) +
+#   ylab("Central Interval Bias") +
+#   coord_cartesian(ylim = c(0, 0.35))
 
-library(cowplot)
-library(patchwork)
-combined_plot <- plot_width + plot_bias +
+combined_plot <- (plot_width + plot_bias_s) / (plot_bias_ls + plot_bias_h) +
   plot_layout(guides = "collect", axis_titles = "collect")
-pdf("./fig/laplace_width_bias.pdf", height = 3, width = 8)
+pdf("./fig/laplace_width_bias.pdf", height = 5, width = 8)
 print(combined_plot)
 dev.off()

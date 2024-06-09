@@ -55,7 +55,7 @@ grid$adjusted_coverage <- grid$coverage - 0.8
 plt_cov <- ggplot(grid, aes(x = lambda, y = truth, fill = adjusted_coverage)) +
   geom_tile() +
   scale_fill_gradient2(low = "#DF536B", high = "#2297E6", mid = "white", midpoint = 0) +
-  labs(y = "Truth", fill = "Rel. Cov.", x = expression(lambda)) +
+  labs(y = expression(abs(beta)), fill = "Rel. Cov.", x = expression(lambda)) +
   scale_x_log10(trans = c("log10", "reverse"), breaks = breaks_log(base=10), labels = label_log(10, digits = 1)) +
   geom_vline(xintercept = mean(lambdas[[1]]), alpha = .5, col = "red") +
   geom_vline(xintercept = lambda_cov, alpha = .5, col = "blue") +
