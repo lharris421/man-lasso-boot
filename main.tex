@@ -1,13 +1,13 @@
 \section{Introduction}
 
-\pb{I suggest the organization: \\
-  Lasso is great (p1 is fine) \\
+\pb{\sout{I suggest the organization: \\
+  Lasso is great (p1 is fine)} \\
   Inference is hard (p2 should mention some stuff like knockoff filter, gaussian mirror) \logan{Focus on selection uncertainty} \\
   \logan{Inference about individual variables has proven to be challenging?} \\
-  What about bootstrapping? \\
-  Main idea of our paper}
+  \sout{What about bootstrapping? \\
+  Main idea of our paper}}
 
-\pb{we probably also need some boilerplate stuff here: what is x, what is beta, we're using linear regression, etc.}
+\pb{\sout{we probably also need some boilerplate stuff here: what is x, what is beta, we're using linear regression, etc.}}
 
 Since its introduction by \cite{Tibshirani1996}, the lasso (Least Absolute Shrinkage and Selection Operator) has been a popular model of choice, even in cases which would not necessarily be classified as high-dimensional. The lasso is a penalized regression approach and while the penalty is applicable to broader scenarios, in this manuscript, we put our attention on the implementation of lasso for linear regression which has the following objective function \logan{(not sure about this as final notation yet)}: $$Q(\bb|\X,\y,\lambda) = \frac{1}{2n}||\y - \X\bb||_2^2 + \lambda \sum_{j = 1}^p |\beta_j|,$$ where $\y$ is a length $n$ vector of independent continuous outcome variables, $\X$ is an $n \times p$ matrix of independent explanatory variables, $\bb$ is a length $p$ vector of regression coefficients, and $\lambda$ is a regularization parameter determining the amount of penalization. Note that the objective function involves the addition of the $L_1$ penalty, $\lambda||\bb||_1 = \lambda \sum_{j = 1}^p |\beta_j|$, to the squared error loss, which usually results in sparse estimates for the regression coefficients, depending on the choice of the regularization parameter $\lambda$. Its ability to both do variable selection and estimation lends itself to a particular ease of use. Additionally, in scenarios where both predictive accuracy and interpretability are desired, the lasso generally excels. This is particularly useful for models with a large number of covariates where the underlying model is believed to be sparse but where the exact subset of significant predictors is unknown. In such scenarios, the lasso helps to identify the most relevant variables leading to a more parsimonious and hence interpretable model. \cite{HTF2009} provides an overview of the lasso's performance in various settings, demonstrating its optimality in various examples in which the situations and results desired are similar to those previously mentioned. 
 
@@ -22,13 +22,13 @@ Thus, we take a different perspective and raise a new question to traditional wi
 \section{Issues with Bootstrapping the lasso}
 \label{Sec:Difficulties}
 
-\pb{This is way jumping the gun. The point of this section is: why doesn't the bootstrap CI work (in the traditional sense)? Any discussion of ``faithful to the model fit'' has to come much later; it makes no sense to talk about it yet.\\
+\pb{\sout{This is way jumping the gun. The point of this section is: why doesn't the bootstrap CI work (in the traditional sense)? Any discussion of ``faithful to the model fit'' has to come much later; it makes no sense to talk about it yet.\\
   \\
   I don't like ``bias tradeoff'' as a name for this issue. I feel like the issue is more with respect to: What coverage are we interested? Each interval has to have exactly 95\% coverage no matter what $\beta$ is? Or the \emph{collection} of intervals has to have 95\% coverage over a \emph{distribution of likely values of} $\beta$. Bias is kind of related to this, I guess, but the \emph{inherent} issue is not bias but the question of looking at a single interval in isolation or looking at a collection of intervals together.\\
   \\
   I think the theorem should go here -- it clearly illustrates what we're talking about.\\
   \\
-  Also, I think we should cover epsilon conundrum first: it's a very straightforward problem, easily explained, and fixable. Let's tackle this first and the thorny philosophical issues second.}
+  Also, I think we should cover epsilon conundrum first: it's a very straightforward problem, easily explained, and fixable. Let's tackle this first and the thorny philosophical issues second.}}
 
 We see the shortcomings of bootstrapping the lasso to construct CIs arising from two issues. We will refer to these issues as,
 
@@ -90,7 +90,7 @@ For each method, the main idea is given above. The remainder of this section pre
 \subsection{Full conditional distributions for the lasso}
 \label{Sec:full-cond}
 
-\pb{I think we should split off the algorithm/implementation into its own section}
+\pb{\sout{I think we should split off the algorithm/implementation into its own section}}
 
 In this section, we provide a high level derivation of the full conditional posterior distributions for lasso-penalized regression. Full details, including how to perform sampling, are provided in Supplement~\ref{Sup:A}.
 
@@ -119,7 +119,7 @@ Note that we prefer the minimum CVE $\lam$ to the one standard error (1-SE) $\la
 \subsection{Implementation}
 \label{Sec:implementation}
 
-\pb{need to rework transition / intro}
+\pb{\sout{need to rework transition / intro}}
 
 With the full conditional posterior now defined for the linear regression lasso, we can provide the algorithm for implementing the four methods. Let $B$ represent the total number of bootstrap datasets generated and let $\boldsymbol{X}^b$ and $\boldsymbol{y}^b$ refer to the $b^{th}$ bootstrap sample. Similarly, let $\hat{\beta}^b_j$ refer to the estimate for $\beta_j$ from the lasso fit to $\boldsymbol{X}^b$ and $\boldsymbol{y}^b$ at a specified value of $\lam$. Then, the methods can be implemented as follows:
 
@@ -155,15 +155,15 @@ With the full conditional posterior now defined for the linear regression lasso,
 	\end{algorithmic}
 \item Save $\q$
 \end{enumerate}
-\item Combine all B $\q$ vectors to obtain a $B \times p$ matrix of bootstrap draws \pb{avoid R-specific language like ``row bind''}
+\item Combine all B $\q$ vectors to obtain a $B \times p$ matrix of bootstrap draws \pb{\sout{avoid R-specific language like ``row bind''}}
 \item For each $\beta_j$, compute the quantiles for $p_L = \alpha/2$ and $p_U = 1 - \alpha/2$ from the $j^{th}$ column of the draws to produce a final confidence interval estimate with significance level $\alpha$.
 \end{enumerate}
 
-\pb{short summary remarks?}
+\pb{\sout{short summary remarks?}} \logan{Would be good to review, make sure remarks are what you had in mind}
 
 The steps defined above are presented primarily for explanatory purposes. They break out each of the four methods into individual cases for clarity, however, in practice, there is a large degree of overlap between methods. All four methods start with a lasso fit on each bootstrapped dataset which provides the draws for the traditional bootstrap. To obtain the full conditional posteriors which are needed for every variable for the posterior method, $z^b_j$ must first be computed which is the draw for debiased. If the draws are obtained for both traditional and posterior, then it is possible to subsequently compute what the draws would be for the hybrid bootstrap. Again, however, in practice this would not necessarily be the most efficient implementation unless one was interested in obtaining intervals from all four methods, but it does provide an illustration as to how the methods are related. Additionally, the draws can be computed more efficiently than one variable at a time and there are other complexities which are outside the scope of this manuscript. The hybrid method is implemented in the R package \texttt{ncvreg} and the source code can be examined for these additional nuances.
 
-\pb{We should briefly mention that we're using pairs bootstrap and quantile intervals as this is a common way of applying the bootstrap. Plenty of attention has been paid to various bootstrap implementations (cite bootstrap book); our focus here is on the differences between the traditional bootstrap and its posterior/hybrid/debiased variants.}
+\pb{\sout{We should briefly mention that we're using pairs bootstrap and quantile intervals as this is a common way of applying the bootstrap. Plenty of attention has been paid to various bootstrap implementations (cite bootstrap book); our focus here is on the differences between the traditional bootstrap and its posterior/hybrid/debiased variants.}}
 
 Furthermore, there are various ways to perform the bootstrap and subsequently obtain confidence intervals. A large body of research exists on various bootstrap implementations, and \cite{Efron1994} in \textit{An Introduction to the Bootstrap} provides an accessible overview on the core body of knowledge. In this manuscript we use the pairs bootstrap and quantile intervals as this is one of the common ways of obtaining bootstrap confidence intervals and requires few assumptions. That said, our focus in this manuscript is on the differences between the traditional bootstrap and the proposed variants.
 
@@ -193,11 +193,11 @@ We generated 100 independent data sets; for each data set, $B = 1000$ bootstrap 
 
 Figure~\ref{Fig:laplace} shows that, as is generally the case when applied to the lasso, the traditional bootstrap coverage is far below the nominal 80\%. At the other extreme, the average coverage of the posterior bootstrap was above 80\%. Meanwhile, the hybrid and debiased bootstrap methods had coverage fairly close to the nominal 80\%.
 
-\pb{combine and shorten these two paragraphs}
+\pb{\sout{combine and shorten these two paragraphs}}
 
 To understand the coverage behaviors further, it helps to consider what happens when $\abs{\beta}$ is small and when it is large. The traditional bootstrap has low coverage both near and far-from zero. Debiased also under covers both near and far-from zero but to a much lesser extent and, of the methods considered here, generally sticks closest to nominal coverage regardless of the magnitude of $\beta$.  Posterior and Hybrid, on the other hand, display a novel decreasing trend with high coverage rates high for values of $\beta$ near zero and lower coverage rates for values of $\beta$ larger in magnitude. This pattern is typical for these methods and is to be expected from intervals arising from procedures that do not attempt to debias. The introduction of bias through penalization, a feature of the lasso, can largely explain the pattern observed. In fact, the effect of penalization on the width and bias of the intervals can explain the coverage patterns seen for all four methods, which is where we now turn our attention to.
 
-\pb{we have too many figures. can we combine the two figures in this section to a 2x3 fig? or perhaps get rid of the ``interval bias'' and ``towards - away'' figures?}
+\pb{\sout{we have too many figures. can we combine the two figures in this section to a 2x3 fig? or perhaps get rid of the ``interval bias'' and ``towards - away'' figures?}} \logan{Got rid of ``interval bias'' and ``towards - away'' and combined. Also though, included towards and T3 together and T3 alone instead of both T3 and towards alone.}
 
 \begin{figure}[hbtp]
   \begin{center}
