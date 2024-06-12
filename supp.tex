@@ -1,7 +1,11 @@
-\section*{Supplemental material}
-\beginsupplement
+\section*{Supplemental materials}
 
-\section{Sampling from the Full Conditional Posterior}\label{Sup:A}
+\begin{appendices}
+\renewcommand{\thesection}{\Alph{section}}
+\renewcommand{\thefigure}{\Alph{figure}}
+
+\section{Sampling from the Full Conditional Posterior}
+\label{Sup:A}
 
 \logan{Discuss notation}
 
@@ -73,7 +77,8 @@ Once the respective probabilities are mapped, one can simply use the inverses of
 
 \newpage
 
-\section{Behavior under true lambda}\label{Sup:B}
+\section{Behavior under true lambda}
+\label{Sup:B}
 
 This simulation considers the behavior of the Hybrid intervals if $\lam$ is set to its true value and, additionally, if $\sigma^2$ is also set to its true value, in this case, one. The simulation set up here is identical to the one described in Section~\ref{Sec:Coverage}. Recall that, like the rest of the simulation in the manuscript, the coefficients where generated s.t. $\bb^T\bb = 1$ so that with $\sigma^2=1$ and independent features, a signal-to-noise ratio (SNR) of 1 is achieved. Also recall that the simulation in Section~\ref{Sec:Coverage} generated $\beta$ from a Laplace distribution. Thus, this implies a true Laplace rate of $\gamma=\sqrt{2p}$, since $\sum_{j=1}^p\Ex(\beta_j^2|\gamma=\sqrt{2p}) = 1$. So, the only difference in the simulation here is that $\lambda$ is set to be $\gamma / n = \frac{\sqrt{2p}}{n}$ instead of being selected via cross validation. 
 
@@ -90,7 +95,8 @@ Figure~\ref{Fig:true_lambda} shows the results of the simulation described with 
 
 \newpage
 
-\section{Unmodified BLP Real Data Analysis}\label{Sup:C}
+\section{Unmodified BLP Real Data Analysis}
+\label{Sup:C}
 
 \begin{figure}[hbtp]
   \begin{center}
@@ -118,3 +124,5 @@ Figure~\ref{Fig:true_lambda} shows the results of the simulation described with 
 \end{figure} 
 
 Figure~\ref{Fig:nominal_coverage} is similar to Figure~\ref{Fig:laplace}, but focuses only on Hybrid and gives simulation results for three values of n across three different nominal coverage rates. Since the Hybrid bootstrap method has a varying coverage rates depending on the magnitude of $\beta$, it is important to consider different nominal coverages. Otherwise, it is conceivable that a method could perform well at one coverage rate but not another. However, that is not the case here. Regardless of the nominal coverage, the general pattern remains the same: the method over covers for smaller values of n but coverage converges to the nominal coverage rate relatively quickly. The only difference seen is the compression of this pattern for higher nominal coverage rates.
+
+\end{appendices}

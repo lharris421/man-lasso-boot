@@ -20,6 +20,7 @@
 \usetikzlibrary{tikzmark}
 \usepackage{array} %% required by kableExtra if column_spec
 \usepackage[normalem]{ulem}
+\usepackage{appendix}
 
 % Theorems and algorithms
 \newtheorem{thm}{Theorem}
@@ -40,14 +41,6 @@
 % Notes to each other
 \newcommand{\pb}[1]{\textcolor{red}{#1}}
 \newcommand{\logan}[1]{\textcolor{blue}{#1}}
-
-% Define the supplement env
-\newcommand{\beginsupplement}{%
-        \setcounter{figure}{0}
-        \renewcommand{\thefigure}{\Alph{figure}}%
-        \setcounter{section}{0}
-        \renewcommand{\thesection}{\Alph{section}}%
-     }
 
 % Define abstract environment
 \renewcommand{\abstract}[1]{
