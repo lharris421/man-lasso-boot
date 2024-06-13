@@ -67,6 +67,6 @@ plt_cov <- ggplot(grid, aes(x = lambda, y = truth, fill = adjusted_coverage)) +
         legend.key.height = unit(0.6, "cm"))
 
 
-pdf("./fig/beta_lambda_heatmap_laplace.pdf", height = 4, width = 5)
+png("./fig/beta_lambda_heatmap_laplace.png", height = 4, width = 5, units='in', res = 300)
 plt_cov
 dev.off()

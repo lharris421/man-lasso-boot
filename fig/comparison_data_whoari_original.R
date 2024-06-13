@@ -28,6 +28,6 @@ cis %>%
 
 
 ## Plotting
-pdf("./fig/comparison_data_original.pdf", width = 8, height = 5)
+pdf("./fig/comparison_data_whoari_original.pdf", width = 8, height = 5)
 plot_ci_comparison(cis, nvars = 66)
 dev.off()

@@ -1,14 +1,5 @@
 \section{Introduction}
 
-\pb{\sout{I suggest the organization: \\
-  Lasso is great (p1 is fine)} \\
-  Inference is hard (p2 should mention some stuff like knockoff filter, gaussian mirror) \logan{Focus on selection uncertainty} \\
-  \logan{Inference about individual variables has proven to be challenging?} \\
-  \sout{What about bootstrapping? \\
-  Main idea of our paper}}
-
-\pb{\sout{we probably also need some boilerplate stuff here: what is x, what is beta, we're using linear regression, etc.}}
-
 Since its introduction by \cite{Tibshirani1996}, the lasso (Least Absolute Shrinkage and Selection Operator) has been a popular model of choice, even in cases which would not necessarily be classified as high-dimensional. The lasso is a penalized regression approach and while the penalty is applicable to broader scenarios, in this manuscript, we put our attention on the implementation of lasso for linear regression which has the following objective function \logan{(not sure about this as final notation yet)}: $$Q(\bb|\X,\y,\lambda) = \frac{1}{2n}||\y - \X\bb||_2^2 + \lambda \sum_{j = 1}^p |\beta_j|,$$ where $\y$ is a length $n$ vector of independent continuous outcome variables, $\X$ is an $n \times p$ matrix of independent explanatory variables, $\bb$ is a length $p$ vector of regression coefficients, and $\lambda$ is a regularization parameter determining the amount of penalization. Note that the objective function involves the addition of the $L_1$ penalty, $\lambda||\bb||_1 = \lambda \sum_{j = 1}^p |\beta_j|$, to the squared error loss, which usually results in sparse estimates for the regression coefficients, depending on the choice of the regularization parameter $\lambda$. Its ability to both do variable selection and estimation lends itself to a particular ease of use. Additionally, in scenarios where both predictive accuracy and interpretability are desired, the lasso generally excels. This is particularly useful for models with a large number of covariates where the underlying model is believed to be sparse but where the exact subset of significant predictors is unknown. In such scenarios, the lasso helps to identify the most relevant variables leading to a more parsimonious and hence interpretable model. \cite{HTF2009} provides an overview of the lasso's performance in various settings, demonstrating its optimality in various examples in which the situations and results desired are similar to those previously mentioned. 
 
 With that said, inference for the lasso has proven to be a difficult task. Although the $L_1$ penalty introduces sparsity in the estimates (i.e. selection), it is also responsible for inducing bias and complicating the sampling distribution of the estimators, which poses the primary obstacle to obtaining valid inference. Given this complexity, it should be no surprise that a number of angles have been taken, producing varying techniques towards inference. Focusing on a less granular level are methods such as those that control the false discovery rate (FDR). Examples of such approaches include the Covariance test proposed by \cite{Lockhart2014} and the Knockoff Filter with both a fixed and random (model-X) knockoffs, proposed by \cite{Candes2015} and \cite{Candes2018} respectively. \cite{Breheny2019} adjusts the idea of FDR and proposes a marginal approach. Another interesting method is the Gaussian Mirror introduced by \cite{Xing2023} in which pairs of ``mirror'' variables are constructed for each covariate through the addition of Gaussian noise and then used to construct a test statistic which can effectively be used to control FDR.
@@ -21,14 +12,6 @@ Thus, we take a different perspective and raise a new question to traditional wi
 
 \section{Issues with Bootstrapping the lasso}
 \label{Sec:Difficulties}
-
-\pb{\sout{This is way jumping the gun. The point of this section is: why doesn't the bootstrap CI work (in the traditional sense)? Any discussion of ``faithful to the model fit'' has to come much later; it makes no sense to talk about it yet.\\
-  \\
-  I don't like ``bias tradeoff'' as a name for this issue. I feel like the issue is more with respect to: What coverage are we interested? Each interval has to have exactly 95\% coverage no matter what $\beta$ is? Or the \emph{collection} of intervals has to have 95\% coverage over a \emph{distribution of likely values of} $\beta$. Bias is kind of related to this, I guess, but the \emph{inherent} issue is not bias but the question of looking at a single interval in isolation or looking at a collection of intervals together.\\
-  \\
-  I think the theorem should go here -- it clearly illustrates what we're talking about.\\
-  \\
-  Also, I think we should cover epsilon conundrum first: it's a very straightforward problem, easily explained, and fixable. Let's tackle this first and the thorny philosophical issues second.}}
 
 We see the shortcomings of bootstrapping the lasso to construct CIs arising from two issues. We will refer to these issues as,
 
@@ -170,7 +153,7 @@ Furthermore, there are various ways to perform the bootstrap and subsequently ob
 \section{Results}
 \label{Sec:results}
 
-We begin by examining the coverage behavior of the proposed bootstrap methods in what might be considered the ``ideal'' scenario, where the assumptions of Theorem~\ref{Thm:bcc} are met (Section~\ref{Sec:Coverage}). We then examine how this accuracy is affected by a number of violations to those assumptions to assess each method's robustness (Section~\ref{Sec:robustness}). Finally, we compare the proposed confidence interval methods to other confidence interval approaches for penalized regression that have been proposed in the literature. \logan{At this point results are really focused on just Hybrid.}
+We begin by examining the coverage behavior of the proposed bootstrap methods in what might be considered the ``ideal'' scenario, where the assumptions of Theorem~\ref{Thm:bcc} are met (Section~\ref{Sec:Coverage}). We then examine how this accuracy is affected by a number of violations to those assumptions to assess each method's robustness (Section~\ref{Sec:robustness}). Finally, we compare the proposed confidence interval methods to other confidence interval approaches for penalized regression that have been proposed in the literature. \logan{At this point results are really focused on just Hybrid.} \pb{I see your point, but at the same time, perhaps we make some plots where we compare Debiased bootstrap with BLP and SelInf? At least include in supplement? It's hard to completely dismiss the debiased approach.}
 
 Unless otherwise noted, the nominal coverage rate in all of these experiments is 80\%.
 
@@ -276,7 +259,7 @@ Since CV is non-deterministic, $\lambda_{\CV}$ likely takes on a range of values
 
 \begin{figure}[hbtp]
   \begin{center}
-  \includegraphics[width=0.6\linewidth]{beta_lambda_heatmap_laplace}
+  \includegraphics[width=0.6\linewidth]{beta_lambda_heatmap_laplace.png}
   \caption{\label{Fig:beta_lambda_heatmap_laplace} The heatmap displays results for the simulation described in Section~\ref{Sec:lambda}. 100 datasets were generated as with previous simulations with n = p = 100, with $\beta \sim Laplace$ and $\X$ generated under independence from a $N(0,1)$. Then, the Hybrid bootstrap was fit across a range of $\lam$ values and confidence intervals and their coverages were obtained and then used to fit a gam to estimate the coverage as a smooth function of the $|\beta|$ and $\lam$. The x-axis was truncated over the range of $\lam_{\CV}$s and is presented relative to each simulations $\lam_{\max}$. The red line represents the relative average CV selected value of $\lam$. The blue line indicates the relative $\lam$ value that provided coverage closest to the 80\% nominal coverage rate.}
   \end{center}
 \end{figure}
