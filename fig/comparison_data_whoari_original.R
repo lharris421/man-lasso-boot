@@ -8,24 +8,15 @@ alpha <- .2
 lambda <- "cv"
 
 params_grid <- expand.grid(list(data = data_type, method = methods, lambda = lambda,
-                                ci_method = "quantile", nominal_coverage = alpha * 100))
+                                nominal_coverage = (1-alpha) * 100))
 
 # Fetching and combining data
 cis <- list()
 for (i in 1:nrow(params_grid)) {
   res <- read_objects(rds_path, params_grid[i,], save_method = "rds")
-  cis[[i]] <- res$confidence_interval %>%
-    select(estimate, lower, upper, variable, method)
-  print(ncol(cis[[i]]))
-  print(colnames(cis[[i]]))
+  cis[[i]] <- res$confidence_interval
 }
-cis <- do.call(rbind, cis) %>% data.frame()
-
-cis %>%
-  mutate(is_not_zero = lower > 0 | upper < 0) %>%
-  group_by(method) %>%
-  summarise(sum(is_not_zero))
-
+cis <- do.call(dplyr::bind_rows, cis) %>% data.frame()
 
 ## Plotting
 pdf("./fig/comparison_data_whoari_original.pdf", width = 8, height = 5)

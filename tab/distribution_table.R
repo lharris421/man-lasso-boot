@@ -11,7 +11,7 @@ source("./fig/setup/setup.R")
 
 plots <- list()
 
-methods <- c("zerosample2")
+methods <- c("lasso")
 n_values <- c(50, 100, 400, 1000) # ns values you are interested in
 data_type <- c("laplace", "normal", "t", "uniform", "beta", "sparse 1", "sparse 2", "sparse 3")
 SNR <- 1
@@ -20,7 +20,8 @@ p <- 100
 
 params_grid <- expand.grid(list(data = data_type, n = n_values, snr = SNR,
                                 method = methods, lambda = "cv",
-                                ci_method = "quantile", nominal_coverage = alpha * 100, p = p))
+                                nominal_coverage = (1-alpha) * 100,
+                                p = p, alpha = 1))
 
 
 # Fetching and combining data
@@ -33,9 +34,10 @@ for (i in 1:nrow(params_grid)) {
 }
 per_var_data <- do.call(rbind, per_var_data) %>%
   data.frame() %>%
+  filter(submethod == "hybrid") %>%
   mutate(
     covered = lower <= truth & upper >= truth,
-    method = methods_pretty[method]
+    method = methods_pretty[submethod]
   ) %>%
   group_by(data_type, n) %>%
   summarise(Coverage = mean(covered) * 100) %>%

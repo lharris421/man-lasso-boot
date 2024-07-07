@@ -4,60 +4,81 @@ source("./fig/setup/setup.R")
 ## Load Data
 data_type <- "abn"
 alpha <- .2
-modifier <- character()
-modifier[1] <- NA
 arg_list <- list(data = data_type,
                  n = 100,
                  p = 100,
                  snr = 1,
-                 sd = ifelse(data_type == "normal", sd, NA),
-                 rate = ifelse(data_type == "laplace", rt, NA),
                  a = ifelse(data_type == "abn", 1, NA),
                  b = ifelse(data_type == "abn", 1, NA),
                  correlation_structure = "exchangeable",
                  correlation = 0.99,
                  correlation_noise = ifelse(data_type == "abn", 0, NA),
                  method = c("ridge"),
-                 ci_method = "quantile",
-                 nominal_coverage = alpha * 100,
+                 nominal_coverage = (1-alpha) * 100,
                  lambda = "cv",
-                 modifier = modifier)
+                 alpha = NA,
+                 gamma = NA,
+                 modifier = NA)
 arg_list2 <- list(data = data_type,
-                 n = 100,
-                 p = 100,
-                 snr = 1,
-                 sd = ifelse(data_type == "normal", sd, NA),
-                 rate = ifelse(data_type == "laplace", rt, NA),
-                 a = ifelse(data_type == "abn", 1, NA),
-                 b = ifelse(data_type == "abn", 1, NA),
-                 correlation_structure = "exchangeable",
-                 correlation = 0.99,
-                 correlation_noise = ifelse(data_type == "abn", 0, NA),
-                 method = c("zerosample2"),
-                 ci_method = "quantile",
-                 nominal_coverage = alpha * 100,
-                 lambda = "cv",
-                 modifier = modifier)
-methods_pretty <- c(methods_pretty, "ridge" = "Ridge")
+                  n = 100,
+                  p = 100,
+                  snr = 1,
+                  a = ifelse(data_type == "abn", 1, NA),
+                  b = ifelse(data_type == "abn", 1, NA),
+                  correlation_structure = "exchangeable",
+                  correlation = 0.99,
+                  correlation_noise = ifelse(data_type == "abn", 0, NA),
+                  method = "lasso",
+                  nominal_coverage = (1-alpha) * 100,
+                  alpha = 0.8,
+                  gamma = NA,
+                  lambda = "cv",
+                  modifier = NA)
+arg_list3 <- list(data = data_type,
+                  n = 100,
+                  p = 100,
+                  snr = 1,
+                  a = ifelse(data_type == "abn", 1, NA),
+                  b = ifelse(data_type == "abn", 1, NA),
+                  correlation_structure = "exchangeable",
+                  correlation = 0.99,
+                  correlation_noise = ifelse(data_type == "abn", 0, NA),
+                  method = "lasso",
+                  nominal_coverage = (1-alpha) * 100,
+                  alpha = 1,
+                  gamma = NA,
+                  lambda = "cv",
+                  modifier = NA)
 
 cis <- list()
 examples <- list()
-params_grid <- rbind(expand.grid(arg_list), expand.grid(arg_list2))
+params_list <- list(
+  expand.grid(arg_list), expand.grid(arg_list2), expand.grid(arg_list3)
+)
 
-for (i in 1:nrow(params_grid)) {
-  read_objects(rds_path, params_grid[i,])
-  cis[[i]] <- confidence_interval
-  examples[[i]] <- example
+for (i in 1:length(params_list)) {
+  res_list <- read_objects(rds_path, params_list[[i]], save_method = "rds")
+  cis[[i]] <- res_list$confidence_interval
+  examples[[i]] <- res_list$example
 }
-names(cis) <- params_grid$method
-names(examples) <- params_grid$method
+
+methods <- c("ridge", "enet1", "lasso")
+names(cis) <- methods
+names(examples) <- methods
 
 plots <- list()
 eplots <- list()
-for (i in 1:nrow(params_grid)) {
-  curr_method <- params_grid$method[i]
-  current_cis <- do.call(rbind, cis[[curr_method]]) %>%
-    data.frame()
+for (i in 1:length(params_list)) {
+  curr_method <- methods[i]
+  if (curr_method == "ridge") {
+    current_cis <- do.call(rbind, cis[[curr_method]]) %>%
+      data.frame()
+  } else {
+    current_cis <- do.call(rbind, cis[[curr_method]]) %>%
+      data.frame() %>%
+      filter(submethod == "hybrid") %>%
+      mutate(method = curr_method)
+  }
   current_example <- examples[[curr_method]]
 
   if (curr_method == "ridge") {
@@ -65,7 +86,7 @@ for (i in 1:nrow(params_grid)) {
     pdat <- current_cis %>%
       mutate(variable = variables) %>%
       filter(variable %in% c("A1", "B1", "N1")) %>%
-      pivot_longer(Lower:Upper, names_to = "bound", values_to = "value") %>%
+      pivot_longer(lower:upper, names_to = "bound", values_to = "value") %>%
       mutate(value = as.numeric(value))
   } else {
     pdat <- current_cis %>%
@@ -82,29 +103,18 @@ for (i in 1:nrow(params_grid)) {
     coord_cartesian(xlim = c(-1, 2)) +
     theme(
       legend.position = "none"
-      #plot.background = element_rect(fill=background_colors[2])
     ) +
     ylab(NULL) +
     xlab(NULL) +
     scale_color_manual(values = colors) +
-    # annotate("text", x = 1.2, y = 3.4, label = methods_pretty[as.character(params_grid$method[i])], size = 5)
-    ggtitle(methods_pretty[as.character(params_grid$method[i])])
+    ggtitle(methods_pretty[as.character(curr_method)])
 
- if (params_grid$method[i] == "zerosample2") {
-   current_cis %>%
-     filter(variable == "B1") %>%
-     mutate(under0 = lower <= 0) %>%
-     pull(under0) %>% mean() %>%
-     print()
- }
-
-
- if (params_grid$method[i] == "ridge") {
+ if (curr_method == "ridge") {
    ridge_example <- current_example
    colnames(ridge_example) <- tolower(colnames(ridge_example))
    tmp_plot <- plot_ridge(ridge_example, n = 20)
  } else {
-   tmp_plot <- plot(current_example, n = 20, original_order = TRUE)
+   tmp_plot <- plot(current_example, n = 20, method = "hybrid")
  }
  plots[[2 + 2*(i-1)]] <- tmp_plot +
    coord_cartesian(xlim = c(-1, 2)) +
@@ -117,7 +127,9 @@ for (i in 1:nrow(params_grid)) {
 left_label <- textGrob("Variable", gp = gpar(fontsize = 12), rot = 90)
 bottom_label <- textGrob("Interval Endpoint", gp = gpar(fontsize = 12))
 
-pdf("./fig/highcorr.pdf", height = length(params_grid$method) * 3)
-(plots[[1]] + ylab("Variable") + plots[[2]]) / (plots[[3]] + xlab(expression(beta)) + ylab("Variable") + plots[[4]] + xlab(expression(beta)) + patchwork::plot_layout(axes = "collect"))
+pdf("./fig/highcorr.pdf", height = length(params_list) * 3)
+(plots[[1]] + ylab("Variable") + plots[[2]]) /
+  (plots[[3]] + ylab("Variable") + plots[[4]]) /
+  (plots[[5]] + xlab(expression(beta)) + ylab("Variable") + plots[[6]] + xlab(expression(beta)) + patchwork::plot_layout(axes = "collect"))
 dev.off()
 

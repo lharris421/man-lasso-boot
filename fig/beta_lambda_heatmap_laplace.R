@@ -2,31 +2,28 @@
 source("./fig/setup/setup.R")
 
 alpha <- .2
-base_params <- list(data = "laplace",
-                    snr = 1,
-                    n = 100,
-                    p = 100,
-                    method = "zerosample2",
-                    ci_method = "quantile",
-                    lambda = "across",
-                    nominal_coverage = alpha * 100)
+args_list <- list(data = "laplace",
+                  snr = 1,
+                  n = 100,
+                  p = 100,
+                  method = "lasso",
+                  lambda = "across",
+                  nominal_coverage = alpha * 100,
+                  alpha = 1)
+
+submethod <- "hybrid"
 
 
-res_list <- read_objects(rds_path, expand.grid(base_params), save_method = "rds")
+res_list <- read_objects(rds_path, expand.grid(args_list), save_method = "rds")
 lambdas <- res_list$lambdas
 true_lambdas <- res_list$true_lambdas
 res <- res_list$res
 
-lambda_max <- 1
-lambda_min <- 0.001
-lambda_seq <- 10^(seq(log(lambda_max, 10), log(lambda_min, 10), length.out = 10))
-
 pdat <- res[[1]] %>%
-  dplyr::filter(lambda_ind <= 10) %>%
+  filter(method == submethod) %>%
   dplyr::mutate(covered = truth >= lower & truth <= upper,
-                width = upper - lower,
                 group = as.factor(group),
-                lambda = lambda_seq[lambda_ind],
+                lambda = round(lambda / lambda_max, 3),
                 truth = abs(truth))
 
 lambda_cov <- pdat %>%
@@ -38,12 +35,12 @@ lambda_cov <- pdat %>%
   pull(lambda)
 
 
-
 # Fit a binomial model with the transformed lambda
 model_cov <- gam(covered ~ te(lambda, truth), data = pdat, family = binomial)
 
 # Create a grid for prediction on the transformed lambda scale
-lambda_seq <- 10^seq(log(min(lambdas[[1]]), 10), log(max(lambdas[[1]]), 10), length.out = 100)
+min_lam <- min(c(lambdas[[1]], lambda_cov))
+lambda_seq <- 10^seq(log(min_lam, 10), log(max(lambdas[[1]]), 10), length.out = 100)
 truth_seq <- seq(0, .275, length.out = 100)
 grid <- expand.grid(lambda = lambda_seq, truth = truth_seq) %>% data.frame()
 

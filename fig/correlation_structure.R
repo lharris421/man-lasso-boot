@@ -1,29 +1,25 @@
 ## Setup
 source("./fig/setup/setup.R")
 
-methods <- c("zerosample2", "debiased")
-ns <- c(50, 100, 400) # ns values you are interested in
-data_type <- c("laplace")
-rate <- c(2)
+
+methods <- "lasso"
+n_values <- c(50, 100, 400)
+data_type <- "laplace"
 SNR <- 1
-corr <- c("autoregressive")
-rhos <- rho <- c(0.4, 0.6, 0.8)
 alpha <- .2
 p <- 100
+enet_alpha <- 1
+corr <- c("autoregressive")
+rhos <- rho <- c(0.4, 0.6, 0.8)
 
 # Initialize an empty list to store data from all rho values
-args_list <- list(data = data_type,
-                  n = ns,
-                  snr = SNR,
-                  correlation_structure = corr,
-                  correlation = rho * 100,
-                  method = methods,
-                  ci_method = ci_method,
-                  nominal_coverage = alpha * 100,
-                  lambda = "cv",
-                  p = p)
-params_grid <- expand.grid(args_list)
+params_grid <- expand.grid(list(data = data_type, n = n_values, snr = SNR,
+                                method = methods, lambda = "cv", alpha = enet_alpha,
+                                nominal_coverage = (1-alpha) * 100, p = p,
+                                correlation_structure = corr,
+                                correlation = rho * 100))
 
+# params_grid <- cbind(params_grid, modifier = rep(c(NA, NA, "debias"), each = 3))
 
 per_var_data <- list()
 for (j in 1:nrow(params_grid)) {
@@ -32,20 +28,21 @@ for (j in 1:nrow(params_grid)) {
     mutate(rho = params_grid[j, "correlation"])
 }
 combined_data <- do.call(rbind, per_var_data) %>%
-  data.frame()
+  data.frame() %>%
+  filter(submethod %in% c("hybrid", "debiased"))
 
 
 # Transform and summarize data
 coverage_data <- combined_data %>%
   mutate(covered = lower <= truth & upper >= truth, n = as.factor(n), rho = factor(rho)) %>%
-  group_by(group, method, rho, n) %>%
+  group_by(group, submethod, rho, n) %>%
   summarise(coverage = mean(covered), .groups = 'drop')
 
 # Create a single plot with facets for each rho
 final_plot <- coverage_data %>%
   ggplot(aes(x = n, y = coverage, fill = n)) +
   geom_boxplot() +
-  facet_wrap(method~rho, as.table = FALSE, labeller = label_bquote(.(methods_pretty[method]) - rho == .(rhos[rho]))) +
+  facet_wrap(submethod~rho, as.table = FALSE, labeller = label_bquote(.(methods_pretty[submethod]) - rho == .(rhos[rho]))) +
   labs(x = "Sample Size", y = "Coverage Rate") +
   theme_bw() +
   theme(legend.position = "none") +

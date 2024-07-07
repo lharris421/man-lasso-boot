@@ -1,7 +1,7 @@
 ## Setup
 source("./fig/setup/setup.R")
 
-methods <- c("selectiveinference", "zerosample2", "blp")
+methods <- c("selectiveinference", "lasso", "blp")
 ns <- c(100)
 data_type <- "laplace"
 SNR <- 1
@@ -9,15 +9,25 @@ alpha <- .2
 p <- 100
 lambda <- "cv"
 
-params_grid <- expand.grid(list(data = data_type, n = ns, snr = SNR, lambda = "cv",
+params_grid <- expand.grid(list(data = data_type, n = ns, snr = SNR, lambda = lambda,
                                 method = methods,
-                                ci_method = "quantile", nominal_coverage = alpha * 100, p = p))
+                                nominal_coverage = (1 - alpha) * 100, p = p))
+
+params_grid <- cbind(params_grid, alpha = c(NA, 1, NA))
+
 # Fetching and combining data
 per_var_data <- list()
 for (i in 1:nrow(params_grid)) {
   res_list <- read_objects(rds_path, params_grid[i,], save_method = "rds")
-  per_var_data[[i]] <- res_list$per_var_n %>%
-    select_at(vars(-contains("center")))
+  per_var_data[[i]] <- res_list$per_var_n
+  if (params_grid$method[i] == "lasso") {
+    per_var_data[[i]] <-  per_var_data[[i]] %>%
+      filter(submethod %in% c("debiased", "hybrid"))
+  }
+  if (params_grid$method[i] %in% c("blp", "selectiveinference")) {
+    per_var_data[[i]] <-  per_var_data[[i]] %>%
+      rename(lower = estimate, upper = lower, estimate = upper)
+  }
 }
 model_res <- do.call(rbind, per_var_data) %>%
   data.frame() %>%
@@ -26,7 +36,8 @@ model_res <- do.call(rbind, per_var_data) %>%
     mag_truth = abs(truth), covered = as.numeric(covered)
   )
 
-n_methods <- length(methods)
+n_methods <- length(unique(model_res$submethod))
+methods <- unique(model_res$submethod)
 
 cutoff <- .275
 line_data <- list()
@@ -34,7 +45,7 @@ line_data_avg <- list()
 for (i in 1:length(methods)) {
   print(methods[i])
   tmp <- model_res %>%
-    mutate(method = stringr::str_remove(method, "_")) %>%
+    mutate(method = stringr::str_remove(submethod, "_")) %>%
     filter(method == methods[i] & n == ns)
 
   if (i == 1) {
@@ -63,7 +74,8 @@ for (i in 1:length(methods)) {
     print()
 
   tmp <- tmp %>%
-    filter(!is.na(estimate))
+    filter(!is.na(estimate)) %>%
+    mutate(covered = lower <= truth & upper >= truth)
 
   fit <- gam(covered ~ s(mag_truth) + s(group, bs = "re"), data = tmp, family = binomial)
   xs <- seq(0, cutoff, by = .01)

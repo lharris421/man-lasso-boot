@@ -23,8 +23,9 @@ background_colors <- c("#E2E2E2", "#F5F5F5")
 
 methods_pretty <- c(
   "traditional" = "Traditional",
-  "sample" = "Posterior",
+  "posterior" = "Posterior",
   "debiased" = "Debiased",
+  "hybrid" = "Hybrid",
   "acceptreject" = "Accept/Reject",
   "zerosample1" = "Zero Sample Single",
   "zerosample2" = "Hybrid",
@@ -37,7 +38,12 @@ methods_pretty <- c(
   "debiased_normalized" = "Norm Debias",
   "debiased_corrected" = "Corrected Debias",
   "full_debias" = "Full Debias",
-  "samplealt" = "Temp"
+  "samplealt" = "Temp",
+  "MCP" = "MCP", "SCAD" = "SCAD",
+  "lasso" = "Lasso",
+  "enet" = "Elastic Net",
+  "enet1" = "Elastic Net (0.8)",
+  "ridge" = "Ridge"
 )
 
 # Options

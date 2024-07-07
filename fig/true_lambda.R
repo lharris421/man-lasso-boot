@@ -3,10 +3,8 @@ source("./fig/setup/setup.R")
 
 plots <- list()
 
-method <- "zerosample2"
+method <- "lasso"
 data_type <- "laplace"
-corr <- "exchangeable"
-rho <- 0
 
 per_var_data <- list()
 alphas <- c(0.2)
@@ -22,9 +20,9 @@ library(mgcv)  # For gam()
 
 # Expand grid for all combinations
 params_grid <- expand.grid(data = data_type, n = ns, snr = SNR, lambda = "cv",
-                           method = method, ci_method = "quantile",
-                           nominal_coverage = alphas * 100, p = p,
-                           modifier = modifier, stringsAsFactors = FALSE)
+                           method = method,
+                           nominal_coverage = (1-alphas) * 100, p = p,
+                           modifier = modifier, alpha = 1)
 
 # Function to read and process each combination, integrating single_method_plot logic
 read_process_data <- function(params) {
@@ -39,7 +37,7 @@ read_process_data <- function(params) {
       mag_truth = abs(truth),
       covered = as.numeric(covered)
     ) %>%
-    filter(n == params$n)
+    filter(n == params$n, submethod == "hybrid")
 
   fit <- gam(covered ~ s(mag_truth) + s(group, bs = "re"), data = tmp, family = binomial)
   xs <- seq(0, cutoff, by = .01)
@@ -62,7 +60,7 @@ ggplot() +
   geom_line(data = all_data %>% filter(which == "curve"), aes(x = x, y = y, color = n)) +
   geom_line(data = all_data %>% filter(which == "mean"), aes(x = x, y = y, color = n), lty = "dashed") +
   facet_wrap(.~modifier) +
-  geom_hline(data = all_data, aes(yintercept = (1 - as.numeric(alpha)/100)), color = "black") +
+  geom_hline(data = all_data, aes(yintercept = 0.8), color = "black") +
   theme_bw() +
   labs(x = expression(abs(beta)), y = "Estimated Coverage Probability") +
   scale_color_manual(name = "N", values = colors) +

@@ -3,18 +3,26 @@ source("./fig/setup/setup.R")
 
 ## Load Data
 data_type <- "Scheetz2006"
-methods <- c("zerosample2", "blpmin", "selectiveinference")
+methods <- c("lasso", "blpmin", "selectiveinference")
 alpha <- .2
 lambda <- "cv"
 
 params_grid <- expand.grid(list(data = data_type, method = methods, lambda = lambda,
-                                ci_method = "quantile", nominal_coverage = alpha * 100))
+                                nominal_coverage = (1-alpha) * 100))
+
+params_grid <- cbind(params_grid, alpha = c(1, NA, NA))
 
 # Fetching and combining data
 cis <- list()
 for (i in 1:nrow(params_grid)) {
   res <- read_objects(rds_path, params_grid[i,], save_method = "rds")
   cis[[i]] <- res$confidence_interval
+
+  if (params_grid$method[i] == "lasso") {
+    cis[[i]] <- cis[[i]] %>%
+      filter(method %in% c("hybrid", "debiased"))
+  }
+
 }
 cis <- do.call(dplyr::bind_rows, cis) %>% data.frame()
 
