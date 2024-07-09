@@ -2,14 +2,14 @@
 source("./fig/setup/setup.R")
 
 ## Load Data
-method <- "MCP"
+method <- "lasso"
 n_values <- 100
 data_type <- "sparse"
 SNR <- 1
 alpha <- .2
 p <- 100
 enet_alpha <- 1
-gamma <- 3.7
+gamma <- NA
 modifier <- NA
 
 params_grid <- expand.grid(list(data = data_type, n = n_values, snr = SNR, lambda = "cv",
@@ -57,16 +57,16 @@ for (i in 1:length(submethods)) {
 
 left_label <- textGrob("Variable", gp = gpar(fontsize = 10), rot = 90)
 
-pdf(glue("./fig/{method}_hybrid.pdf"), height = 4, width = 7)
+pdf(glue("./fig/ec_lasso_hybrid.pdf"), height = 4, width = 7)
 plots[[which(submethods == "hybrid")]]
 dev.off()
-pdf(glue("./fig/{method}_traditional.pdf"), height = 4, width = 7)
+pdf(glue("./fig/ec_lasso_traditional.pdf"), height = 4, width = 7)
 plots[[which(submethods == "traditional")]]
 dev.off()
-pdf(glue("./fig/{method}_debiased.pdf"), height = 4, width = 7)
+pdf(glue("./fig/ec_lasso_debiased.pdf"), height = 4, width = 7)
 plots[[which(submethods == "debiased")]]
 dev.off()
-pdf(glue("./fig/{method}_posterior.pdf"), height = 4, width = 7)
+pdf(glue("./fig/ec_lasso_posterior.pdf"), height = 4, width = 7)
 plots[[which(submethods == "posterior")]]
 dev.off()
 

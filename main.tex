@@ -24,7 +24,7 @@ The Epsilon Conundrum is a side effect of the desired behavior introduced by the
 
 \begin{figure}[hbtp]
   \begin{center}
-    \includegraphics[width=0.6\linewidth]{lasso_traditional}
+    \includegraphics[width=0.6\linewidth]{ec_lasso_traditional}
     \caption{\label{Fig:traditional} 100 datasets were generated under independence with 94 of the coefficients having true values randomly assigned to be approximately $\pm$ 3e-10. The other 6 coefficients were larger in comparison ($\approx \pm 0.62, 0.31, 0.15$). The true values are unrounded and are set s.t. SNR = 1 under the restriction that $\sigma^2$ = 1. The plot provides a subset of 20 of the intervals produced by applying a traditional bootstrapping procedure to the lasso for a single dataset, randomly selected among the 100 generated. The points indicate point estimates from the lasso for the corresponding intervals and the red circles indicate the true values. The average coverage across all 100 datasets was 26.5\%. Nominal coverage was set to be 80\%.}
   \end{center}
   \end{figure}
@@ -247,7 +247,7 @@ Its natural to now consider the performance of the hybrid bootstrap in the scena
 
 \begin{figure}[hbtp]
   \begin{center}
-  \includegraphics[width=0.6\linewidth]{zerosample2}
+  \includegraphics[width=0.6\linewidth]{ec_lasso_hybrid}
   \caption{\label{Fig:zerosample2} 100 datasets were generated with n = p = 100 with 94 of the coefficients having true values randomly assigned to be approximately $\pm$ 3e-10. The other 6 coefficients were larger in comparison ($\approx \pm 0.62, 0.31, 0.15$). The true values are unrounded and were generated s.t. $\bb^T\bb = 1$. The plot provides an example of 20 of the intervals produced by applying the Hybrid bootstrapping procedure to the lasso for a single dataset, randomly selected among the 100 generated. The points indicate point estimates from the lasso for the corresponding intervals and the red circles indicate the true values. The average coverage across all 100 datasets was 93.6\%. Nominal coverage was set to be 80\%. See Figure~\ref{Fig:traditional} for a comparison to how the Traditional method performs.}
   \end{center}
 \end{figure}
