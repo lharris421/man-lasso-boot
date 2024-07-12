@@ -12,20 +12,20 @@ p <- 100
 ns <- p * nprod
 rate <- 2
 SNR <- 1
-modifier <- c("tl", "tls")
 
 library(dplyr)
 library(ggplot2)
 library(mgcv)  # For gam()
 
 # Expand grid for all combinations
+modifier <- c("tl", "tls")
 params_grid <- expand.grid(data = data_type, n = ns, snr = SNR, lambda = "cv",
                            method = method,
                            nominal_coverage = (1-alphas) * 100, p = p,
                            modifier = modifier, alpha = 1)
 
 # Function to read and process each combination, integrating single_method_plot logic
-read_process_data <- function(params) {
+read_process_data <- function(params, smethod = "hybrid") {
   res_list <- read_objects(rds_path, params, save_method = "rds")
 
   per_var_data <- res_list$per_var_n
@@ -37,10 +37,9 @@ read_process_data <- function(params) {
       mag_truth = abs(truth),
       covered = as.numeric(covered)
     ) %>%
-    # filter(n == params$n, submethod == "hybrid")
-    filter(n == params$n, submethod == "posterior")
+    filter(n == params$n, submethod == smethod)
 
-  fit <- gam(covered ~ s(mag_truth) + s(group, bs = "re"), data = tmp, family = binomial)
+  fit <- gam(covered ~ s(mag_truth), data = tmp, family = binomial)
   xs <- seq(0, cutoff, by = .01)
   ys <- predict(fit, data.frame(mag_truth = xs, group = 101), type = "response")
 
@@ -52,11 +51,31 @@ read_process_data <- function(params) {
 }
 
 # Apply the function across all parameter combinations and bind rows
-all_data <- do.call(rbind, lapply(1:nrow(params_grid), function(i) read_process_data(params_grid[i, ])))
-
+all_data <- do.call(rbind, lapply(1:nrow(params_grid), function(i) read_process_data(params_grid[i, ], "hybrid")))
 
 # Plotting with facet wrap
 pdf("./fig/true_lambda.pdf", height = 3.5)
+ggplot() +
+  geom_line(data = all_data %>% filter(which == "curve"), aes(x = x, y = y, color = n)) +
+  geom_line(data = all_data %>% filter(which == "mean"), aes(x = x, y = y, color = n), lty = "dashed") +
+  facet_wrap(.~modifier) +
+  geom_hline(data = all_data, aes(yintercept = 0.8), color = "black") +
+  theme_bw() +
+  labs(x = expression(abs(beta)), y = "Estimated Coverage Probability") +
+  scale_color_manual(name = "N", values = colors) +
+  coord_cartesian(ylim = c(0, 1))
+dev.off()
+
+modifier <- c("tl")
+params_grid <- expand.grid(data = data_type, n = ns, snr = SNR, lambda = "cv",
+                           method = method,
+                           nominal_coverage = (1-alphas) * 100, p = p,
+                           modifier = modifier, alpha = 1)
+
+all_data <- do.call(rbind, lapply(1:nrow(params_grid), function(i) read_process_data(params_grid[i, ], "debiased")))
+
+# Plotting with facet wrap
+pdf("./fig/true_lambda_debiased.pdf", height = 7)
 ggplot() +
   geom_line(data = all_data %>% filter(which == "curve"), aes(x = x, y = y, color = n)) +
   geom_line(data = all_data %>% filter(which == "mean"), aes(x = x, y = y, color = n), lty = "dashed") +
