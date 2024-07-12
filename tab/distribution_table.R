@@ -32,9 +32,9 @@ for (i in 1:nrow(params_grid)) {
   per_var_data[[i]] <- per_var_n %>%
     mutate(data_type = params_grid[i,"data"])
 }
-per_var_data <- do.call(rbind, per_var_data) %>%
+per_var_data_hybrid <- do.call(rbind, per_var_data) %>%
   data.frame() %>%
-  filter(submethod == "hybrid") %>%
+  filter(submethod %in% c("hybrid")) %>%
   mutate(
     covered = lower <= truth & upper >= truth,
     method = methods_pretty[submethod]
@@ -43,12 +43,33 @@ per_var_data <- do.call(rbind, per_var_data) %>%
   summarise(Coverage = mean(covered) * 100) %>%
   ungroup()
 
-wide_data <- per_var_data %>%
+wide_data <- per_var_data_hybrid %>%
   pivot_wider(names_from = n, values_from = Coverage) %>%
   rename(Distribution = data_type) %>%
   mutate(Distribution = stringr::str_to_title(Distribution),
          ` ` = "") %>%
   select(` `, Distribution, `50`, `100`, `400`, `1000`)
+
+per_var_data_debiased <- do.call(rbind, per_var_data) %>%
+  data.frame() %>%
+  filter(submethod %in% c("debiased")) %>%
+  mutate(
+    covered = lower <= truth & upper >= truth,
+    method = methods_pretty[submethod]
+  ) %>%
+  group_by(data_type, n) %>%
+  summarise(Coverage = mean(covered) * 100) %>%
+  ungroup()
+
+wide_data_debiased <- per_var_data_debiased %>%
+  pivot_wider(names_from = n, values_from = Coverage) %>%
+  rename(Distribution = data_type) %>%
+  mutate(Distribution = stringr::str_to_title(Distribution),
+         ` ` = "") %>%
+  select(`50`, `100`, `400`, `1000`)
+
+wide_data <- bind_cols(wide_data, wide_data_debiased)
+colnames(wide_data) <- c("", "Distribution", "50", "100", "400", "1000", "50", "100", "400", "1000")
 
 ps <- list(
   rlaplace(1000, rate = 1), rnorm(1000), rt(1000, df = 3), runif(1000, -1, 1),
@@ -64,12 +85,13 @@ names(ps) <- paste0('distribution_table_', letters[1:length(ps)])
 # Assuming wide_data is your data frame
 kbl(wide_data,
     format = "latex",
-    align = "cccccc",  # Alignments for the columns
+    align = "cccccccccc",  # Alignments for the columns
     booktabs = TRUE,
     digits = 1,
     linesep = "",
     table.envir = NULL) %>%
-  add_header_above(c("  " = 2, "Sample Size" = 4)) %>%
+  add_header_above(c("  " = 2, "Hybrid" = 4, "Debiased" = 4)) %>%
+  add_header_above(c("  " = 2, "Sample Size" = 8)) %>%
   column_spec(1, image = spec_hist(ps, breaks = 20, dir='./fig', file_type='pdf')) %>%
   stringr::str_replace_all('file:.*?/fig/', '') %>%
   write('tab/distribution_table.tex')
