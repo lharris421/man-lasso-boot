@@ -14,6 +14,7 @@ enet_alpha <- 1
 gamma <- NA
 
 params_grid <- expand.grid(list(data = data_type, n = n_values, snr = SNR,
+                                # correlation_structure = "autoregressive", correlation = 80,
                     method = methods, lambda = "cv", alpha = enet_alpha, gamma = gamma,
                     nominal_coverage = (1-alpha) * 100, p = p, modifier = modifier))
 
@@ -41,7 +42,8 @@ calculate_model_results <- function(data) {
 
 # Function to perform fitting and prediction
 predict_covered <- function(data, x_values, method) {
-  fit <- gam(covered ~ s(mag_truth) + s(group, bs = "re"), data = data, family = binomial)
+  # fit <- gam(covered ~ s(mag_truth) + s(group, bs = "re"), data = data, family = binomial)
+  fit <- gam(covered ~ s(mag_truth), data = data, family = binomial)
   y_values <- predict(fit, data.frame(mag_truth = x_values, group = 101), type = "response")
   data.frame(x = x_values, y = y_values, method = method)
 }

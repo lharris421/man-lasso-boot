@@ -30,6 +30,11 @@ coverages <- do.call(rbind, res_ci) %>%
   group_by(submethod) %>%
   summarise(coverage = mean(covered))
 
+do.call(rbind, res_ci) %>%
+  data.frame() %>%
+  mutate(covered = lower <= truth & upper >= truth, mag_truth = abs(truth)) %>%
+  group_by(submethod, mag_truth) %>%
+  summarise(coverage = mean(covered))
 
 ## Traditional Bootstrap
 submethods <- unique(res_ci[[1]]$submethod)
@@ -40,6 +45,8 @@ for (i in 1:length(submethods)) {
   names(true_vals) <- colnames(res$fc_draws)
   ordering <- names(sort(true_vals))[1:30]
   true_vals <- true_vals[1:30]
+
+
 
   cov <- coverages %>%
     filter(submethod == submethods[i]) %>%

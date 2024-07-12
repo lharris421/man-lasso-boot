@@ -37,7 +37,8 @@ read_process_data <- function(params) {
       mag_truth = abs(truth),
       covered = as.numeric(covered)
     ) %>%
-    filter(n == params$n, submethod == "hybrid")
+    # filter(n == params$n, submethod == "hybrid")
+    filter(n == params$n, submethod == "posterior")
 
   fit <- gam(covered ~ s(mag_truth) + s(group, bs = "re"), data = tmp, family = binomial)
   xs <- seq(0, cutoff, by = .01)

@@ -17,6 +17,7 @@ enet_alpha <- 1
 gamma <- NA
 
 params_grid <- expand.grid(list(data = data_type, n = n_values, snr = SNR,
+                                # correlation = 80, correlation_structure = "autoregressive",
                                 method = methods, lambda = "cv", alpha = enet_alpha, gamma = gamma,
                                 nominal_coverage = (1-alpha) * 100, p = p, modifier = modifier))
 
@@ -41,7 +42,8 @@ for (i in 1:length(submethods)) {
     mutate(width = upper - lower) %>%
     filter(!is.na(width) & is.finite(width)) %>%
     mutate(mag_truth = abs(truth))
-  fit <- gam(width ~ s(mag_truth) + s(group, bs = "re"), data = plot_data)
+  # fit <- gam(width ~ s(mag_truth) + s(group, bs = "re"), data = plot_data)
+  fit <- gam(width ~ s(mag_truth), data = plot_data)
   ys <- predict(fit, data.frame(mag_truth = xs, group = 101), type ="response")
   plot_res[[i]] <- data.frame(xs = xs, width = ys, method = methods_pretty[submethods[i]])
 }
@@ -96,13 +98,17 @@ for (i in 1:length(submethods)) {
     mutate(bias_lowsign = miss_low(lower, upper, truth) + sign_inversion(lower, upper, truth)) %>%
     mutate(mag_truth = abs(truth))
 
-  fit <- gam(bias_high ~ s(mag_truth) + s(group, bs = "re"), data = plot_data, family = binomial)
+  # fit <- gam(bias_high ~ s(mag_truth) + s(group, bs = "re"), data = plot_data, family = binomial)
+  fit <- gam(bias_high ~ s(mag_truth), data = plot_data, family = binomial)
   ys_high <- predict(fit, data.frame(mag_truth = xs, group = 101), type ="response")
-  fit <- gam(bias_low ~ s(mag_truth) + s(group, bs = "re"), data = plot_data, family = binomial)
+  # fit <- gam(bias_low ~ s(mag_truth) + s(group, bs = "re"), data = plot_data, family = binomial)
+  fit <- gam(bias_low ~ s(mag_truth), data = plot_data, family = binomial)
   ys_low <- predict(fit, data.frame(mag_truth = xs, group = 101), type ="response")
-  fit <- gam(bias_sign ~ s(mag_truth) + s(group, bs = "re"), data = plot_data, family = binomial)
+  # fit <- gam(bias_sign ~ s(mag_truth) + s(group, bs = "re"), data = plot_data, family = binomial)
+  fit <- gam(bias_sign ~ s(mag_truth), data = plot_data, family = binomial)
   ys_sign <- predict(fit, data.frame(mag_truth = xs, group = 101), type ="response")
-  fit <- gam(bias_lowsign ~ s(mag_truth) + s(group, bs = "re"), data = plot_data, family = binomial)
+  # fit <- gam(bias_lowsign ~ s(mag_truth) + s(group, bs = "re"), data = plot_data, family = binomial)
+  fit <- gam(bias_lowsign ~ s(mag_truth), data = plot_data, family = binomial)
   ys_lowsign <- predict(fit, data.frame(mag_truth = xs, group = 101), type ="response")
 
   plot_res[[i]] <- data.frame(xs = xs, bias = ys_low - ys_high, bias_low = ys_low, bias_high = ys_high, bias_sign = ys_sign, bias_lowsign = ys_lowsign, method = methods_pretty[submethods[i]])
