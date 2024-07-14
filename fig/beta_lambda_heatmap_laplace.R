@@ -40,8 +40,10 @@ lambda_cov <- pdat %>%
 model_cov <- gam(covered ~ te(lambda, truth), data = pdat, family = binomial)
 
 # Create a grid for prediction on the transformed lambda scale
+# min_lam <- min(c(lambdas[[1]], lambda_cov))
 min_lam <- min(c(lambdas[[1]], lambda_cov))
-lambda_seq <- 10^seq(log(min_lam, 10), log(max(lambdas[[1]]), 10), length.out = 100)
+# lambda_seq <- 10^seq(log(min_lam, 10), log(max(lambdas[[1]]), 10), length.out = 100)
+lambda_seq <- 10^seq(log(.001, 10), log(1, 10), length.out = 100)
 truth_seq <- seq(0, .275, length.out = 100)
 grid <- expand.grid(lambda = lambda_seq, truth = truth_seq) %>% data.frame()
 
@@ -57,6 +59,7 @@ plt_cov <- ggplot(grid, aes(x = lambda, y = truth, fill = adjusted_coverage)) +
   scale_x_log10(trans = c("log10", "reverse"), breaks = breaks_log(base=10), labels = label_log(10, digits = 1)) +
   geom_vline(xintercept = mean(lambdas[[1]]), alpha = .5, col = "red") +
   geom_vline(xintercept = lambda_cov, alpha = .5, col = "blue") +
+  geom_vline(xintercept = c(min(lambdas[[1]]), max(lambdas[[1]]))) +
   # geom_vline(xintercept = mean(true_lambdas[[1]]), alpha = .5, col = "black") +
   theme_minimal() +
   theme(legend.title = element_text(size = 7),
@@ -87,7 +90,8 @@ model_cov <- gam(covered ~ te(lambda, truth), data = pdat, family = binomial)
 
 # Create a grid for prediction on the transformed lambda scale
 min_lam <- min(c(lambdas[[1]], lambda_cov))
-lambda_seq <- 10^seq(log(min_lam, 10), log(max(lambdas[[1]]), 10), length.out = 100)
+# lambda_seq <- 10^seq(log(min_lam, 10), log(max(lambdas[[1]]), 10), length.out = 100)
+lambda_seq <- 10^seq(log(.001, 10), log(1, 10), length.out = 100)
 truth_seq <- seq(0, .275, length.out = 100)
 grid <- expand.grid(lambda = lambda_seq, truth = truth_seq) %>% data.frame()
 
@@ -103,6 +107,7 @@ plt_cov_debiased <- ggplot(grid, aes(x = lambda, y = truth, fill = adjusted_cove
   scale_x_log10(trans = c("log10", "reverse"), breaks = breaks_log(base=10), labels = label_log(10, digits = 1)) +
   geom_vline(xintercept = mean(lambdas[[1]]), alpha = .5, col = "red") +
   geom_vline(xintercept = lambda_cov, alpha = .5, col = "blue") +
+  geom_vline(xintercept = c(min(lambdas[[1]]), max(lambdas[[1]]))) +
   # geom_vline(xintercept = mean(true_lambdas[[1]]), alpha = .5, col = "black") +
   theme_minimal() +
   theme(legend.title = element_text(size = 7),
