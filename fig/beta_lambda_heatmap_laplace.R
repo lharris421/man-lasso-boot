@@ -9,7 +9,8 @@ args_list <- list(data = "laplace",
                   method = "lasso",
                   lambda = "across",
                   nominal_coverage = alpha * 100,
-                  alpha = 1)
+                  alpha = 1,
+                  modifier = NA)
 
 
 res_list <- read_objects(rds_path, expand.grid(args_list), save_method = "rds")
