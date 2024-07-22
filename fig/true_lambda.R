@@ -52,6 +52,7 @@ read_process_data <- function(params, smethod = "hybrid") {
 
 # Apply the function across all parameter combinations and bind rows
 all_data <- do.call(rbind, lapply(1:nrow(params_grid), function(i) read_process_data(params_grid[i, ], "hybrid")))
+# all_data <- do.call(rbind, lapply(1:nrow(params_grid), function(i) read_process_data(params_grid[i, ], "posterior")))
 
 # Plotting with facet wrap
 pdf("./fig/true_lambda.pdf", height = 3.5)
@@ -66,23 +67,3 @@ ggplot() +
   coord_cartesian(ylim = c(0, 1))
 dev.off()
 
-modifier <- c("tl")
-params_grid <- expand.grid(data = data_type, n = ns, snr = SNR, lambda = "cv",
-                           method = method,
-                           nominal_coverage = (1-alphas) * 100, p = p,
-                           modifier = modifier, alpha = 1)
-
-all_data <- do.call(rbind, lapply(1:nrow(params_grid), function(i) read_process_data(params_grid[i, ], "debiased")))
-
-# Plotting with facet wrap
-pdf("./fig/true_lambda_debiased.pdf", height = 7)
-ggplot() +
-  geom_line(data = all_data %>% filter(which == "curve"), aes(x = x, y = y, color = n)) +
-  geom_line(data = all_data %>% filter(which == "mean"), aes(x = x, y = y, color = n), lty = "dashed") +
-  facet_wrap(.~modifier) +
-  geom_hline(data = all_data, aes(yintercept = 0.8), color = "black") +
-  theme_bw() +
-  labs(x = expression(abs(beta)), y = "Estimated Coverage Probability") +
-  scale_color_manual(name = "N", values = colors) +
-  coord_cartesian(ylim = c(0, 1))
-dev.off()

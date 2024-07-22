@@ -23,7 +23,7 @@ for (i in 1:nrow(params_grid)) {
   per_var_data[[i]] <- res_list$per_var_n
   if (params_grid$method[i] == "lasso") {
     per_var_data[[i]] <-  per_var_data[[i]] %>%
-      filter(submethod %in% c("debiased", "hybrid"))
+      filter(submethod %in% c("hybrid"))
   }
   if (params_grid$method[i] %in% c("blp", "selectiveinference")) {
     per_var_data[[i]] <-  per_var_data[[i]] %>%

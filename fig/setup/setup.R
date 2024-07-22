@@ -40,7 +40,7 @@ methods_pretty <- c(
   "full_debias" = "Full Debias",
   "samplealt" = "Temp",
   "MCP" = "MCP", "SCAD" = "SCAD",
-  "lasso" = "Lasso",
+  "lasso" = "Hybrid",
   "enet" = "Elastic Net",
   "enet1" = "Elastic Net (0.8)",
   "ridge" = "Ridge"

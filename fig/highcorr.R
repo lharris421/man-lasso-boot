@@ -77,6 +77,7 @@ for (i in 1:length(params_list)) {
     current_cis <- do.call(rbind, cis[[curr_method]]) %>%
       data.frame() %>%
       filter(submethod == "hybrid") %>%
+      # filter(submethod == "posterior") %>%
       mutate(method = curr_method)
   }
   current_example <- examples[[curr_method]]
@@ -115,6 +116,7 @@ for (i in 1:length(params_list)) {
    tmp_plot <- plot_ridge(ridge_example, n = 20)
  } else {
    tmp_plot <- plot(current_example, n = 20, method = "hybrid")
+   # tmp_plot <- plot(current_example, n = 20, method = "posterior")
  }
  plots[[2 + 2*(i-1)]] <- tmp_plot +
    coord_cartesian(xlim = c(-1, 2)) +

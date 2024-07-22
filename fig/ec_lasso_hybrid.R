@@ -64,16 +64,16 @@ for (i in 1:length(submethods)) {
 
 left_label <- textGrob("Variable", gp = gpar(fontsize = 10), rot = 90)
 
-pdf(glue("./fig/ec_lasso_hybrid.pdf"), height = 4, width = 4)
+pdf(glue("./fig/ec_lasso_hybrid.pdf"), height = 4, width = 6)
 plots[[which(submethods == "hybrid")]]
 dev.off()
-pdf(glue("./fig/ec_lasso_traditional.pdf"), height = 4, width = 4)
+pdf(glue("./fig/ec_lasso_traditional.pdf"), height = 4, width = 6)
 plots[[which(submethods == "traditional")]]
 dev.off()
-pdf(glue("./fig/ec_lasso_debiased.pdf"), height = 4, width = 4)
+pdf(glue("./fig/ec_lasso_debiased.pdf"), height = 4, width = 6)
 plots[[which(submethods == "debiased")]]
 dev.off()
-pdf(glue("./fig/ec_lasso_posterior.pdf"), height = 4, width = 4)
+pdf(glue("./fig/ec_lasso_posterior.pdf"), height = 4, width = 6)
 plots[[which(submethods == "posterior")]]
 dev.off()
 

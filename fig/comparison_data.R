@@ -20,7 +20,7 @@ for (i in 1:nrow(params_grid)) {
 
   if (params_grid$method[i] == "lasso") {
     cis[[i]] <- cis[[i]] %>%
-      filter(method %in% c("hybrid", "debiased"))
+      filter(method %in% c("hybrid"))
   }
 
   print(ncol(cis[[i]]))

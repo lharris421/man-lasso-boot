@@ -10,6 +10,8 @@ lambda <- "cv"
 params_grid <- expand.grid(list(data = data_type, method = methods, lambda = lambda,
                                 nominal_coverage = (1-alpha) * 100))
 
+indexr:::generate_hash(list(data = data_type, method = methods, lambda = lambda,
+                            nominal_coverage = (1-alpha) * 100))
 # Fetching and combining data
 cis <- list()
 for (i in 1:nrow(params_grid)) {

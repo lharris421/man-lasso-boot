@@ -35,7 +35,7 @@ per_var_data <- do.call(rbind, per_var_data) %>%
 
 
 plot_res <- list()
-submethods <- c("traditional", "posterior", "hybrid", "debiased")
+submethods <- c("traditional", "posterior", "hybrid")
 for (i in 1:length(submethods)) {
   plot_data <- per_var_data %>%
     filter(submethod == submethods[i]) %>%
@@ -121,8 +121,8 @@ plot_bias_h <- do.call(rbind, plot_res) %>%
   xlab(NULL) +
   ylab("P(Away)") +
   scale_color_manual(name = "Method", values = colors) +
-  theme(legend.position = "none") +
-  geom_hline(yintercept = 0.1)
+  theme(legend.position = "none")
+# + geom_hline(yintercept = 0.1)
 
 plot_bias_l <- do.call(rbind, plot_res) %>%
   ggplot(aes(x = xs, y = bias_low, color = method)) +
@@ -131,18 +131,18 @@ plot_bias_l <- do.call(rbind, plot_res) %>%
   xlab(NULL) +
   ylab("P(Towards)") +
   scale_color_manual(name = "Method", values = colors) +
-  theme(legend.position = "none") +
-  geom_hline(yintercept = 0.1)
+  theme(legend.position = "none")
+# + geom_hline(yintercept = 0.1)
 
-plot_bias_ls <- do.call(rbind, plot_res) %>%
-  ggplot(aes(x = xs, y = bias_lowsign, color = method)) +
-  geom_line() +
-  theme_bw() +
-  xlab(NULL) +
-  ylab("P(Towards | Type 3)") +
-  scale_color_manual(name = "Method", values = colors) +
-  theme(legend.position = "none") +
-  geom_hline(yintercept = 0.1)
+# plot_bias_ls <- do.call(rbind, plot_res) %>%
+#   ggplot(aes(x = xs, y = bias_lowsign, color = method)) +
+#   geom_line() +
+#   theme_bw() +
+#   xlab(NULL) +
+#   ylab("P(Towards | Type 3)") +
+#   scale_color_manual(name = "Method", values = colors) +
+#   theme(legend.position = "none") +
+#   geom_hline(yintercept = 0.1)
 
 plot_bias_s <- do.call(rbind, plot_res) %>%
   ggplot(aes(x = xs, y = bias_sign, color = method)) +
@@ -157,7 +157,7 @@ plot_width <- plot_width +
   ylab("Interval Width") +
   coord_cartesian(ylim = c(0, 0.35))
 
-combined_plot <- (plot_width + plot_bias_s) / (plot_bias_ls + plot_bias_h) +
+combined_plot <- (plot_width + plot_bias_s) / (plot_bias_l + plot_bias_h) +
   plot_layout(guides = "collect", axis_titles = "collect")
 pdf("./fig/laplace_width_bias.pdf", height = 5, width = 8)
 print(combined_plot)

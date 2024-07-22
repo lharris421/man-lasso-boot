@@ -58,6 +58,7 @@ xvals <- seq(from = 0, to = cutoff, length.out = cutoff * 100 + 1)
 density_data <- data.frame(x = xvals, density = 2 * dlaplace(xvals, rate = 14.14))
 
 methods <- unique(per_var_data$submethod)
+methods <- methods[methods != "debiased"]
 for (i in 1:length(methods)) {
 
   cat("Processing method: ", methods[i], "\n")

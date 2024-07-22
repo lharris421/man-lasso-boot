@@ -22,7 +22,7 @@ for (i in 1:nrow(params_grid)) {
   per_var_data[[i]] <- res_list$per_var_n
   if (params_grid$method[i] == "lasso") {
     per_var_data[[i]] <-  per_var_data[[i]] %>%
-      filter(submethod %in% c("debiased", "hybrid"))
+      filter(submethod %in% c("hybrid"))
   }
   if (params_grid$method[i] %in% c("blp", "selectiveinference")) {
     per_var_data[[i]] <-  per_var_data[[i]] %>%
@@ -77,7 +77,8 @@ for (i in 1:length(methods)) {
     filter(!is.na(estimate)) %>%
     mutate(covered = lower <= truth & upper >= truth)
 
-  fit <- gam(covered ~ s(mag_truth) + s(group, bs = "re"), data = tmp, family = binomial)
+  # fit <- gam(covered ~ s(mag_truth) + s(group, bs = "re"), data = tmp, family = binomial)
+  fit <- gam(covered ~ s(mag_truth), data = tmp, family = binomial)
   xs <- seq(0, cutoff, by = .01)
   ys <- predict(fit, data.frame(mag_truth = xs, group = 101), type ="response")
   line_data[[i]] <- data.frame(x = xs, y = ys, method = methods[i])

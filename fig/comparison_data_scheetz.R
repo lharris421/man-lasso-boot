@@ -20,7 +20,7 @@ for (i in 1:nrow(params_grid)) {
 
   if (params_grid$method[i] == "lasso") {
     cis[[i]] <- cis[[i]] %>%
-      filter(method %in% c("hybrid", "debiased"))
+      filter(method %in% c("hybrid"))
   }
 
 }
@@ -47,6 +47,6 @@ cis %>%
   # group_by(method) %>%
   # summarise(sum(is_not_zero))
 
-pdf("./fig/comparison_data_scheetz.pdf", width = 7, height = 3)
-plot_ci_comparison(cis, nvars = 20)
+pdf("./fig/comparison_data_scheetz.pdf", width = 8, height = 4)
+plot_ci_comparison(cis, nvars = 30)
 dev.off()

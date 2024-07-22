@@ -91,13 +91,6 @@ This simulation considers the behavior of the Hybrid intervals if $\lam$ is set 
 
 Figure~\ref{Fig:true_lambda} shows the results of the simulation described with $\lambda$ set to the true value (left) and with both $\lambda$ and $\sigma^2$ set to their true values (right), see the right plot in Figure~\ref{Fig:nominal_coverage} as a comparison for $\lambda_{\CV}$ and $\hat{\sigma}^2(\lambda_{\CV})$. When just the true value of $\lam$ is known, there is slightly more over coverage (generally $\lam_{\CV}$ is larger than the true value of $\lam$), but otherwise the results are generally comparable to when $\lambda$ is selected via CV, assuming $\hat{\sigma}^2$ is set equal to the minimum CVE. This, like Figure~\ref{Fig:beta_lambda_heatmap_laplace}, suggests that $\lam_{\CV}$ generally provides a reasonable selection of $\lam$. However, the differences are more notable when $\sigma^2$ is also set to its true value of one. All the coverages are near nominal, with slight under coverage for larger values of n. This suggests that using CVE to estimate $\sigma^2$, which generally over estimates variability, especially when $n < p$, is responsible for the over coverage observed throughout the results for the Hybrid bootstrap. However, in absence of knowing the true value of $\sigma^2$, over estimating it and maintain coverage above that of nominal is preferred to the alternative. 
 
-\begin{figure}[hbtp]
-  \begin{center}
-  \includegraphics[width=0.325\linewidth]{true_lambda_debiased}
-  \caption{\label{Fig:true_lambda_debias} Same but for debiased.}
-  \end{center}
-\end{figure}
-
 \newpage
 
 \section{Unmodified BLP Real Data Analysis}
