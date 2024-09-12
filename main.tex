@@ -37,31 +37,36 @@ Figure~\ref{Fig:ec} shows that this is exactly what happens when a traditional b
 
 The coverage reported at the top of Figure 1 is the average coverage across all $p$ confidence intervals. This is not, however, the focus of classical frequentist coverage, which is concerned with achieving proper coverage for each model parameter individually. In a penalized regression model, these can be quite different and we refer to this notion as Individual vs Average Coverage (IAC).
 
-\pb{Hmm, we have a problem here. $I(\bt \in \cA)$ isn't right. That would be the indicator for whether the vector $\bt$ falls into a multivariate box $\cA$. That isn't what we're talking about. We're not creating one giant multivariate set of intervals that either contains $\bt$ or not. We're creating $p$ separate intervals, some of which will contain $\theta_j$ and others won't).}
+\pb{Hmm, we have a problem here. $I(\bt \in \cA)$ isn't right. That would be the indicator for whether the vector $\bt$ falls into a multivariate box $\cA$. That isn't what we're talking about. We're not creating one giant multivariate set of intervals that either contains $\bt$ or not. We're creating $p$ separate intervals, some of which will contain $\theta_j$ and others won't.}
 
-Formally, letting $\cA$ denote a random interval and $I(\cdot)$ the indicator function, classical frequentist inference requires that $\int I(\theta \in \cA | \y) p(\y | \theta) d\y \ge 1 - \alpha$ for all values of $\theta$ (here, $\theta$ represents a generic) . In this sense, the coverage behavior of interest is more or less isolated for each individual interval. However, in the context of regression, we rarely consider a single covariate, but instead have many covariates with likely a range of true coefficient values. This brings up an alternative, more permissive, way to consider coverage. The alternative would be to consider the average coverage for the collection of intervals over a distribution of the likely values of $\beta$. This is the idea covered in the following theorem.
+Formally, letting $\cA$ denote a random interval and $I(\cdot)$ the indicator function, classical frequentist inference requires that $\int I(\theta \in \cA | \y) p(\y | \theta) d\y \ge 1 - \alpha$ for all values of $\theta$ (here, $\theta$ represents a generic). In this sense, the coverage behavior of interest is more or less isolated for each individual interval. However, in the context of regression, we rarely consider a single covariate, but instead have many covariates with likely a range of true coefficient values. This brings up an alternative, more permissive, way to consider coverage. The alternative would be to consider the average coverage for the collection of intervals over a distribution of the likely values of $\beta$. This is the idea covered in the following theorem.
 
 \begin{thm}
   \label{Thm:bcc}
-  If the likelihood is correctly specified according to the true data generating mechanism, $p(\boldsymbol{y} | \bt)$, then credible sets obtained from $p(\bt|\boldsymbol{y})$ will have proper coverage when averaged over the distribution of likely values of $\theta$ if the prior distribution, $p(\bt)$, is correctly specified according to the distribution of $\theta$ values.
+  If the likelihood is correctly specified according to the true data generating mechanism, $p(\y | \bt)$, then credible sets obtained from $p(\bt|\y)$ will have proper coverage when averaged over the distribution of likely values of $\theta$ if the prior distribution, $p(\bt)$, is correctly specified according to the distribution of $\theta$ values.
 \end{thm}
 
 \begin{proof}
-Assume the likelihood and prior are correctly specified according the their respective distributions. By definition, a $100(1-\alpha)\%$ credible region for $\boldsymbol{\theta}$ is any set $\boldsymbol{A}$ s.t. $p(\bt \in \boldsymbol{A} | \boldsymbol{y}) \geq 1 - \alpha$. For a given $\bt_0$, the coverage probability can be defined as $\int I(\bt_0 \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \bt_0)d\boldsymbol{y}$. Then, averaged over $p(\bt)$, the average coverage probability can be defined as
+Assume the likelihood and prior are correctly specified according the their respective distributions. By definition, a $100(1-\alpha)\%$ credible region for $\theta$ is any set $\cA$ s.t. $p(\theta \in \cA | \y) \geq 1 - \alpha$. For a given $\theta$, the coverage probability can be defined as $\int I(\theta \in \cA | \y) p(\y | \theta)d\y$. Then, averaged over $p(\bt)$, the average coverage probability for $p$ intervals can be defined as
 
 \as{
   \begin{aligned}
-  \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \bt)d\boldsymbol{y}p(\bt)d\bt &= \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) p(\boldsymbol{y} | \bt)p(\bt)d\boldsymbol{y}d\bt \\
-  &=  \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) p(\bt|\boldsymbol{y})p(\boldsymbol{y})d\boldsymbol{y}d\bt^* \\
-  &=  \int \int I(\bt \in \boldsymbol{A} | \boldsymbol{y}) p(\bt|\boldsymbol{y})d\bt p(\boldsymbol{y})d\boldsymbol{y} \\
-  &=  \int \int_{\boldsymbol{A}} p(\bt|\boldsymbol{y})d\bt p(\boldsymbol{y})d\boldsymbol{y} \\
-  &\geq (1-\alpha)  \int p(\boldsymbol{y})d\boldsymbol{y} \\
-  &= 1-\alpha
+  \int \int \frac{1}{p} \sum_{j=1}^p I(\theta_j \in \cA | \y) p(\y | \bt)d\y p(\bt)d\bt 
+  &=  \int \int \frac{1}{p} \sum_{j=1}^p I(\theta_j \in \cA | \y) p(\y | \bt) p(\bt) d\y d\bt  \\
+  &=  \int \int \frac{1}{p} \sum_{j=1}^p I(\theta_j \in \cA | \y) p(\bt | \y) p(\y) d\y d\bt^* \\
+  &=  \int \int \frac{1}{p} \sum_{j=1}^p I(\theta_j \in \cA | \y) p(\bt | \y) d\bt p(\y) d\y \\
+  &=  \int \mathbb{E}\left(\frac{1}{p} \sum_{j=1}^p I(\theta \in \cA | \y)\right) p(\y) d\y \\
+  &=  \int \mathbb{E}\left(I(\theta \in \cA | \y)\right) p(\y) d\y \\
+  &\geq  \int  (1 - \alpha) p(\y) d\y \\
+  &=  1 - \alpha \\
   \end{aligned}
 }
 
 *This step is only valid if the assumptions are met.
 \end{proof}
+
+\logan{I still feel like there is a gap here between the thm and what we are doing with the marginal posterior... but if anything think that should be seperate?}
+
 The idea then being that to maintain proper coverage, individual intervals can deviate from the nominal coverage rate, but averaged over the distribution of likely values for $\beta$, the coverage must be greater than or equal to the nominal coverage rate. That is, the coverage rates for some values of $\beta$ may be higher than nominal coverage rates while others are lower, but this is fine as long as they are appropriately balanced. We argue that this is a reasonable perspective on coverage rates for confidence intervals arising from penalized regression models applied to high dimensional datasets. In such scenarios, p is usually large and the estimators are almost necessarily biased. p being large allows for more reliable average coverage while the effect of bias is a a driving force behind the need for a more inclusive definition of coverage.
 
 Along with solving the issue of the Epsilon Conundrum, the intervals proposed in Section~\ref{Sec:methods} of this manuscript have a Bayesian feel to them in the sense that they obey the proposed collective definition of coverage. Alternatively, an attempt could be made to debias the intervals in order to meet the traditional frequentest definition of coverage. This proposition of a new definition of coverage is not to say that attempts at debiasing are unwarranted, indeed, meeting the traditional definition of coverage also means that this relaxed definition is satisfied. However, intervals that do not attempt to meet the rigid definition for coverage, using methods such as debiasing, are arguably more faithful to the model fit, an idea we will revisit later. 
