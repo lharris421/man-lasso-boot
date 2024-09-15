@@ -47,25 +47,29 @@ Formally, letting $\cA$ denote a random interval and $I(\cdot)$ the indicator fu
 \end{thm}
 
 \begin{proof}
-Assume the likelihood and prior are correctly specified according the their respective distributions. By definition, a $100(1-\alpha)\%$ credible region for $\theta$ is any set $\cA$ s.t. $p(\theta \in \cA | \y) \geq 1 - \alpha$. For a given $\theta$, the coverage probability can be defined as $\int I(\theta \in \cA | \y) p(\y | \theta)d\y$. Then, averaged over $p(\bt)$, the average coverage probability for $p$ intervals can be defined as
+Assume the likelihood and prior are correctly specified according to their respective distributions. By definition, a $100(1-\alpha)\%$ credible region for $\theta$ is any set $\cA$ s.t. $p(\theta \in \cA | \y) \geq 1 - \alpha$. For a given $\theta_j$, the coverage probability can be defined as $\int I(\theta_j \in \cA_j | \y) p(\y | \theta_j)d\y$. Then, averaged over $p(\bt)$, the average coverage probability can be defined as
 
 \as{
   \begin{aligned}
-  \int \int \frac{1}{p} \sum_{j=1}^p I(\theta_j \in \cA | \y) p(\y | \bt)d\y p(\bt)d\bt 
-  &=  \int \int \frac{1}{p} \sum_{j=1}^p I(\theta_j \in \cA | \y) p(\y | \bt) p(\bt) d\y d\bt  \\
-  &=  \int \int \frac{1}{p} \sum_{j=1}^p I(\theta_j \in \cA | \y) p(\bt | \y) p(\y) d\y d\bt^* \\
-  &=  \int \int \frac{1}{p} \sum_{j=1}^p I(\theta_j \in \cA | \y) p(\bt | \y) d\bt p(\y) d\y \\
-  &=  \int \mathbb{E}\left(\frac{1}{p} \sum_{j=1}^p I(\theta \in \cA | \y)\right) p(\y) d\y \\
-  &=  \int \mathbb{E}\left(I(\theta \in \cA | \y)\right) p(\y) d\y \\
+  \int \int I(\theta_j \in \cA_j | \y) p(\y | \bt)d\y p(\bt)d\bt 
+  &=  \int \int I(\theta_j \in \cA_j | \y) p(\y | \bt) p(\bt) d\y d\bt  \\
+  &=  \int \int I(\theta_j \in \cA_j | \y) p(\bt | \y) p(\y) d\y d\bt\footnotemark \\
+  &=  \int \int I(\theta_j \in \cA_j | \y) p(\bt | \y) d\bt p(\y) d\y \\
   &\geq  \int  (1 - \alpha) p(\y) d\y \\
   &=  1 - \alpha \\
   \end{aligned}
 }
 
-*This step is only valid if the assumptions are met.
+\footnotetext{This step assumes that the prior $p(\bt)$ and likelihood $p(\y|\bt)$ are well-specified. Without these conditions, the equality might not hold.}
 \end{proof}
+  
+\logan{It is worth noting that in the above theorem we are focused on the average coverage of a single $\theta_j$ but still integrated over the joint posterior}. As a direct result of the theorem, however, then the average coverage of $p$ intervals will also be greater than or equal to $1-\alpha$:
 
-\logan{I still feel like there is a gap here between the thm and what we are doing with the marginal posterior... but if anything think that should be seperate?}
+\as{
+  \int \int \frac{1}{p} \sum_{j=1}^p I(\theta_j \in \cA | \y) p(\y | \bt)d\y p(\bt)d\bt &= \frac{1}{p}\sum_{j=1}^p\int \int I(\theta_j \in \cA | \y) p(\y | \bt)d\y p(\bt)d\bt  \\
+  &\geq \frac{1}{p}\sum_{j=1}^p (1-\alpha) \\
+  &= 1 - \alpha
+}
 
 The idea then being that to maintain proper coverage, individual intervals can deviate from the nominal coverage rate, but averaged over the distribution of likely values for $\beta$, the coverage must be greater than or equal to the nominal coverage rate. That is, the coverage rates for some values of $\beta$ may be higher than nominal coverage rates while others are lower, but this is fine as long as they are appropriately balanced. We argue that this is a reasonable perspective on coverage rates for confidence intervals arising from penalized regression models applied to high dimensional datasets. In such scenarios, p is usually large and the estimators are almost necessarily biased. p being large allows for more reliable average coverage while the effect of bias is a a driving force behind the need for a more inclusive definition of coverage.
 
