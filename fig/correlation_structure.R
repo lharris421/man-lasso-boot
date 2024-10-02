@@ -23,7 +23,7 @@ params_grid <- expand.grid(list(data = data_type, n = n_values, snr = SNR,
 
 per_var_data <- list()
 for (j in 1:nrow(params_grid)) {
-  res_list <- read_objects(rds_path, params_grid[j,], save_method = "rds")
+  res_list <- read_objects(rds_path, params_grid[j,])
   per_var_data[[j]] <- res_list$per_var_n %>%
     mutate(rho = params_grid[j, "correlation"])
 }

@@ -57,7 +57,7 @@ params_list <- list(
 )
 
 for (i in 1:length(params_list)) {
-  res_list <- read_objects(rds_path, params_list[[i]], save_method = "rds")
+  res_list <- read_objects(rds_path, params_list[[i]])
   cis[[i]] <- res_list$confidence_interval
   examples[[i]] <- res_list$example
 }

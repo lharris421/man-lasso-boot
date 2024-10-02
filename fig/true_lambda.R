@@ -26,7 +26,7 @@ params_grid <- expand.grid(data = data_type, n = ns, snr = SNR, lambda = "cv",
 
 # Function to read and process each combination, integrating single_method_plot logic
 read_process_data <- function(params, smethod = "hybrid") {
-  res_list <- read_objects(rds_path, params, save_method = "rds")
+  res_list <- read_objects(rds_path, params)
 
   per_var_data <- res_list$per_var_n
   cutoff <- round(quantile(abs(per_var_data$truth), .98), 1)

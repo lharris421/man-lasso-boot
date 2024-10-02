@@ -15,7 +15,7 @@ indexr:::generate_hash(list(data = data_type, method = methods, lambda = lambda,
 # Fetching and combining data
 cis <- list()
 for (i in 1:nrow(params_grid)) {
-  res <- read_objects(rds_path, params_grid[i,], save_method = "rds")
+  res <- read_objects(rds_path, params_grid[i,])
   cis[[i]] <- res$confidence_interval
 }
 cis <- do.call(dplyr::bind_rows, cis) %>% data.frame()

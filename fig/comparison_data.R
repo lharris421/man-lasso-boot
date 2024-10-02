@@ -14,7 +14,7 @@ params_grid <- cbind(params_grid, alpha = c(1, NA, NA))
 # Fetching and combining data
 cis <- list()
 for (i in 1:nrow(params_grid)) {
-  res <- read_objects(rds_path, params_grid[i,], save_method = "rds")
+  res <- read_objects(rds_path, params_grid[i,])
   cis[[i]] <- res$confidence_interval %>%
     select(estimate, lower, upper, variable, method)
 

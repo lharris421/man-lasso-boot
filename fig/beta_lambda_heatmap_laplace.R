@@ -13,7 +13,7 @@ args_list <- list(data = "laplace",
                   modifier = NA)
 
 
-res_list <- read_objects(rds_path, expand.grid(args_list), save_method = "rds")
+res_list <- read_objects(rds_path, expand.grid(args_list))
 lambdas <- res_list$lambdas
 true_lambdas <- res_list$true_lambdas
 res <- res_list$res

@@ -19,7 +19,7 @@ params_grid <- cbind(params_grid, alpha = rep(c(NA, 1, NA), each = 3))
 per_var_data <- list()
 per_dataset_data <- list()
 for (i in 1:nrow(params_grid)) {
-  res_list <- read_objects(rds_path, params_grid[i,], save_method = "rds")
+  res_list <- read_objects(rds_path, params_grid[i,])
   per_var_data[[i]] <- res_list$per_var_n
   if (params_grid$method[i] == "lasso") {
     per_var_data[[i]] <-  per_var_data[[i]] %>%

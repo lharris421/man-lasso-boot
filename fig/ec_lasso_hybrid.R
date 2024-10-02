@@ -20,7 +20,7 @@ params_grid <- expand.grid(list(data = data_type, n = n_values, snr = SNR, lambd
 # Fetching and combining data
 coverages <- numeric()
 for (i in 1:nrow(params_grid)) {
-  res_list <- read_objects(rds_path, params_grid[i,], save_method = "rds")
+  res_list <- read_objects(rds_path, params_grid[i,])
   res_ci <- res_list$confidence_interval
   res <- res_list$example
 }

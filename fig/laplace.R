@@ -21,7 +21,7 @@ params_grid <- expand.grid(list(data = data_type, n = n_values, snr = SNR,
 
 # Fetching and combining data
 per_var_data <- list()
-res_list <- read_objects(rds_path, params_grid, save_method = "rds")
+res_list <- read_objects(rds_path, params_grid)
 per_dataset_n <- res_list$per_dataset_n
 per_var_n <- res_list$per_var_n
 per_var_data <- per_var_n
