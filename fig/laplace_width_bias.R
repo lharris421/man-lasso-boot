@@ -62,12 +62,13 @@ for (i in 1:length(methods)) {
 
   plot_data <- results %>%
     filter(method == methods[i]) %>%
-    rowwise() %>%
-    mutate(bias_high = miss_high(lower, upper, truth)) %>%
-    mutate(bias_low = miss_low(lower, upper, truth)) %>%
-    mutate(bias_sign = sign_inversion(lower, upper, truth)) %>%
-    mutate(bias_lowsign = miss_low(lower, upper, truth) + sign_inversion(lower, upper, truth)) %>%
-    mutate(mag_truth = abs(truth))
+    mutate(
+      bias_high = miss_high(lower, upper, truth),
+      bias_low = miss_low(lower, upper, truth),
+      bias_sign = sign_inversion(lower, upper, truth),
+      bias_lowsign = miss_low(lower, upper, truth) + sign_inversion(lower, upper, truth),
+      mag_truth = abs(truth)
+    )
 
   fit <- gam(bias_high ~ s(mag_truth), data = plot_data, family = binomial)
   ys_high <- predict(fit, data.frame(mag_truth = xs, group = 101), type ="response")
