@@ -1,5 +1,5 @@
 ## Setup
-source("./fig/setup/setup.R")
+source("./fig/setup.R")
 
 plots <- list()
 

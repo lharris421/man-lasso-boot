@@ -1,69 +1,52 @@
-## Setup
-source("./fig/setup/setup.R")
+source("./fig/setup.R")
 
-plots <- list()
+alpha <- 0.2
+for (i in 1:length(methods)) {
+  methods[[i]]$method_arguments["alpha"] <- alpha
+}
 
-methods <- "lasso"
-n_values <- 100
-data_type <- "laplace"
-SNR <- 1
-alpha <- .2
-p <- 100
-modifier <- NA
-enet_alpha <- 1
-gamma <- NA
+simulation_info <- list(seed = 1234, iterations = 1000,
+                        simulation_function = "gen_data_distribution", simulation_arguments = list(
+                          p = 100, SNR = 1
+                        ), script_name = "distributions")
 
-params_grid <- expand.grid(list(data = data_type, n = n_values, snr = SNR,
-                                # correlation_structure = "autoregressive", correlation = 80,
-                    method = methods, lambda = "cv", alpha = enet_alpha, gamma = gamma,
-                    nominal_coverage = (1-alpha) * 100, p = p, modifier = modifier))
+## Load data back in
+methods <- methods[c("lasso_boot", "traditional", "posterior", "lasso_posterior_pipe")]
+ns <- c(100)
+distributions <- c( "laplace")
+
+files <- expand.grid("method" = names(methods), "n" = ns, "distribution" = distributions, stringsAsFactors = FALSE)
+
+results <- list()
+for (i in 1:nrow(files)) {
+
+  simulation_info$simulation_arguments$n <- files[i,] %>% pull(n)
+  simulation_info$simulation_arguments$distribution <- files[i,] %>% pull(distribution)
+
+  results[[i]] <- indexr::read_objects(
+    rds_path,
+    c(methods[[files[i,"method"]]], simulation_info)
+    # args
+  ) %>%
+    mutate(method = files[i,] %>% pull(method), distribution = files[i,] %>% pull(distribution), n = files[i,] %>% pull(n))
+}
 
 
-# Fetching and combining data
-per_var_data <- list()
-res_list <- read_objects(rds_path, params_grid)
-per_dataset_n <- res_list$per_dataset_n
-per_var_n <- res_list$per_var_n
-per_var_data <- per_var_n
-
+results <- bind_rows(results)
+model_res <- calculate_model_results(results)
 
 cutoff <- 0.275
-ns <- n_values
-
-# Function to calculate model results
-calculate_model_results <- function(data) {
-  data %>%
-    mutate(
-      covered = lower <= truth & upper >= truth,
-      mag_truth = abs(truth),
-      covered = as.numeric(covered)
-    )
-}
-
-# Function to perform fitting and prediction
-predict_covered <- function(data, x_values, method) {
-  # fit <- gam(covered ~ s(mag_truth) + s(group, bs = "re"), data = data, family = binomial)
-  fit <- gam(covered ~ s(mag_truth), data = data, family = binomial)
-  y_values <- predict(fit, data.frame(mag_truth = x_values, group = 101), type = "response")
-  data.frame(x = x_values, y = y_values, method = method)
-}
-
-plots <- vector("list", length(ns))
-
-model_res <- calculate_model_results(per_var_data)
-
 line_data <- list()
 line_data_avg <- list()
 xvals <- seq(from = 0, to = cutoff, length.out = cutoff * 100 + 1)
 density_data <- data.frame(x = xvals, density = 2 * dlaplace(xvals, rate = 14.14))
 
-methods <- unique(per_var_data$submethod)
-methods <- methods[methods != "debiased"]
+methods <- unique(results$method)
 for (i in 1:length(methods)) {
 
   cat("Processing method: ", methods[i], "\n")
   tmp <- model_res %>%
-    filter(submethod == methods[i], !is.na(estimate))
+    filter(method == methods[i], !is.na(estimate))
 
   cat("Average coverage: ", mean(tmp$covered), "\n")
 

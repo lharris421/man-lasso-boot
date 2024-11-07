@@ -1,48 +1,54 @@
-## Setup
-source("./fig/setup/setup.R")
+source("./fig/setup.R")
 
-
-methods <- "lasso"
-n_values <- c(50, 100, 400)
-data_type <- "laplace"
-SNR <- 1
-alpha <- .2
-p <- 100
-enet_alpha <- 1
-corr <- c("autoregressive")
-rhos <- rho <- c(0.4, 0.6, 0.8)
-
-# Initialize an empty list to store data from all rho values
-params_grid <- expand.grid(list(data = data_type, n = n_values, snr = SNR,
-                                method = methods, lambda = "cv", alpha = enet_alpha,
-                                nominal_coverage = (1-alpha) * 100, p = p,
-                                correlation_structure = corr,
-                                correlation = rho * 100))
-
-# params_grid <- cbind(params_grid, modifier = rep(c(NA, NA, "debias"), each = 3))
-
-per_var_data <- list()
-for (j in 1:nrow(params_grid)) {
-  res_list <- read_objects(rds_path, params_grid[j,])
-  per_var_data[[j]] <- res_list$per_var_n %>%
-    mutate(rho = params_grid[j, "correlation"])
+alpha <- 0.2
+for (i in 1:length(methods)) {
+  methods[[i]]$method_arguments["alpha"] <- alpha
 }
-combined_data <- do.call(rbind, per_var_data) %>%
-  data.frame() %>%
-  filter(submethod %in% c("hybrid"))
 
+simulation_info <- list(seed = 1234, iterations = 1000,
+                        simulation_function = "gen_data_distribution", simulation_arguments = list(
+                          p = 100, SNR = 1, corr = "autoregressive", distribution = "laplace"
+                        ), script_name = "distributions")
+
+## Load data back in
+methods <- methods[c("lasso_boot")]
+ns <- c(50, 100, 400)
+rhos <- c(0.4, 0.6, 0.8)
+
+files <- expand.grid("n" = ns, "rho" = rhos, stringsAsFactors = FALSE)
+
+results <- list()
+results_per_sim <- list()
+for (i in 1:nrow(files)) {
+
+  simulation_info$simulation_arguments$n <- files[i,] %>% pull(n)
+  simulation_info$simulation_arguments$rho <- files[i,] %>% pull(rho)
+
+  results[[i]] <- indexr::read_objects(
+    rds_path,
+    c(methods[["lasso_boot"]], simulation_info)
+    # args
+  ) %>%
+    mutate(
+      n = factor(files[i,] %>% pull(n)),
+      rho = factor(files[i,] %>% pull(rho))
+    )
+
+}
+
+combined_data <- bind_rows(results)
 
 # Transform and summarize data
 coverage_data <- combined_data %>%
   mutate(covered = lower <= truth & upper >= truth, n = as.factor(n), rho = factor(rho)) %>%
-  group_by(group, submethod, rho, n) %>%
+  group_by(iteration, method, rho, n) %>%
   summarise(coverage = mean(covered), .groups = 'drop')
 
 # Create a single plot with facets for each rho
 final_plot <- coverage_data %>%
   ggplot(aes(x = n, y = coverage, fill = n)) +
   geom_boxplot() +
-  facet_wrap(submethod~rho, as.table = FALSE, labeller = label_bquote(.(methods_pretty[submethod]) - rho == .(rhos[rho]))) +
+  facet_wrap(method~rho, as.table = FALSE, labeller = label_bquote(.(methods_pretty[method]) - rho == .(rhos[rho]))) +
   labs(x = "Sample Size", y = "Coverage Rate") +
   theme_bw() +
   theme(legend.position = "none") +

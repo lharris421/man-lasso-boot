@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
 import re
 import sys
+
 trg = ''
 pattern = r'\w+\((["\'])([^\'"]+)\1.*\)'
 
-with open(sys.argv[1]) as file:
-    for line in file:
-        if line.strip().startswith('pdf(') or line.strip().startswith('png('):
-            trg = re.search(pattern, line).group(2)
-            break
-
-if trg == '':
-    sys.stderr.write(f'Error: {sys.argv[1]} has no targets\n')
-    sys.exit(1)
+# Skip the file 'setup.R'
+if sys.argv[1].endswith('setup.R'):
+    sys.stderr.write(f'Info: Skipping file {sys.argv[1]}\n')
 else:
-    print(trg)
+    with open(sys.argv[1]) as file:
+        for line in file:
+            if line.strip().startswith('pdf(') or line.strip().startswith('png('):
+                trg = re.search(pattern, line).group(2)
+                break
+
+    if trg == '':
+        sys.stderr.write(f'Warning: {sys.argv[1]} has no targets\n')
+    else:
+        print(trg)

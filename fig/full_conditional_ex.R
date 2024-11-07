@@ -1,5 +1,5 @@
 ## Setup
-source("./fig/setup/setup.R")
+source("./fig/setup.R")
 
 beta_seq <- seq(-0.5, 0.5, by = .01)
 lambda <- 0.1

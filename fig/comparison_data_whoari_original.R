@@ -1,26 +1,44 @@
-## Setup
-source("./fig/setup/setup.R")
+source("./fig/setup.R")
 
-## Load Data
-data_type <- "whoari"
-methods <- c("blp")
-alpha <- .2
-lambda <- "cv"
-
-params_grid <- expand.grid(list(data = data_type, method = methods, lambda = lambda,
-                                nominal_coverage = (1-alpha) * 100))
-
-indexr:::generate_hash(list(data = data_type, method = methods, lambda = lambda,
-                            nominal_coverage = (1-alpha) * 100))
-# Fetching and combining data
-cis <- list()
-for (i in 1:nrow(params_grid)) {
-  res <- read_objects(rds_path, params_grid[i,])
-  cis[[i]] <- res$confidence_interval
+alpha <- 0.2
+for (i in 1:length(methods)) {
+  methods[[i]]$method_arguments["alpha"] <- alpha
 }
-cis <- do.call(dplyr::bind_rows, cis) %>% data.frame()
+
+simulation_info <- list(seed = 1234, iterations = 1,
+                        simulation_function = "gen_data_distribution", simulation_arguments = list(
+                          distribution = "whoari"
+                        ), script_name = "distributions", same_lambda = TRUE)
+
+## Load data back in
+methods <- methods[c("lasso_proj_boot_shortcut")]
+
+files <- expand.grid(
+  "method" = names(methods),
+  stringsAsFactors = FALSE
+)
+
+results <- list()
+for (i in 1:nrow(files)) {
+
+  results[[i]] <- indexr::read_objects(
+    rds_path,
+    c(methods[[files[i,"method"]]], simulation_info)
+    # args
+  ) %>%
+    mutate(method = files %>% filter(1:n() == i) %>% pull(method))
+}
+
+
+cis <- bind_rows(results)
+
+cis %>%
+  mutate(is_not_zero = lower > 0 | upper < 0) %>%
+  group_by(method) %>%
+  summarise(sum(is_not_zero))
+
 
 ## Plotting
 pdf("./fig/comparison_data_whoari_original.pdf", width = 8, height = 5)
-plot_ci_comparison(cis, nvars = 66)
+plot_ci_comparison(cis, nvars = 66, ref = "lasso_proj_boot_shortcut")
 dev.off()

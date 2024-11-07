@@ -1,5 +1,5 @@
 ## Setup
-source("./fig/setup/setup.R")
+source("./fig/setup.R")
 
 alpha <- .2
 args_list <- list(data = "laplace",

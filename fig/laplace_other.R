@@ -1,56 +1,65 @@
-## Setup
-source("./fig/setup/setup.R")
+source("./fig/setup.R")
 
-methods <- c("selectiveinference", "lasso", "blp")
-ns <- c(50, 100, 400)
-data_type <- "laplace"
-SNR <- 1
-alpha <- .2
-p <- 100
-lambda <- "cv"
-
-params_grid <- expand.grid(list(data = data_type, n = ns, snr = SNR, lambda = lambda,
-                                method = methods,
-                                nominal_coverage = (1 - alpha) * 100, p = p))
-
-params_grid <- cbind(params_grid, alpha = rep(c(NA, 1, NA), each = 3))
-
-# Fetching and combining data
-per_var_data <- list()
-per_dataset_data <- list()
-for (i in 1:nrow(params_grid)) {
-  res_list <- read_objects(rds_path, params_grid[i,])
-  per_var_data[[i]] <- res_list$per_var_n
-  if (params_grid$method[i] == "lasso") {
-    per_var_data[[i]] <-  per_var_data[[i]] %>%
-      filter(submethod %in% c("hybrid"))
-  }
-  if (params_grid$method[i] %in% c("blp", "selectiveinference")) {
-    per_var_data[[i]] <-  per_var_data[[i]] %>%
-      rename(lower = estimate, upper = lower, estimate = upper)
-  }
-  per_dataset_data[[i]] <- res_list$per_dataset_n
+alpha <- 0.2
+for (i in 1:length(methods)) {
+  methods[[i]]$method_arguments["alpha"] <- alpha
 }
-per_var_data <- do.call(rbind, per_var_data) %>%
-  data.frame()
-per_var_data$n <- glue("({sapply(per_var_data$n, function(x) which(ns == x))}) {per_var_data$n}")
-per_dataset_data <- do.call(rbind, per_dataset_data) %>%
-  data.frame()
-per_dataset_data$n <- glue("({sapply(per_dataset_data$n, function(x) which(ns == x))}) {per_dataset_data$n}")
 
-n_methods <- length(unique(per_var_data$submethod))
-methods <- unique(per_var_data$submethod)
+simulation_info <- list(seed = 1234, iterations = 1000,
+                        simulation_function = "gen_data_distribution", simulation_arguments = list(
+                          p = 100, SNR = 1
+                        ), script_name = "distributions")
+
+## Load data back in
+methods <- methods[c("lasso_boot", "selective_inference")]
+ns <- c(50, 100, 400)
+distributions <- c( "laplace")
+
+files <- expand.grid("method" = names(methods), "n" = ns, "distribution" = distributions, stringsAsFactors = FALSE)
+
+results <- list()
+results_per_sim <- list()
+for (i in 1:nrow(files)) {
+
+  simulation_info$simulation_arguments$n <- files[i,] %>% pull(n)
+  simulation_info$simulation_arguments$distribution <- files[i,] %>% pull(distribution)
+
+  results[[i]] <- indexr::read_objects(
+    rds_path,
+    c(methods[[files[i,"method"]]], simulation_info)
+    # args
+  ) %>%
+    mutate(method = files[i,] %>% pull(method), n = factor(files[i,] %>% pull(n)))
+
+  results_per_sim[[i]] <- indexr::read_objects(
+    rds_path,
+    c(methods[[files[i,"method"]]], simulation_info)
+    # args
+  ) %>%
+    group_by(iteration) %>%
+    mutate(index = 1:n()) %>%
+    ungroup() %>%
+    filter(index == 1) %>%
+    mutate(method = files[i,] %>% pull(method), n = factor(files[i,] %>% pull(n))) %>%
+    select(method, n, time)
+
+}
+
+results <- bind_rows(results)
+results_per_sim <- bind_rows(results_per_sim)
+
+methods <- names(methods)
+n_methods <- length(methods)
 
 
 ## Coverage
-p1 <- per_var_data %>%
+p1 <- results %>%
   filter(!is.na(estimate)) %>%
   mutate(covered = lower <= truth & upper >= truth) %>%
-  group_by(submethod, group, n) %>%
+  group_by(method, iteration, n) %>%
   summarise(coverage = mean(covered, na.rm = TRUE)) %>%
   ungroup() %>%
-  mutate(group = glue("{submethod}-{n}")) %>%
-  ggplot(aes(x = methods_pretty[submethod], y = coverage, group = group, fill = n)) +
+  ggplot(aes(x = methods_pretty[method], y = coverage, fill = n)) +
   geom_boxplot() +
   geom_hline(yintercept = 1 - alpha) +
   scale_fill_manual(values = colors, name = "Sample Size", labels = c("50", "100", "400")) +
@@ -58,16 +67,9 @@ p1 <- per_var_data %>%
   xlab("Method") +
   theme_bw()
 
-tmp <- per_var_data %>%
-  filter(!is.na(estimate)) %>%
-  mutate(covered = lower <= truth & upper >= truth) %>%
-  group_by(submethod, group, n) %>%
-  summarise(coverage = mean(covered, na.rm = TRUE))
-
 ## Time
-p2 <- per_dataset_data %>%
-  mutate(group = glue("{method}-{n}")) %>%
-  ggplot(aes(x = methods_pretty[method], y = time, group = group, fill = n)) +
+p2 <- results_per_sim %>%
+  ggplot(aes(x = methods_pretty[method], y = time, fill = n)) +
   geom_boxplot() +
   scale_fill_manual(values = colors, name = "Sample Size", labels = c("50", "100", "400")) +
   ylab("Time") +
@@ -75,13 +77,12 @@ p2 <- per_dataset_data %>%
   theme_bw() +
   scale_y_continuous(labels = function(x) x, trans = "log10")
 
-p3 <- per_var_data %>%
+p3 <- results %>%
   mutate(width = upper - lower) %>%
-  group_by(submethod, group, n) %>%
+  group_by(method, iteration, n) %>%
   summarise(width = median(width, na.rm = TRUE)) %>%
   ungroup() %>%
-  mutate(group = glue("{submethod}-{n}")) %>%
-  ggplot(aes(x = methods_pretty[submethod], y = width, group = group, fill = n)) +
+  ggplot(aes(x = methods_pretty[method], y = width, fill = n)) +
   geom_boxplot() +
   scale_fill_manual(values = colors, name = "Sample Size", labels = c("50", "100", "400")) +
   ylab(expression(`Median Width`)) +
@@ -90,19 +91,19 @@ p3 <- per_var_data %>%
   scale_y_continuous(labels = function(x) x, trans = "log10")
 
 ## 28, 2 failed / 4, 10, 3, infinite median
-per_var_data %>%
+results %>%
   mutate(width = upper - lower) %>%
-  group_by(submethod, group, n) %>%
+  group_by(method, iteration, n) %>%
   summarise(width = median(width, na.rm = TRUE)) %>%
   ungroup() %>%
-  mutate(group = glue("{submethod}-{n}")) %>%
+  mutate(group = glue("{method}-{n}")) %>%
   group_by(group) %>%
   summarise(nonfinite_median = mean(is.infinite(width)))
 
-per_var_data %>%
-  filter(method == "selectiveinference") %>%
+results %>%
+  filter(method == "selective_inference") %>%
   mutate(width = upper - lower) %>%
-  group_by(method, group, n) %>%
+  group_by(method, iteration, n) %>%
   summarise(width = any(is.infinite(width), na.rm = TRUE)) %>%
   ungroup() %>%
   mutate(group = glue("{method}-{n}")) %>%
