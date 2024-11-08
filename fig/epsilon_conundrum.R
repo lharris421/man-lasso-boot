@@ -24,7 +24,7 @@ for (i in 1:nrow(files)) {
 
   results[[i]] <- indexr::read_objects(
     rds_path,
-    c(methods[[files[i,"method"]]], simulation_info)
+    c(methods[[files[i,"method"]]], simulation_info), print_hash = TRUE
     # args
   ) %>%
     mutate(method = files[i,] %>% pull(method), distribution = files[i,] %>% pull(distribution), n = files[i,] %>% pull(n))

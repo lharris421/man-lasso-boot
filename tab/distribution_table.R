@@ -17,9 +17,8 @@ simulation_info <- list(seed = 1234, iterations = 1000,
 ## Load data back in
 methods <- methods[c("lasso_boot")]
 ns <- c(50, 100, 400)
-# distributions <- c( "beta", "laplace", "normal", "t", "uniform", "beta",
-#                     "sparse 1", "sparse 2", "sparse 3")
-distributions <- c( "beta", "laplace", "normal", "t", "uniform", "beta")
+distributions <- c( "beta", "laplace", "normal", "t", "uniform", "beta",
+                    "sparse 1", "sparse 2", "sparse 3")
 
 files <- expand.grid("method" = names(methods), "n" = ns, "distribution" = distributions, stringsAsFactors = FALSE)
 

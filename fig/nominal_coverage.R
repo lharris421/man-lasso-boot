@@ -9,7 +9,7 @@ data_type <- "laplace"
 per_var_data <- list()
 alphas <- c(0.05, 0.1, 0.2)
 p <- 100
-ns <- p * nprod
+ns <- c(50, 100, 400)
 SNR <- 1
 modifier <- NA
 

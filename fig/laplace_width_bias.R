@@ -33,6 +33,24 @@ for (i in 1:nrow(files)) {
 
 results <- bind_rows(results)
 
+trad_sign_inv <- results %>%
+  filter(method == "traditional") %>%
+  mutate(
+    sign_inv = sign_inversion(lower, upper, truth),
+    sign_inv2 = sign(upper) != sign(truth) & sign(lower) != sign(truth) & (sign(upper) != 0 | sign(lower) != 0)
+  ) %>%
+  # filter(sign(upper) != sign(truth) & sign(lower) != sign(truth) & (sign(upper) != 0 & sign(lower) != 0))
+  filter(sign_inv2)
+
+trad_sign_inv_ex <- trad_sign_inv %>% filter(iteration == 1) %>% pull(variable)
+
+results %>%
+  filter(iteration == 1 & variable %in% trad_sign_inv_ex)
+
+results %>%
+  filter(method == "traditional") %>%
+  nrow()
+
 plot_res <- list()
 methods <- names(methods)
 xs <- seq(0, 0.275, by = .01)
@@ -66,9 +84,14 @@ for (i in 1:length(methods)) {
       bias_high = miss_high(lower, upper, truth),
       bias_low = miss_low(lower, upper, truth),
       bias_sign = sign_inversion(lower, upper, truth),
-      bias_lowsign = miss_low(lower, upper, truth) + sign_inversion(lower, upper, truth),
-      mag_truth = abs(truth)
+      covered = lower <= truth & truth <= upper,
+      mag_truth = abs(truth),
+      summ1 = bias_high + bias_low + bias_sign + covered
     )
+
+  print(methods[i])
+  print(plot_data %>% pull(bias_sign) %>% table())
+  print(plot_data %>% pull(summ1) %>% table())
 
   fit <- gam(bias_high ~ s(mag_truth), data = plot_data, family = binomial)
   ys_high <- predict(fit, data.frame(mag_truth = xs, group = 101), type ="response")
@@ -79,10 +102,7 @@ for (i in 1:length(methods)) {
   fit <- gam(bias_sign ~ s(mag_truth), data = plot_data, family = binomial)
   ys_sign <- predict(fit, data.frame(mag_truth = xs, group = 101), type ="response")
 
-  fit <- gam(bias_lowsign ~ s(mag_truth), data = plot_data, family = binomial)
-  ys_lowsign <- predict(fit, data.frame(mag_truth = xs, group = 101), type ="response")
-
-  plot_res[[i]] <- data.frame(xs = xs, bias = ys_low - ys_high, bias_low = ys_low, bias_high = ys_high, bias_sign = ys_sign, bias_lowsign = ys_lowsign, method = methods_pretty[methods[i]])
+  plot_res[[i]] <- data.frame(xs = xs, bias = ys_low - ys_high, bias_low = ys_low, bias_high = ys_high, bias_sign = ys_sign, method = methods_pretty[methods[i]])
 
 }
 

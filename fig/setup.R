@@ -4,18 +4,13 @@ res_dir <- switch(Sys.info()['user'],
                   'pbreheny' = '~/res/lasso-boot',
                   'loganharris' = '../lasso-boot')
 
-
-res_dir2 <- switch(Sys.info()['user'],
-                   'pbreheny' = '~/res/lasso-to-boot',
-                   'loganharris' = '../lasso-to-boot')
-
 devtools::load_all(res_dir)
-rds_path <- c(glue::glue("{res_dir}/rds/"), glue::glue("{res_dir2}/rds/"))
+rds_path <- glue::glue("{res_dir}/rds/")
 
 packages <- c(
   "dplyr", "tidyr", "ggplot2", "gridExtra", "scales", "kableExtra",
   "grid", "glue", "lme4", "mgcv", "splines", "digest", "indexr",
-  "patchwork", "knitr", "dissertation"
+  "patchwork", "knitr"
 )
 quietlyLoadPackage <- function(package) {
   suppressPackageStartupMessages(library(package, character.only = TRUE))
@@ -30,11 +25,7 @@ background_colors <- c("#E2E2E2", "#F5F5F5")
 methods_pretty <- c(
   "traditional" = "Traditional Bootstrap",
   "posterior" = "Posterior",
-  "debiased" = "Debiased",
   "hybrid" = "Hybrid",
-  "acceptreject" = "Accept/Reject",
-  "zerosample1" = "Zero Sample Single",
-  "zerosample2" = "Hybrid",
   "selective_inference" = "Selective Inference",
   "selectiveinference" = "SI",
   "blp" = "BLP",
@@ -58,12 +49,6 @@ methods_pretty <- c(
   "lasso_proj_boot_shortcut" = "BLP",
   "mcp_boot" = "MCP Hybrid Bootstrap"
 )
-
-# Options
-ci_method <- "quantile"
-save_rds <- FALSE
-nprod <- c(0.5, 1, 4)
-
 methods <- list(
   "lasso_boot" = list(method = "boot_ncv", method_arguments = list(penalty = "lasso", submethod = "hybrid")),
   "mcp_boot" = list(method = "boot_ncv", method_arguments = list(penalty = "MCP", submethod = "hybrid")),
