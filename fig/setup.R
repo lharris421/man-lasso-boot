@@ -23,7 +23,7 @@ background_colors <- c("#E2E2E2", "#F5F5F5")
 #"black"   "#DF536B" "#61D04F" "#2297E6" "#28E2E5" "#CD0BBC" "#F5C710" "gray62"
 
 methods_pretty <- c(
-  "traditional" = "Traditional Bootstrap",
+  "traditional" = "Traditional",
   "posterior" = "Posterior",
   "hybrid" = "Hybrid",
   "selective_inference" = "Selective Inference",
@@ -43,7 +43,7 @@ methods_pretty <- c(
   "ridge" = "Ridge",
   "pipeposterior" = "Posterior (PIPE)",
   "pipeposteriorrelaxed" = "Relaxed Lasso",
-  "lasso_boot" = "Hybrid Bootstrap",
+  "lasso_boot" = "Hybrid",
   "lasso_posterior_pipe" = "Posterior (PIPE)",
   "lasso_proj_boot" = "BLP",
   "lasso_proj_boot_shortcut" = "BLP",

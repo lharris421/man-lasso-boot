@@ -8,10 +8,10 @@ for (i in 1:length(methods)) {
 simulation_info <- list(seed = 1234, iterations = 1,
                         simulation_function = "gen_data_distribution", simulation_arguments = list(
                           distribution = "whoari"
-                        ), script_name = "distributions", same_lambda = TRUE)
+                        ), script_name = "distributions")
 
 ## Load data back in
-methods <- methods[c("lasso_proj_boot_shortcut")]
+methods <- methods[c("lasso_proj_boot")]
 
 files <- expand.grid(
   "method" = names(methods),
@@ -40,5 +40,5 @@ cis %>%
 
 ## Plotting
 pdf("./fig/comparison_data_whoari_original.pdf", width = 8, height = 5)
-plot_ci_comparison(cis, nvars = 66, ref = "lasso_proj_boot_shortcut")
+plot_ci_comparison(cis, nvars = 66, ref = "lasso_proj_boot")
 dev.off()
