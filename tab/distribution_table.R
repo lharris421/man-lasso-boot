@@ -16,7 +16,7 @@ simulation_info <- list(seed = 1234, iterations = 1000,
 
 ## Load data back in
 methods <- methods[c("lasso_boot")]
-ns <- c(50, 100, 400)
+ns <- c(50, 100, 400, 1000)
 distributions <- c( "beta", "laplace", "normal", "t", "uniform", "beta",
                     "sparse 1", "sparse 2", "sparse 3")
 
@@ -59,7 +59,7 @@ results <- bind_rows(results) %>%
     Distribution = factor(Distribution, levels = stringr::str_to_title(names(ps))),
   ) %>%
   arrange(Distribution) %>%
-  select(` `, Distribution, `50`, `100`, `400`)
+  select(` `, Distribution, `50`, `100`, `400`, `1000`)
 
 
 ps <- ps[stringr::str_to_lower(results$Distribution)]
@@ -70,12 +70,12 @@ names(ps) <- paste0('distribution_table_', letters[1:length(ps)])
 # Assuming wide_data is your data frame
 kbl(results,
     format = "latex",
-    align = "ccccc",  # Alignments for the columns
+    align = "cccccc",  # Alignments for the columns
     booktabs = TRUE,
     digits = 3,
     linesep = "",
     table.envir = NULL) %>%
-  add_header_above(c("  " = 2, "Sample Size" = 3)) %>%
+  add_header_above(c("  " = 2, "Sample Size" = 4)) %>%
   column_spec(1, image = spec_hist(ps, breaks = 20, dir='./fig', file_type='pdf')) %>%
   stringr::str_replace_all('file:.*?/fig/', '') %>%
   write('tab/distribution_table.tex')
