@@ -41,13 +41,12 @@ methods_pretty <- c(
   "enet1" = "Elastic Net (0.8)",
   "elastic_net" = "Elastic Net (0.8)",
   "ridge" = "Ridge",
-  "pipeposterior" = "Posterior (PIPE)",
-  "pipeposteriorrelaxed" = "Relaxed Lasso",
   "lasso_boot" = "Hybrid",
   "lasso_posterior_pipe" = "Posterior (PIPE)",
   "lasso_proj_boot" = "BLP",
   "lasso_proj_boot_shortcut" = "BLP",
-  "mcp_boot" = "MCP Hybrid Bootstrap"
+  "mcp_boot" = "MCP Hybrid Bootstrap",
+  "mcp" = "MCP Posterior"
 )
 methods <- list(
   "lasso_boot" = list(method = "boot_ncv", method_arguments = list(penalty = "lasso", submethod = "hybrid")),
@@ -59,7 +58,8 @@ methods <- list(
   "lasso_proj_boot" = list(method = "blp", method_arguments = list()),
   "lasso_proj_boot_shortcut" = list(method = "blp", method_arguments = list(boot.shortcut = TRUE)),
   "elastic_net" = list(method = "boot_ncv", method_arguments = list(penalty = "lasso", submethod = "hybrid", enet_alpha = 0.8)),
-  "ridge" = list(method = "ridge", method_arguments = list())
+  "ridge" = list(method = "ridge", method_arguments = list()),
+  "mcp"   = list(method = "posterior", method_arguments = list(penalty = "MCP"))
 )
 for (i in 1:length(methods)) {
   methods[[i]]$method_arguments["alpha"] <- 0.2
