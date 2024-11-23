@@ -94,39 +94,40 @@ It is worth noting that in the above theorem we are focused on the average cover
 
 \section{Lasso Bootstrap Confidence Intervals}\label{Sec:methods}
 
-In this section, we present an alternative method to the traditional bootstrap for obtaining bootstrap draws. Let $b \in \lbrace 1, \ldots, B \rbrace$ indicate the $b^{th}$ bootstrap draw. The \textbf{Traditional bootstrap} simply takes the point estimate, $\hat{\beta}_j^b$, for each $\beta_j$ for each respective bootstrap sample. As suggested previously, this leads to issues if a large majority of $\hat{\beta}_j^b = 0$ for a given $j$. So, when $\hat{\beta}_j^b = 0$ the \textbf{Hybrid bootstrap} leverages the Bayesian formulation of the model. Specifically, for each bootstrap sample, if a given $\beta_j$ is equal to zero a random draw from the full conditional posterior is obtained instead of taking the point estimate, which for the lasso is equivalent to the mode of the posterior. 
+In this section, we present an alternative method to the traditional bootstrap for obtaining bootstrap draws in sparse penalized regression models for a given $\lam$. Let $b \in \lbrace 1, \ldots, B \rbrace$ indicate the $b^{th}$ bootstrap draw. The \textbf{Traditional bootstrap} simply takes the point estimate, $\hat{\beta}_j^b$, for each $\beta_j$ for each respective bootstrap sample. As suggested previously, this leads to issues if a large majority of $\hat{\beta}_j^b = 0$ for a given $j$. So we propose the \textbf{Hybrid bootstrap}, which focuses on the full conditional distribution of $\beta_j$, viewed as a Bayesian posterior. The traditional bootstrap draw $\hat{\beta}_j^b$ is the mode of this distribution; we propose instead that when $\hat{\beta}_j^b = 0$, this draw is replaced by a draw from full conditional distribution.
 
-The above describes the conceptual idea of the Hybrid bootstrap. The remainder of this section presents its specific application to lasso-penalized linear regression. Section \ref{Sec:full-cond} defines and derives the full conditional distributions needed for the sampling and explicit calculations for the Hybrid bootstrap are then given in Section~\ref{Sec:implementation}.
+This is the main idea of the Hybrid bootstrap. The remainder of this section presents its specific application to lasso-penalized linear regression. Section \ref{Sec:full-cond} defines and derives the full conditional distributions needed for the sampling and the explicit algorithm for the Hybrid bootstrap is presented in Section~\ref{Sec:implementation}.
 
 \subsection{Full conditional distributions for the lasso}
 \label{Sec:full-cond}
 
-In this section, we provide a high level derivation of the full conditional posterior distributions for lasso-penalized regression. Full details, including how to perform sampling, are provided in Supplement~\ref{Sup:A}.
+In this section, we provide a high level derivation of the full conditional posterior distributions for lasso-penalized regression. Complete details, including how to perform sampling, are provided in Supplement~\ref{Sup:A}.
 
-As with other penalized regression models, the lasso can be formulated as a Bayesian regression model by setting an appropriate prior. This was addressed initially by \cite{Tibshirani1996} and covered more extensively by \cite{Park2008}. For the lasso, the corresponding prior is a Laplace distribution, also referred to as the double-exponential distribution: $$\p(\bb) = \prod_{j = 1}^{p} \frac{\gamma}{2}\exp(-\gamma \abs{\beta_j}), \gamma > 0.$$ With this prior, the lasso estimate, $\bbh(\lam)$, is the posterior mode for $\bb$ when $\lam = \gamma \frac{\sigma^2}{n}$.
+As with other penalized regression models, the lasso can be formulated as a Bayesian regression model by setting an appropriate prior. This was initially noted by \cite{Tibshirani1996} and explored more extensively by \cite{Park2008}. For the lasso, the corresponding prior is a Laplace distribution, also referred to as the double-exponential distribution: $$\p(\bb) = \prod_{j = 1}^{p} \frac{\gamma}{2}\exp(-\gamma \abs{\beta_j}), \gamma > 0.$$ With this prior, the lasso estimate, $\bbh(\lam)$, is the posterior mode for $\bb$ when $\lam = \gamma \frac{\sigma^2}{n}$.
 
-The full conditional posterior for $\beta_j$ is defined as the distribution for $\beta_j$ conditional on $\bb_{-j} = \bbh_{-j}(\lam)$. Once $\lambda$ is selected, $\bb_{-j}$ is set equal to $\hat{\bb}_{-j}(\lambda)$ and $\r_{j}$, the partial residuals, are then defined as $\y - \X_{-j}\hat{\bb}_{-j}(\lambda)$. To reduce notational distractions, we only explicitly condition on $\r_{j}$ to denote full conditional distributions. A normal likelihood and Laplace prior are not conjugate. However, the full conditional posterior can be shown to be a mixture of right and left truncated normals where the truncation occurs at zero for right and left tails respectively. In this manuscript, we will assume that $\X$ has been standardized s.t. $\x_j^T\x_j = n$. Then, as shown in Supplement~\ref{Sup:A}, for $\beta_j$,
-
+The full conditional posterior for $\beta_j$ is defined as the distribution for $\beta_j$ conditional on $\bb_{-j} = \bbh_{-j}(\lam)$. Once $\lambda$ is selected, $\bb_{-j}$ is set equal to $\hat{\bb}_{-j}(\lambda)$ and $\r_{j}$, the partial residuals, are then defined as $\y - \X_{-j}\hat{\bb}_{-j}(\lambda)$. To simplify notation, we only explicitly condition on $\r_{j}$ to denote full conditional distributions. A normal likelihood and Laplace prior are not conjugate. However, the full conditional posterior can be shown to be a mixture of right and left truncated normals where the truncation occurs at zero for right and left tails respectively. In this manuscript, we assume that $\X$ has been standardized s.t. $\x_j^T\x_j = n$. Then, as shown in Supplement~\ref{Sup:A}, for $\beta_j$,
 \as{
 L(\beta_j | \r_{j}) &\propto \exp(-\frac{n}{2\sigma^2} (\beta_j^2 - 2z_j\beta_j)), \\
 \text{ where } z_{j} &= \frac{1}{n} \x_{j}^{T}\r_{j} \text{, and} \\
-P(\beta_j | \r_{j}) &\propto
+p(\beta_j | \r_{j}) &\propto
 \begin{cases}
-C_{-} \exp(-\frac{n}{2\sigma^2} (\beta_j - (z_j + \lambda))^2), \text{ if } \beta_j < 0, \\
-C_{+} \exp(-\frac{n}{2\sigma^2} (\beta_j - (z_j - \lambda))^2), \text{ if } \beta_j \geq 0 \\
+C_{-} \exp\{-\frac{n}{2\sigma^2} (\beta_j - (z_j + \lambda))^2\}, \text{ if } \beta_j < 0, \\
+C_{+} \exp\{-\frac{n}{2\sigma^2} (\beta_j - (z_j - \lambda))^2\}, \text{ if } \beta_j \geq 0 \\
 \end{cases}
 }
+where $C_{-} = \exp(\frac{z_j \lambda n}{\sigma^2})$ and $C_{+} = \exp(-\frac{z_j \lambda n}{\sigma^2})$.
 
-Where, $C_{-} = \exp(\frac{z_j \lambda n}{\sigma^2})$ and $C_{+} = \exp(-\frac{z_j \lambda n}{\sigma^2})$.
+\pb{I don't have a problem with the above, but is it really simpler to write $p(\beta_j|\r_j)$ instead of $p(\beta_j|\bb_{-j})$? The latter is the more conventional way to write a full conditional.}
 
-What makes this formulation attractive is that a mapping allows tail probabilities from the posterior to be translated to probabilities onto corresponding known normal distributions (i.e. $\N(z_j \pm \lambda, \frac{\sigma^2}{n})$). This allows for numerically stable and efficient sampling to be obtained from the full conditional posteriors.
+\pb{I think we need a little more detail here; specifically the idea that (1) draw from $\Unif(0,1)$, then (2) determine which tail we're drawing from, then (3) draw from the corresponding normal.}
+What makes this formulation attractive is that a mapping allows tail probabilities from the posterior to be translated to probabilities onto corresponding known normal distributions (i.e. $\Norm(z_j \pm \lambda, \frac{\sigma^2}{n})$). This allows for numerically stable and efficient sampling to be obtained from the full conditional posteriors.
 
 This solution corresponds to a particular value of $\lam$ and $\hat{\sigma}^2$. Our recommendation is to use cross validation (CV) to select $\lam$ and produce an estimate for $\sigma^2$ and to produce bootstrap confidence intervals corresponding to these values. Specifically when using CV to select $\lambda$ and estimate $\sigma^2$, we recommend using the value of $\lambda$ which minimizes the cross validation error (CVE) and to use CVE as the estimate for $\sigma^2$. We will denote this $\lambda$ as $\lam_{\CV}$. Our recommendation for using the $\lambda$ value which minimizes CVE is because this generally serves as a good estimate of the true value of $\lambda$ when it is known.
 
 \subsection{Implementation}
 \label{Sec:implementation}
 
-With the full conditional posterior now defined for the linear regression lasso, we can provide the algorithm for implementing the Hybrid bootstrap. Let $B$ represent the total number of bootstrap datasets generated and let $\boldsymbol{\X}^b$ and $\boldsymbol{\y}^{b}$ refer to the $b^{th}$ bootstrap sample. Similarly, let $\hat{\beta}^b_j$ refer to the estimate for $\beta_j$ from the lasso fit to $\boldsymbol{\X}^b$ and $\boldsymbol{\y}^b$ at a specified value of $\lam$. Then, the methods can be implemented as follows:
+With the full conditional posterior now defined for the lasso-penalized linear regression, we can provide the algorithm for implementing the Hybrid bootstrap. Let $B$ represent the total number of bootstrap datasets generated and let $\boldsymbol{\X}^b$ and $\boldsymbol{\y}^{b}$ refer to the $b^{th}$ bootstrap sample. Similarly, let $\hat{\beta}^b_j$ refer to the estimate for $\beta_j$ from the lasso fit to $\boldsymbol{\X}^b$ and $\boldsymbol{\y}^b$ at a specified value of $\lam$. The Hybrid bootstrap is then implemented as follows:
 
 \begin{enumerate}
 \item Perform CV using the original data to select $\lam$ and estimate $\sigma^2$
@@ -155,7 +156,9 @@ With the full conditional posterior now defined for the linear regression lasso,
 \item For each $\beta_j$, compute the quantiles for $p_L = \alpha/2$ and $p_U = 1 - \alpha/2$ from the $j^{th}$ column of the draws to produce a final confidence interval estimate with significance level $\alpha$
 \end{enumerate}
 
-There are various ways to perform the bootstrap and subsequently obtain confidence intervals. A large body of research exists on various bootstrap implementations, and \cite{Efron1994} in \textit{An Introduction to the Bootstrap} provides an accessible overview on the core body of knowledge. In this manuscript, we use the pairs bootstrap and quantile intervals as this is one of the common ways of obtaining bootstrap confidence intervals and requires few assumptions. That said, our focus in this manuscript is on the conceptual underpinnings of how the Hybrid bootstrap addresses the issues of the Traditional bootstrap.
+There are various ways to perform the bootstrap and subsequently obtain confidence intervals \citep{Efron1994}. In this manuscript, we use the pairs bootstrap and quantile intervals as this is a very common way of obtaining bootstrap confidence intervals and requires few assumptions. The hybrid idea proposed here can certainly be applied to other bootstrap approaches, although we restrict ourselves to a single method here in order to maintain focus on the conceptual differences between the Hybrid and Traditional bootstrap.
+
+\pb{Just a thought: Should we mention here that there are two potential variations on this idea? First is to always draw from the posterior. But that's too conservative. Second would be to draw from what we might call the ``restricted full conditional.'' Instead of drawing from $\Unif(0,1)$, we draw from $\Unif(0.25, 0.75)$ or something. This would be less conservative, but I think still turned out OK?}
 
 \section{Results}
 \label{Sec:results}
