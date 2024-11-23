@@ -8,7 +8,7 @@ Nevertheless, inference for the lasso has proven challenging. By introducing bot
 
 There have also been various proposals for constructing confidence intervals (CIs), although the shrinkage/bias introduced by the $L_1$ penalty introduces a number of challenges here. Several methods \citep{ZhangZhang2014,Javanmard2014} focus on ``debiasing'' the original point estimates from a lasso fit to facilitate more traditional forms of inference. An alternative approach, which accounts for the uncertainty in model selection by conditioning on the selected model is known as selective inference \citep{LeeEtAl2016}, although it is worth noting that this approach only produces intervals for variables that were selected by the model.
 
-The bootstrap is often a natural choice for handling complex sampling distributions. However, \cite{Chatterjee2010} demonstrated that when applied to lasso estimators, the bootstrap is inconsistent -- even if the lasso model itself is $\sqrt{n}$-consistent. For this reason, efforts to bootstrap lasso models have focused instead on bootstrapping de-biased (or de-sparsified) versions of the lasso \citep{Dezeure2017}.
+The bootstrap is often a natural choice for handling complex sampling distributions. However, \cite{Chatterjee2010} demonstrated that when applied to lasso estimators, the bootstrap is inconsistent -- even if the lasso model itself is $\sqrt{n}$-consistent with respect to estimating $\bb$. For this reason, efforts to bootstrap lasso models have focused instead on bootstrapping de-biased (or de-sparsified) versions of the lasso \citep{Dezeure2017}.
 
 In this manuscript, we take up the question of whether bootstrapping lasso estimators is perhaps more useful than the statistical community is giving it credit for. In particular: does the bootstrap not work at all, or does it merely not work \emph{in the classical sense}? And if it doesn't work, can the bootstrap be modified so that it does? We find that the answer is a combination of both. Yes, there does need to be a methodological adjustment to fix the bootstrap, but also a change in perspective. Bootstrapping biased lasso estimators may not yield correct coverage in the classical sense for each individual coefficient, but we show that it \emph{does} result in approximately correct overall, or average, coverage. There is no objectively correct perspective, but we discuss the differences between them and hope the reader finds the debate illuminating. For the sake of simplicity, we focus on lasso-penalized linear regression, but most of the discussion is relevant to any sparse penalty and loss.
 
@@ -17,14 +17,16 @@ Section 2 examines the underlying concepts in more detail and Section 3 introduc
 \section{Issues with Bootstrapping the lasso}
 \label{Sec:Difficulties}
 
-There are two fundamental reasons that the bootstrap fails to be consistent when applied to lasso models. One of these issues requires an adjustment to the bootstrap; the other requires a change in perspective. To facilitate discussion, we will refer to these issues as
+There are two fundamental reasons that the bootstrap fails to be consistent when applied to lasso models. One of these issues requires an adjustment to the bootstrap; the other involves a change in perspective. To facilitate discussion, we will refer to these issues as
 
 \begin{itemize}
 \item Epsilon Conundrum (EC), and
-\item Individual vs Average Coverage (IAC)
+\item Individual vs Average Coverage (IAC) \pb{do we need these acronyms?}
 \end{itemize}
 
-The Epsilon Conundrum is a side effect of the sparsity introduced by the $L_1$ penalty. Because the lasso model is sparse, many of the bootstrap draws will be exactly zero. If we then construct bootstrap percentile intervals, there is a substantial probability that one or both of the endpoints will be exactly equal to zero. If the true value of the coefficient is zero, this does not pose a problem. However, if the true value is not exactly zero, but simply very small (say, a distance $\eps$ from zero), the coverage of the bootstrap interval is nowhere close to its nominal value.
+The Epsilon Conundrum is a side effect of the sparsity introduced by the $L_1$ penalty. Because the lasso model is sparse, many of the bootstrap draws will be exactly zero. If we then construct bootstrap percentile intervals, there is a substantial probability that one or both of the endpoints will be exactly equal to zero. If the true value of the coefficient is zero, this does not pose a problem. However, if the true value is not exactly zero, but simply very small (say, a distance $\eps$ from zero), the coverage of the bootstrap interval may be far less than its nominal value.
+
+\pb{We need to be clear here what $\lam$ was; I'm assuming that for each data set, it was $\lam_{\CV}$?}
 
 Figure~\ref{Fig:ec} shows that this is exactly what happens when a traditional bootstrapping approach is applied to the lasso. In this example, 100 datasets were generated, each with 94 coefficients randomly set to be about $\pm 3 \times 10^{-10}$ with the other 6 being relatively large in comparison. The plot illustrates 20 CIs along with their corresponding point estimates (filled black circle) and true values (open red circle), as applied to one of the datasets. Across all 100 datasets, the average coverage was 26.7\%, far below the nominal coverage rate of 80\%. In Section~\ref{Sec:methods}, we propose a method for addressing this issue, which produces the results on the right side of Figure~\ref{Fig:ec}.
 
@@ -37,11 +39,27 @@ Figure~\ref{Fig:ec} shows that this is exactly what happens when a traditional b
 
 The coverage reported at the top of Figure 1 is the average coverage across all $p$ confidence intervals. This is not, however, the focus of classical frequentist coverage, which is concerned with achieving proper coverage for each model parameter individually. In a penalized regression model, these can be quite different and we refer to this notion as Individual vs Average Coverage (IAC).
 
-Formally, letting $\cA$ denote a random interval and $I(\cdot)$ the indicator function, classical frequentist inference requires that $\int I(\theta \in \cA | \y) p(\y | \theta) d\y \ge 1 - \alpha$ for all values of $\theta$ (here, $\theta$ represents a generic). In this sense, the coverage behavior of interest is more or less isolated for each individual interval. However, in the context of regression, we rarely consider a single covariate, but instead have many covariates with likely a range of true coefficient values. This brings up an alternative, more permissive, way to consider coverage. The alternative would be to consider the average coverage for the collection of intervals over a distribution of the likely values of $\beta$. This is the idea covered in the following theorem.
+\pb{Reorganization started here}
+
+Letting $\cA(\y)$ denote a process that produces an interval based on data $\y$, the coverage probability for the process is defined as $\cvr(\theta) = \Pr\{\theta \in \cA(\y)\}$. Classical frequentist inference requires valid intervals to satisfy $\cvr(\theta) = 1 - \alpha$ for all values of $\theta$ (or potentially $\ge 1 - \alpha$). This is, however, incompatible with Bayesian inference. Bayesian credible intervals cannot, in general, have the same coverage for each $\theta$. What they satisfy instead is maintaining the expected coverage with respect to the prior distribution of $\theta$: $\int \cvr(\theta)p(\theta) \, d\theta = 1 - \alpha$ (this is not the definition of credibility, but it is a consequence, as we show later in this section). Unless the prior is uniform, the coverage of a Bayesian credible interval will be greater than $1-\alpha$ for some $\theta$ and less than $1-\alpha$ for other values of $\theta$.
+
+For example, consider the credible intervals for $\theta$ in a $\Norm(\theta, 1)$ model with prior $\theta \sim \Norm(0, \tau^2)$. Figure~\ref{Fig:laplace} illustrates the coverage probability for the 80\% Bayesian credible interval over a range of $\theta$ values. Where the prior density for $\theta$ is highest, the coverage is above 80\%, whereas regions where the prior density is low have coverage below 80\%. The expected coverage, however, is exactly 80\%. This is fundamentally true of any Bayesian model with an informative prior, which will never satisfy $\cvr(\theta) = 1 - \alpha$ for all values of $\theta$.
+
+In high dimensional problems, there is yet another quantity we can consider: the average coverage. Rather than integrating over a hypothetical distribution of $\theta$ values, we can average over the distribution of parameters present in the model. In other words, we might choose to require that our intervals satisfy $p^{-1} \sum_{j=1}^p \cvr(\theta_j) = 1-\alpha$. This criteria follows more of a Bayesian perspective than a classical frequentist perspective, although it does not specifically require or involve a prior.
+
+Our goal in this paper is not to argue that one of these perspectives is correct and the others are wrong, but rather that the average coverage perspective is a reasonable one and worthy of consideration. It should not be taken for granted that classical ideas developed for single parameter inference are the best way to approach inference for large numbers of parameters simultaneously. Furthermore, the Bayesian perspective seems to make sense in the context of penalized regression, since these models are intentionally imposing shrinkage towards a prior notion of which values of the parameter are more likely.
+
+In Section~\ref{Sec:methods}, we propose a solution to the Epsilon Conundrum and in Section~\ref{Sec:results} we see that the resulting bootstrap confidence intervals, while they do not satisfy classical coverage requirements, perform quite well with respect to the average coverage criterion. We end this section with a short theorem making the explicit connection between Bayesian credible intervals and average coverage.
+
+\pb{Reorganization ends here}
+
+\pb{For this theorem, I think we should take out the $\ge$. There is no $\ge$ concept in Bayesian credible intervals -- we know the prior, so we can calculate credibility exactly.}
+
+\pb{Also, I don't think the prior needs to be ``correct'' in order for this theorem to work. If you integrate the coverage with respect to the prior, you get $1-\alpha$, period. That's true regardless of whether the prior is correct or not. I restated the theorem so that it matches the above, but didn't touch the proof yet. Wanted to see what you thought first.}
 
 \begin{thm}
   \label{Thm:bcc}
-  If the likelihood is correctly specified according to the true data generating mechanism, $p(\y | \bt)$, then credible sets obtained from $p(\bt|\y)$ will have proper coverage when averaged over the distribution of likely values of $\theta$ if the prior distribution, $p(\bt)$, is correctly specified according to the distribution of $\theta$ values.
+  If the likelihood is correctly specified according to the true data generating mechanism, $p(\y | \bt)$, then a $1-\alpha$ credible set for any parameter $\theta_j$ will satisfy $\int \cvr(\theta_j)p(\bt) d\bt = 1 - \alpha$.
 \end{thm}
 
 \begin{proof}
@@ -69,11 +87,9 @@ It is worth noting that in the above theorem we are focused on the average cover
   &= 1 - \alpha
 }
 
-To illustrate this idea in a simple example, consider a single parameter model to compute the CI for a sample mean assuming a normal likelihood and applying a normal prior, similar to what is encountered in Ridge regression. In this example, the coverage probability for a given $\theta$ can be computed in closed form. Figure~\ref{Fig:laplace} displays exactly that and demonstrates that coverage probability is both above and below the nominal coverage rate, depending on the value of $\theta$, but that on average the coverage is equal to the nominal coverage rate.
-
-The idea then being that to maintain proper coverage, individual intervals can deviate from the nominal coverage rate, but averaged over the distribution of likely values for $\beta$, the coverage must be greater than or equal to the nominal coverage rate. We argue that this is a reasonable perspective on coverage rates for confidence intervals arising from penalized regression models applied to high dimensional datasets. 
-
-Along with solving the issue of the Epsilon Conundrum, the intervals proposed in Section~\ref{Sec:methods} of this manuscript have a Bayesian feel to them in the sense that they obey the proposed collective definition of coverage. Alternatively, an attempt could be made to debias the intervals in order to meet the traditional frequentest definition of coverage. This proposition of a new definition of coverage is not to say that attempts at debiasing are unwarranted, indeed, meeting the traditional definition of coverage also means that this relaxed definition is satisfied. However, intervals that do not attempt to meet the rigid definition for coverage, using methods such as debiasing, are arguably more faithful to the model fit, an idea we will revisit later.
+% NOTE: I'm commenting this out for now...I think we should make these points, certainly, but Section 2 might not be the right place.
+%
+% Along with solving the issue of the Epsilon Conundrum, the intervals proposed in Section~\ref{Sec:methods} of this manuscript have a Bayesian feel to them in the sense that they obey the proposed collective definition of coverage. Alternatively, an attempt could be made to debias the intervals in order to meet the traditional frequentest definition of coverage. This proposition of a new definition of coverage is not to say that attempts at debiasing are unwarranted, indeed, meeting the traditional definition of coverage also means that this relaxed definition is satisfied. However, intervals that do not attempt to meet the rigid definition for coverage, using methods such as debiasing, are arguably more faithful to the model fit, an idea we will revisit later.}
 
 
 \section{Lasso Bootstrap Confidence Intervals}\label{Sec:methods}
