@@ -26,7 +26,7 @@ for (i in 1:nrow(files)) {
 
   results[[i]] <- indexr::read_objects(
     rds_path,
-    c(methods[["lasso_boot"]], simulation_info)
+    c(methods[[1]], simulation_info)
     # args
   ) %>%
     mutate(

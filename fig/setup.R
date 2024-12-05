@@ -59,7 +59,8 @@ methods <- list(
   "lasso_proj_boot_shortcut" = list(method = "blp", method_arguments = list(boot.shortcut = TRUE)),
   "elastic_net" = list(method = "boot_ncv", method_arguments = list(penalty = "lasso", submethod = "hybrid", enet_alpha = 0.8)),
   "ridge" = list(method = "ridge", method_arguments = list()),
-  "mcp"   = list(method = "posterior", method_arguments = list(penalty = "MCP"))
+  "mcp"   = list(method = "posterior", method_arguments = list(penalty = "MCP")),
+  "lasso_relaxed" = list(method = "posterior", method_arguments = list(penalty = "lasso", relaxed = TRUE))
 )
 for (i in 1:length(methods)) {
   methods[[i]]$method_arguments["alpha"] <- 0.2

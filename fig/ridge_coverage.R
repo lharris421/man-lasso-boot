@@ -49,6 +49,7 @@ prior_variance <- .1^2
 sigma2 <- .1^2     # Likelihood variance
 n <- 1         # Sample size
 theta_values <- seq(-.3, .3, length.out = 100)  # Range of theta values
+# theta_values <- seq(-3, 3, length.out = 100)
 z <- qnorm(1 - alpha / 2)
 
 # Calculate prior and likelihood precisions
