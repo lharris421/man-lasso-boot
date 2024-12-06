@@ -43,7 +43,7 @@ The coverage reported at the top of Figure 1 is the average coverage across all 
 
 Letting $\cA(\y)$ denote a process that produces an interval based on data $\y$, the coverage probability for the process is defined as $\cvr(\theta) = \Pr\{\theta \in \cA(\y)\}$. Classical frequentist inference requires valid intervals to satisfy $\cvr(\theta) = 1 - \alpha$ for all values of $\theta$ (or potentially $\ge 1 - \alpha$). This is, however, incompatible with Bayesian inference. Bayesian credible intervals cannot, in general, have the same coverage for each $\theta$. What they satisfy instead is maintaining the expected coverage with respect to the prior distribution of $\theta$: $\int \cvr(\theta)p(\theta) \, d\theta = 1 - \alpha$ (this is not the definition of credibility, but it is a consequence, as we show later in this section). Unless the prior is uniform, the coverage of a Bayesian credible interval will be greater than $1-\alpha$ for some $\theta$ and less than $1-\alpha$ for other values of $\theta$.
 
-For example, consider the credible intervals for $\theta$ in a $\Norm(\theta, 100)$ model with prior $\theta \sim \Norm(0, \tau^2 = 100)$ \logan{Review this together}. Figure~\ref{Fig:laplace} illustrates the coverage probability for the 80\% Bayesian credible interval over a range of $\theta$ values. Where the prior density for $\theta$ is highest, the coverage is above 80\%, whereas regions where the prior density is low have coverage below 80\%. The expected coverage, however, is exactly 80\%. This is fundamentally true of any Bayesian model with an informative prior, which will never satisfy $\cvr(\theta) = 1 - \alpha$ for all values of $\theta$.
+For example, consider the credible intervals for $\theta$ in a $\Norm(\theta, \sigma^2)$ model with prior $\theta \sim \Norm(0, \tau^2)$ with $\sigma = \tau = 1$. Figure~\ref{Fig:laplace} illustrates the coverage probability for the 80\% Bayesian credible interval over a range of $\theta$ values. Where the prior density for $\theta$ is highest, the coverage is above 80\%, whereas regions where the prior density is low have coverage below 80\%. The expected coverage, however, is exactly 80\%. This is fundamentally true of any Bayesian model with an informative prior, which will never satisfy $\cvr(\theta) = 1 - \alpha$ for all values of $\theta$.
 
 In high dimensional problems, there is yet another quantity we can consider: the average coverage. Rather than integrating over a hypothetical distribution of $\theta$ values, we can average over the distribution of parameters present in the model. In other words, we might choose to require that our intervals satisfy $p^{-1} \sum_{j=1}^p \cvr(\theta_j) = 1-\alpha$. This criteria follows more of a Bayesian perspective than a classical frequentist perspective, although it does not specifically require or involve a prior.
 
@@ -52,8 +52,6 @@ Our goal in this paper is not to argue that one of these perspectives is correct
 In Section~\ref{Sec:methods}, we propose a solution to the Epsilon Conundrum and in Section~\ref{Sec:results} we see that the resulting bootstrap confidence intervals, while they do not satisfy classical coverage requirements, perform quite well with respect to the average coverage criterion. We end this section with a short theorem making the explicit connection between Bayesian credible intervals and average coverage.
 
 \pb{Reorganization ends here}
-
-\pb{For this theorem, I think we should take out the $\ge$. There is no $\ge$ concept in Bayesian credible intervals -- we know the prior, so we can calculate credibility exactly.} \logan{I have no attachment to $\ge$, in the body of the proof the $\ge$ just comes from defining the credible region as such in the setup. This is just how Dan introduced it in Bayesian (with $\ge$).}
 
 \pb{Also, I don't think the prior needs to be ``correct'' in order for this theorem to work. If you integrate the coverage with respect to the prior, you get $1-\alpha$, period. That's true regardless of whether the prior is correct or not. I restated the theorem so that it matches the above, but didn't touch the proof yet. Wanted to see what you thought first.} \logan{Okay, yeah I agree now.}
 
@@ -78,13 +76,7 @@ Assume the likelihood is correctly specified according to the true data generati
 
 \end{proof}
 
-It is worth noting that in the above theorem we are focused on the average coverage of a single $\theta_j$ but still integrated over the joint posterior. As a direct result of the theorem, however, then the average coverage of $p$ intervals will also be equal to $1-\alpha$:
-
-\as{
-  \int \int \frac{1}{p} \sum_{j=1}^p I(\theta_j \in \cA_j(\y)) p(\y | \bt)d\y p(\bt)d\bt &= \frac{1}{p}\sum_{j=1}^p\int \int I(\theta_j \in \cA_j(\y)) p(\y | \bt)d\y p(\bt)d\bt  \\
-  &= \frac{1}{p}\sum_{j=1}^p (1-\alpha) \\
-  &= 1 - \alpha
-}
+It is worth noting that in the above theorem we are focused on the average coverage of a single $\theta_j$ but still integrated over the joint posterior. As a direct result of the theorem, however, then the average coverage of $p$ intervals will also be equal to $1-\alpha$.
 
 % NOTE: I'm commenting this out for now...I think we should make these points, certainly, but Section 2 might not be the right place.
 %
@@ -160,7 +152,7 @@ There are various ways to perform the bootstrap and subsequently obtain confiden
 
 \pb{Just a thought: Should we mention here that there are two potential variations on this idea? First is to always draw from the posterior. But that's too conservative. Second would be to draw from what we might call the ``restricted full conditional.'' Instead of drawing from $\Unif(0,1)$, we draw from $\Unif(0.25, 0.75)$ or something. This would be less conservative, but I think still turned out OK?}
 
-\logan{I 100\% agree we should mention the always draw variation here... I am not sure if I see the value in bringing up the ``restricted full conditional.''}
+\logan{In agreeance after discussion}
 
 \section{Results}
 \label{Sec:results}
@@ -178,7 +170,7 @@ As originally pointed out in \cite{Rubin1981}, there is a quasi-equivalence betw
 \logan{Need to rethink the notion of "ideal"}
 For a lasso model, this occurs when each $\beta_j$ independently follows a Laplace (double exponential) distribution. 
 
-For the simulations in this section, we scaled the coefficients after drawing them so that $\bb^T\bb = 1$. With $\sigma^2=1$ and independent features, this results in a signal-to-noise ratio (SNR) of 1.
+For the simulations in this section, we scaled the coefficients after drawing them so that $\frac{\bb^T\bb}{p} = 1$. With $\sigma^2=100$ and independent features, this results in a signal-to-noise ratio (SNR) of 1.
 
 We generated 1000 independent data sets; for each data set, $B = 1000$ bootstrap iterations were drawn for each of the methods described in Section~\ref{Sec:methods}. Each dataset was simulated as follows. $\X$ was generated independently from a $N(0, 1)$ with $n = p = 100$. Then, $\y$ was generated as $\y = \X\bb + \bvep$, where $\veps_i \iid N(0, 1)$. The results are shown in Figure~\ref{Fig:laplace}, where the dotted lines represent the average coverage for each method across all coefficients, while the solid lines are smoothed estimates of coverage as a function of $\beta$. The black line indicates the nominal coverage rate, which is set to be 80\%.
 
