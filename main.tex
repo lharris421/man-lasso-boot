@@ -53,7 +53,7 @@ In Section~\ref{Sec:methods}, we propose a solution to the Epsilon Conundrum and
 
 \pb{Reorganization ends here}
 
-\pb{Also, I don't think the prior needs to be ``correct'' in order for this theorem to work. If you integrate the coverage with respect to the prior, you get $1-\alpha$, period. That's true regardless of whether the prior is correct or not. I restated the theorem so that it matches the above, but didn't touch the proof yet. Wanted to see what you thought first.} \logan{Okay, yeah I agree now.}
+\pb{Also, I don't think the prior needs to be ``correct'' in order for this theorem to work. If you integrate the coverage with respect to the prior, you get $1-\alpha$, period. That's true regardless of whether the prior is correct or not. I restated the theorem so that it matches the above, but didn't touch the proof yet. Wanted to see what you thought first.} \logan{Okay, yeah I agree now. See updated paragraph after proof based on our discussion.}
 
 \begin{thm}
   \label{Thm:bcc}
@@ -76,7 +76,7 @@ Assume the likelihood is correctly specified according to the true data generati
 
 \end{proof}
 
-It is worth noting that in the above theorem we are focused on the average coverage of a single $\theta_j$ but still integrated over the joint posterior. As a direct result of the theorem, however, then the average coverage of $p$ intervals will also be equal to $1-\alpha$.
+It is worth noting that in the above theorem we are focused on the average coverage of a single $\theta_j$ but still integrated over the joint posterior. As a direct result of the theorem, however, then the average coverage of $p$ intervals will also be equal to $1-\alpha$. \logan{In this manuscript, we in fact are not integrating with respect to a prior distribution. Instead we claim that $\frac{1}{p}\sum \cvr(\theta_j) \approx 1 - \alpha$ if the empirical distribution of $\bt$ closely resembles the prior implied by the lasso penalty. In Section~\ref{Sec:robustness}, however, we find that this generally holds even is the empirical distribution differs greatly.}
 
 % NOTE: I'm commenting this out for now...I think we should make these points, certainly, but Section 2 might not be the right place.
 %
@@ -110,9 +110,9 @@ where $C_{-} = \exp(\frac{z_j \lambda n}{\sigma^2})$ and $C_{+} = \exp(-\frac{z_
 
 \pb{I think we need a little more detail here; specifically the idea that (1) draw from $\Unif(0,1)$, then (2) determine which tail we're drawing from, then (3) draw from the corresponding normal.}
 
-\logan{I think 1 belongs and is covered below, but I added more detail for 2/3. I more meant this section just to set up the full conditional.}
+\logan{I think 1 belongs and is covered below, but I added more detail for 2/3. I more meant this section just to set up the full conditional. Simplified after discussion in meeting.}
 
-What makes this formulation attractive is that quantiles can be efficiently computed from the full conditional posterior. Specifically, with a desired probability one is able to determine what tail the corresponding quantile should come from. Then, a mapping allows the original tail probability of interest from the posterior to be translated to a corresponding probability on a normal distribution (i.e. $\Norm(z_j \pm \lambda, \frac{\sigma^2}{n})$) that is related to those that make up the tails of the posterior.
+What makes this formulation attractive is that quantiles can be efficiently computed from the full conditional posterior. Not directly from the full conditional posterior, but instead from corresponding normal distributions. In brief, first, with a desired probability, one is able to determine what normal the corresponding quantile should come from. Then, second, a mapping allows the quantile to be computed from that normal distribution.
 
 This solution corresponds to a particular value of $\lam$ and $\hat{\sigma}^2$. Our recommendation is to use cross validation (CV) to select $\lam$ and produce an estimate for $\sigma^2$ and to produce bootstrap confidence intervals corresponding to these values. Specifically when using CV to select $\lambda$ and estimate $\sigma^2$, we recommend using the value of $\lambda$ which minimizes the cross validation error (CVE) and to use CVE as the estimate for $\sigma^2$. We will denote this $\lambda$ as $\lam_{\CV}$. Our recommendation for using the $\lambda$ value which minimizes CVE is because this generally serves as a good estimate of the true value of $\lambda$ when it is known.
 
@@ -150,9 +150,13 @@ With the full conditional posterior now defined for the lasso-penalized linear r
 
 There are various ways to perform the bootstrap and subsequently obtain confidence intervals \citep{Efron1994}. In this manuscript, we use the pairs bootstrap and quantile intervals as this is a very common way of obtaining bootstrap confidence intervals and requires few assumptions. The hybrid idea proposed here can certainly be applied to other bootstrap approaches, although we restrict ourselves to a single method here in order to maintain focus on the conceptual differences between the Hybrid and Traditional bootstrap.
 
+\logan{In addition, one can imagine several variations on the algorithm as proposed above, specifically with respect to how sampling in performed from the posterior. For example, we considered always drawing from the posterior (not just when $\bh_j^b = 0$) however this resulted in substantial over coverage as we are essentially double accounting for uncertainaty in two ways: the bootstrap and sampling from the posterior. Actually, even the hybrid method as proposed tends to be over conservative as we will show. In order to combat this, a modification could be made in the other direction where we draw from a ``restricted'' version of the full conditional posterior, i.e. draw from $\Unif(0.25, 0.75)$ instead of $\Unif(0,1)$. This would address the epsilon conundrum while reducing the over coverage, although one would need to determine the appropriate level of restriction. In a similar vein, attention could also be given to the estimation of $\sigma^2$ which directly effects the variability of the draws, further consideration of which is given in the Discussion.}
+
+\logan{With this all in mind, just like with the various way to perform the bootstrap, we leave these alternative considerations for exploration in future work in order to maintain focus on the conceptual underpinnings being proposed.}
+
 \pb{Just a thought: Should we mention here that there are two potential variations on this idea? First is to always draw from the posterior. But that's too conservative. Second would be to draw from what we might call the ``restricted full conditional.'' Instead of drawing from $\Unif(0,1)$, we draw from $\Unif(0.25, 0.75)$ or something. This would be less conservative, but I think still turned out OK?}
 
-\logan{In agreeance after discussion}
+\logan{In agreeance after discussion, see above}
 
 \section{Results}
 \label{Sec:results}
@@ -165,12 +169,7 @@ Unless otherwise noted, the nominal coverage rate in all of these experiments is
 
 We compare the Hybrid bootstrap CIs to the Traditional bootstrap CIs by showing the coverage of each, both overall and as the magnitude of $\beta$ changes.
 
-As originally pointed out in \cite{Rubin1981}, there is a quasi-equivalence between a bootstrap sampling distribution and a Bayesian posterior. This along with the connection made by Theorem~\ref{Thm:bcc} of average coverage and Bayesian credible intervals suggests, there is reason to expect that the Hybrid bootstrap method has proper average coverage. 
-
-\logan{Need to rethink the notion of "ideal"}
-For a lasso model, this occurs when each $\beta_j$ independently follows a Laplace (double exponential) distribution. 
-
-For the simulations in this section, we scaled the coefficients after drawing them so that $\frac{\bb^T\bb}{p} = 1$. With $\sigma^2=100$ and independent features, this results in a signal-to-noise ratio (SNR) of 1.
+As originally pointed out in \cite{Rubin1981}, there is a quasi-equivalence between a bootstrap sampling distribution and a Bayesian posterior. This along with the connection made by Theorem~\ref{Thm:bcc} of average coverage and Bayesian credible intervals suggests, there is reason to expect that the Hybrid bootstrap method has approximately proper average coverage when the emperical distribution of $\bt$ matches the prior implied by the lasso penalty. This \emph{can} occur when each $\beta_j$ independently follows a Laplace (double exponential) distribution. For the simulations in this section, we scaled the coefficients after drawing them so that $\frac{\bb^T\bb}{p} = 1$. With $\sigma^2=100$ and independent features, this results in a signal-to-noise ratio (SNR) of 1.
 
 We generated 1000 independent data sets; for each data set, $B = 1000$ bootstrap iterations were drawn for each of the methods described in Section~\ref{Sec:methods}. Each dataset was simulated as follows. $\X$ was generated independently from a $N(0, 1)$ with $n = p = 100$. Then, $\y$ was generated as $\y = \X\bb + \bvep$, where $\veps_i \iid N(0, 1)$. The results are shown in Figure~\ref{Fig:laplace}, where the dotted lines represent the average coverage for each method across all coefficients, while the solid lines are smoothed estimates of coverage as a function of $\beta$. The black line indicates the nominal coverage rate, which is set to be 80\%.
 
