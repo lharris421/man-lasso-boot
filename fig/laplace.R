@@ -7,7 +7,7 @@ for (i in 1:length(methods)) {
 
 simulation_info <- list(seed = 1234, iterations = 1000,
                         simulation_function = "gen_data_distribution", simulation_arguments = list(
-                          p = 100, SNR = 1
+                          p = 100, SNR = 1, sigma = 10
                         ), script_name = "distributions")
 
 ## Load data back in
@@ -35,11 +35,11 @@ for (i in 1:nrow(files)) {
 results <- bind_rows(results)
 model_res <- calculate_model_results(results)
 
-cutoff <- 0.3
+cutoff <- 3
 line_data <- list()
 line_data_avg <- list()
 xvals <- seq(from = -cutoff, to = cutoff, length.out = cutoff * 100 + 1)
-density_data <- data.frame(x = xvals, density = 2 * dlaplace(xvals, rate = 14.14))
+density_data <- data.frame(x = xvals, density = 2 * dlaplace(xvals, rate = 1.414))
 
 methods <- unique(results$method)
 for (i in 1:length(methods)) {
@@ -75,10 +75,10 @@ p1 <- ggplot() +
 ## Set parameters
 alpha <- 0.2
 prior_mean <- 0
-prior_variance <- .1^2
-sigma2 <- .1^2     # Likelihood variance
+prior_variance <- 1^2
+sigma2 <- 1^2     # Likelihood variance
 n <- 1         # Sample size
-theta_values <- seq(-.3, .3, length.out = 100)  # Range of theta values
+theta_values <- seq(-3, 3, length.out = 100)  # Range of theta values
 z <- qnorm(1 - alpha / 2)
 
 # Calculate prior and likelihood precisions

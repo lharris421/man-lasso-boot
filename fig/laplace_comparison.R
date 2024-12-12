@@ -7,11 +7,11 @@ for (i in 1:length(methods)) {
 
 simulation_info <- list(seed = 1234, iterations = 1000,
                         simulation_function = "gen_data_distribution", simulation_arguments = list(
-                          p = 100, SNR = 1
+                          p = 100, SNR = 1, sigma = 10
                         ), script_name = "distributions")
 
 ## Load data back in
-methods <- methods[c("lasso_boot", "selective_inference", "lasso_proj_boot")]
+methods <- methods[c("lasso_boot", "selective_inference")]
 # methods <- methods[c("lasso_proj_boot")]
 ns <- c(100)
 distributions <- c( "laplace")
@@ -36,11 +36,11 @@ for (i in 1:nrow(files)) {
 results <- bind_rows(results)
 model_res <- calculate_model_results(results)
 
-cutoff <- 0.275
+cutoff <- 3
 line_data <- list()
 line_data_avg <- list()
-xvals <- seq(from = 0, to = cutoff, length.out = cutoff * 100 + 1)
-density_data <- data.frame(x = xvals, density = 2 * dlaplace(xvals, rate = 14.14))
+xvals <- seq(from = -cutoff, to = cutoff, length.out = cutoff * 100 + 1)
+density_data <- data.frame(x = xvals, density = 2 * dlaplace(xvals, rate = 1.414))
 
 methods <- unique(results$method)
 for (i in 1:length(methods)) {
@@ -51,7 +51,7 @@ for (i in 1:length(methods)) {
 
   cat("Average coverage: ", mean(tmp$covered), "\n")
 
-  xs <- seq(0, cutoff, by = 0.01)
+  xs <- seq(-cutoff, cutoff, by = 0.01)
   line_data[[i]] <- predict_covered(tmp, xs, methods[i])
   line_data_avg[[i]] <- data.frame(avg = mean(tmp$covered), method = methods_pretty[methods[i]])
 

@@ -11,7 +11,7 @@ beta_seq <- seq(-0.5, 0.5, by = .001)
 lambda <- 0.1
 sigma2 <- 1
 n <- 100
-zjs <- c(0)
+zjs <- c(0.2)
 
 post_dens <- function(x, n, lambda, zj, sigma2) {
   if (x < 0) {

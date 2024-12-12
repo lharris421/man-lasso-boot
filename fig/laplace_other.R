@@ -7,11 +7,11 @@ for (i in 1:length(methods)) {
 
 simulation_info <- list(seed = 1234, iterations = 1000,
                         simulation_function = "gen_data_distribution", simulation_arguments = list(
-                          p = 100, SNR = 1
+                          p = 100, SNR = 1, sigma = 10
                         ), script_name = "distributions")
 
 ## Load data back in
-methods <- methods[c("lasso_boot", "selective_inference", "lasso_proj_boot")]
+methods <- methods[c("lasso_boot", "selective_inference")]
 ns <- c(50, 100, 400)
 distributions <- c( "laplace")
 

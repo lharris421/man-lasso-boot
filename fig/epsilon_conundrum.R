@@ -4,9 +4,9 @@ for (i in 1:length(methods)) {
   methods[[i]]$method_arguments["alpha"] <- 0.2
 }
 
-simulation_info <- list(seed = 1234, iterations = 1000,
+simulation_info <- list(seed = 1234, iterations = 1000, same_lambda = TRUE,
                         simulation_function = "gen_data_distribution", simulation_arguments = list(
-                          p = 100, SNR = 1
+                          p = 100, SNR = 1, sigma = 10
                         ), script_name = "distributions")
 
 ## Load data back in
