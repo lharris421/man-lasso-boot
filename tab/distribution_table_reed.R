@@ -11,14 +11,13 @@ source("./fig/setup.R")
 
 simulation_info <- list(seed = 1234, iterations = 1000,
                         simulation_function = "gen_data_distribution", simulation_arguments = list(
-                          p = 100, SNR = 1
+                          p = 100, SNR = 1, sigma = 10
                         ), script_name = "distributions")
 
 ## Load data back in
-methods <- methods[c("lasso_boot")]
-ns <- c(50, 100, 400, 1000)
-distributions <- c( "beta", "laplace", "normal", "t", "uniform", "beta",
-                    "sparse 1", "sparse 2", "sparse 3")
+methods <- methods[c("lasso_boot_reed")]
+ns <- c(50, 100, 400)
+distributions <- c( "laplace", "normal", "t", "uniform", "beta")
 
 files <- expand.grid("method" = names(methods), "n" = ns, "distribution" = distributions, stringsAsFactors = FALSE)
 
@@ -36,7 +35,7 @@ for (i in 1:nrow(files)) {
     mutate(method = files[i,] %>% pull(method), distribution = files[i,] %>% pull(distribution), n = files[i,] %>% pull(n))
 }
 
-tmp <- bind_rows(results) %>%
+bind_rows(results) %>%
   group_by(distribution, n) %>%
   summarise(mean(sigma), mean(lambda), mean(estimate == 0))
 
@@ -63,7 +62,7 @@ results <- bind_rows(results) %>%
     Distribution = factor(Distribution, levels = stringr::str_to_title(names(ps))),
   ) %>%
   arrange(Distribution) %>%
-  select(` `, Distribution, `50`, `100`, `400`, `1000`)
+  select(` `, Distribution, `50`, `100`, `400`)
 
 
 ps <- ps[stringr::str_to_lower(results$Distribution)]
@@ -79,7 +78,7 @@ kbl(results,
     digits = 3,
     linesep = "",
     table.envir = NULL) %>%
-  add_header_above(c("  " = 2, "Sample Size" = 4)) %>%
+  add_header_above(c("  " = 2, "Sample Size" = 3)) %>%
   column_spec(1, image = spec_hist(ps, breaks = 20, dir='./fig', file_type='pdf')) %>%
   stringr::str_replace_all('file:.*?/fig/', '') %>%
-  write('tab/distribution_table.tex')
+  write('tab/distribution_table_reed.tex')

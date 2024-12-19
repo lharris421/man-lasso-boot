@@ -124,3 +124,11 @@ Figure~\ref{Fig:true_lambda} shows the results of the simulation described with 
 Figure~\ref{Fig:nominal_coverage} is similar to Figure~\ref{Fig:laplace}, but focuses only on Hybrid and gives simulation results for three values of n across three different nominal coverage rates. Since the Hybrid bootstrap method has a varying coverage rates depending on the magnitude of $\beta$, it is important to consider different nominal coverages. Otherwise, it is conceivable that a method could perform well at one coverage rate but not another. However, that is not the case here. Regardless of the nominal coverage, the general pattern remains the same: the method over covers for smaller values of n but coverage converges to the nominal coverage rate relatively quickly. The only difference seen is the compression of this pattern for higher nominal coverage rates.
 
 \end{appendices}
+
+\section{Distribution Table Original}\label{Sup:E}
+
+\begin{table}[hbtp]
+  \centering
+  \input{tab/distribution_table}
+  \caption{\label{Tab:dist_beta} Results are from the simulation described in Section~\ref{Sec:Distribution}. The nominal coverage rate is 80\%. The setup is the same as the previous simulations, except with $\bb$ being generated under 7 alternative (to the laplace) distributions and the addition of a fourth sample size, n = 1000. To maintain the specified SNR of 1, $\bb$ is normalized. Prior to normalization, Sparse 1 had $\bb_{1-10} = \pm(0.5, 0.5, 0.5, 1, 2)$ and $\bb_{11-100} = 0$. Sparse 2 had $\bb_{1-30} \sim N(0, 1)$ with the rest equal to zero.  Sparse 3 had $\bb_{1-50} \sim N(0, 1)$ with the rest equal to zero. All distributions of $\bb$ were centered at zero. For normal, laplace, and uniform, after normalization, the original scale is arbitrary. For the T distribution, df was set to 3 and the Beta distribution was generated from Beta(0.1, 0.1) - 0.5. Note that the distribution for Sparse 1 is fixed and that for Sparse 1 and 2 that, like for the Normal, the choice of scale for the non-zero coefficients is arbitrary.}
+\end{table}

@@ -11,8 +11,8 @@ simulation_info <- list(seed = 1234, iterations = 1000,
                         ), script_name = "distributions")
 
 ## Load data back in
-methods <- methods[c("lasso_boot", "traditional")]
-ns <- c(100)
+methods <- methods[c("traditional", "lasso_boot_reed")]
+ns <- c(100) ## 50
 distributions <- c( "laplace")
 
 files <- expand.grid("method" = names(methods), "n" = ns, "distribution" = distributions, stringsAsFactors = FALSE)

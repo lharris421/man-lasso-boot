@@ -11,7 +11,7 @@ simulation_info <- list(seed = 1234, iterations = 1000,
                         ), script_name = "distributions")
 
 ## Load data back in
-methods <- methods[c("lasso_boot", "selective_inference")]
+methods <- methods[c("lasso_boot_reed", "selective_inference", "lasso_proj_boot")]
 ns <- c(50, 100, 400)
 distributions <- c( "laplace")
 

@@ -42,14 +42,17 @@ methods_pretty <- c(
   "elastic_net" = "Elastic Net (0.8)",
   "ridge" = "Ridge",
   "lasso_boot" = "Hybrid",
+  "lasso_boot_reed" = "Hybrid",
   "lasso_posterior_pipe" = "Posterior (PIPE)",
   "lasso_proj_boot" = "BLP",
   "lasso_proj_boot_shortcut" = "BLP",
   "mcp_boot" = "MCP Hybrid Bootstrap",
-  "mcp" = "MCP Posterior"
+  "mcp" = "MCP Posterior",
+  "lasso" = "Posterior"
 )
 methods <- list(
   "lasso_boot" = list(method = "boot_ncv", method_arguments = list(penalty = "lasso", submethod = "hybrid")),
+  "lasso_boot_reed" = list(method = "boot_ncv", method_arguments = list(penalty = "lasso", submethod = "hybrid", sigma2_reed = TRUE)),
   "mcp_boot" = list(method = "boot_ncv", method_arguments = list(penalty = "MCP", submethod = "hybrid")),
   "traditional" = list(method = "boot_ncv", method_arguments = list(penalty = "lasso", submethod = "traditional")),
   "posterior" = list(method = "boot_ncv", method_arguments = list(penalty = "lasso", submethod = "posterior")),
@@ -60,7 +63,8 @@ methods <- list(
   "elastic_net" = list(method = "boot_ncv", method_arguments = list(penalty = "lasso", submethod = "hybrid", enet_alpha = 0.8)),
   "ridge" = list(method = "ridge", method_arguments = list()),
   "mcp"   = list(method = "posterior", method_arguments = list(penalty = "MCP")),
-  "lasso_relaxed" = list(method = "posterior", method_arguments = list(penalty = "lasso", relaxed = TRUE))
+  "lasso_relaxed" = list(method = "posterior", method_arguments = list(penalty = "lasso", relaxed = TRUE)),
+  "lasso" = list(method = "posterior", method_arguments = list(penalty = "lasso"))
 )
 for (i in 1:length(methods)) {
   methods[[i]]$method_arguments["alpha"] <- 0.2
